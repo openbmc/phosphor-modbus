@@ -16,3 +16,9 @@ default_deps = [
     phosphor_logging_dep,
     sdbusplus_dep,
 ]
+
+subdir('common')
+
+if get_option('modbus-rtu').allowed()
+    subdir('rtu')
+endif
