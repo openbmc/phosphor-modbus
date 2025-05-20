@@ -1,0 +1,7 @@
+option(
+    'modbus-rtu',
+    type: 'feature',
+    value: 'enabled',
+    description: 'Enable modbus RTU.',
+)
+
