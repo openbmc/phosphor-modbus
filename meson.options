@@ -5,3 +5,4 @@ option(
     description: 'Enable modbus RTU.',
 )
 
+option('tests', type: 'feature', description: 'Build tests')
