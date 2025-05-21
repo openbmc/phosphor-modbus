@@ -16,6 +16,24 @@
       "message": "I\u0027m working on a tool to help us manage these .clang-tidy files, but in the meantime, please duplicate this commit:\n\nhttps://gerrit.openbmc.org/c/openbmc/spdm/+/80298",
       "revId": "e7a8f368799c77881c89432b7fc6b874941c4838",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "169ff892_8f9c38e6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-05-21T23:21:07Z",
+      "side": 1,
+      "message": "Done, its the same as from docs repo, only comments seems to be dropped. Update to this one.",
+      "parentUuid": "a5193467_5be56b6d",
+      "revId": "e7a8f368799c77881c89432b7fc6b874941c4838",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
