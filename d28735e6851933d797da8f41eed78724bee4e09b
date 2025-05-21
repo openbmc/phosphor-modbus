@@ -16,6 +16,24 @@
       "message": "Not sure where this file came from, but we should not be enabling all these checks.  Please take a look at the clang-tidy in docs.",
       "revId": "d28735e6851933d797da8f41eed78724bee4e09b",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0cbf6812_345cafad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-05-21T06:49:55Z",
+      "side": 1,
+      "message": "\u003e Not sure where this file came from, but we should not be enabling all these checks.\n\nI took this file from dbus-sensors https://github.com/openbmc/dbus-sensors/blob/master/.clang-tidy\n\n\u003e Please take a look at the clang-tidy in docs.\n\nUpdated the latest file from https://github.com/openbmc/docs/blob/master/style/cpp/.clang-tidy",
+      "parentUuid": "706bafb4_7733e3aa",
+      "revId": "d28735e6851933d797da8f41eed78724bee4e09b",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
