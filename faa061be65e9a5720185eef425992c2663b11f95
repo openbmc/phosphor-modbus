@@ -16,6 +16,24 @@
       "message": "I\u0027d like to see these as they are needed.  It isn\u0027t clear from this, since there isn\u0027t any code, why this is a desirable organization and why we need the meson option.",
       "revId": "faa061be65e9a5720185eef425992c2663b11f95",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a03136fd_82c8cf08",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-05-21T06:54:18Z",
+      "side": 1,
+      "message": "Sure, we can add these along with code. I was thinking of directory layout as under -\n\ncommon - code which is common between modbus-rtu and modbus-tcp daemons.\nrtu - modbus rtu code/daemon\ntcp - modbus tcp/daemon (Not now, but when it gets worked on in future)\ntests - tests directory",
+      "parentUuid": "53a5a70a_19be6c6d",
+      "revId": "faa061be65e9a5720185eef425992c2663b11f95",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
