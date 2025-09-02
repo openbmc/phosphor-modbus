@@ -39,6 +39,13 @@ constexpr uint16_t testReadHoldingRegisterTempSignedOffset = 0x0114;
 const std::vector<uint16_t> testReadHoldingRegisterTempSigned = {
     0xFFB0}; // -80.0
 
+// Device Firmware Testing Constants
+constexpr uint16_t testReadHoldingRegisterFirmwareVersionOffset = 0x0115;
+constexpr uint16_t testReadHoldingRegisterFirmwareVersionCount = 0x2;
+const std::vector<uint16_t> testReadHoldingRegisterFirmwareVersion = {
+    0x5244, 0x4630};
+constexpr std::string testReadHoldingRegisterFirmwareVersionStr = "RDF0";
+
 static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
     testReadHoldingRegisterMap = {
         {testSuccessReadHoldingRegisterOffset,
@@ -54,6 +61,9 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
           testReadHoldingRegisterTempUnsigned}},
         {testReadHoldingRegisterTempSignedOffset,
          {testReadHoldingRegisterTempCount, testReadHoldingRegisterTempSigned}},
+        {testReadHoldingRegisterFirmwareVersionOffset,
+         {testReadHoldingRegisterFirmwareVersionCount,
+          testReadHoldingRegisterFirmwareVersion}},
 };
 
 class ServerTester
