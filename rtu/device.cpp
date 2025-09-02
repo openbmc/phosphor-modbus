@@ -480,7 +480,8 @@ auto getConfig(sdbusplus::async::context& ctx,
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
                const std::unique_ptr<SerialPortIntf>& serialPort,
                EventIntf::Events& events) :
-    ctx(ctx), config(config), serialPort(serialPort), events(events)
+    ctx(ctx), config(config), serialPort(serialPort), events(events),
+    currentFirmware(std::make_unique<DeviceFirmware>(ctx, config, serialPort))
 {
     ctx.spawn(createSensors());
 }
