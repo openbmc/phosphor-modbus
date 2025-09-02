@@ -503,6 +503,7 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
                        const config::Config& config, PortIntf& serialPort,
                        EventIntf::Events& events) :
     ctx(ctx), config(config), serialPort(serialPort), events(events)
+    currentFirmware(std::make_unique<DeviceFirmware>(ctx, config, serialPort))
 {
     info("Successfully created device {NAME}", "NAME", config.name);
 }
