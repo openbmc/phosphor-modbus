@@ -525,6 +525,13 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
 {
     createSensors();
 
+    if (!config.firmwareRegisters.empty())
+    {
+        currentFirmware =
+            std::make_unique<DeviceFirmware>(ctx, config, serialPort);
+        ctx.spawn(currentFirmware->readVersionRegister());
+    }
+
     info("Successfully created device {NAME}", "NAME", config.name);
 }
 
