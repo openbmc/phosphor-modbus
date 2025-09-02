@@ -27,9 +27,11 @@ inventory_src = files('inventory/modbus_inventory.cpp')
 
 device_src = files('device.cpp')
 
+firmware_src = files('firmware/device_firmware.cpp')
+
 executable(
     'phosphor-modbus-rtu',
-    ['device_manager.cpp', inventory_src, device_src],
+    ['device_manager.cpp', inventory_src, device_src, firmware_src],
     include_directories: ['.', common_include],
     dependencies: [default_deps],
     link_with: [modbus_common_lib, modbus_rtu_lib, modbus_rtu_port_lib],
