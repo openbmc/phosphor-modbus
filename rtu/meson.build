@@ -22,6 +22,7 @@ executable(
         'inventory_device.cpp',
         'serial_port.cpp',
         'device.cpp',
+        'firmware/device_firmware.cpp',
     ],
     include_directories: ['.', common_include],
     dependencies: [default_deps],
