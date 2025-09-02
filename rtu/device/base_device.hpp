@@ -2,7 +2,7 @@
 
 #include "base_config.hpp"
 #include "common/events.hpp"
-#include "modbus/modbus.hpp"
+#include "firmware/device_firmware.hpp"
 #include "port/base_port.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -45,6 +45,7 @@ class BaseDevice
     const config::Config config;
     PortIntf& serialPort;
     EventIntf::Events& events;
+    std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
 };
 
