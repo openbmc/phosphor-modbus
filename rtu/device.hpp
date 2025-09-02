@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/events.hpp"
+#include "firmware/device_firmware.hpp"
 #include "modbus/modbus.hpp"
 #include "serial_port.hpp"
 
@@ -155,6 +156,7 @@ class Device
     const config::Config config;
     const std::unique_ptr<SerialPortIntf>& serialPort;
     EventIntf::Events& events;
+    std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
 };
 
