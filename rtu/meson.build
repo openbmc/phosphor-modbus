@@ -25,7 +25,12 @@ modbus_rtu_dep = declare_dependency(
 
 executable(
     'phosphor-modbus-rtu',
-    ['device_manager.cpp', 'inventory_device.cpp', 'device.cpp'],
+    [
+        'device_manager.cpp',
+        'inventory_device.cpp',
+        'device.cpp',
+        'firmware/device_firmware.cpp',
+    ],
     include_directories: ['.', common_include],
     dependencies: [default_deps],
     link_with: [modbus_common_lib, modbus_rtu_lib, modbus_rtu_port_lib],
