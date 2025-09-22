@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3845476_6b73b880",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "This is still a large change. \n\nI see the Modbus Message isn\u0027t unit tested and could benefit from that. This diff would be easier to read if you pulled that out into another diff. \n\nI could also see the classes that derive from that coming in another diff",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e038eb85_cbfc8128",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "nit: you return success/failure, not the parity settings. Naming this applyParitySettings or configureParity seems better",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2adb3469_3dcf4777",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Why do we flush before? don\u0027t we want to do this after we finish the write?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ce94e59_f87bc2ea",
+        "filename": "rtu/modbus/modbus_commands.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Do we need both deviceAddress and address? Can we just use the message address?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ac7004a9_d18b91ce",
+        "filename": "rtu/modbus/modbus_commands.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Can all the ints here be `const`?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2567e65a_b4e2fd99",
+        "filename": "rtu/modbus/modbus_commands.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "I see a constructor use this but it\u0027s hard to tell why we need it. Can you explain that?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab320bd6_7fe7bc71",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "You don\u0027t use `raw` in this method. Why are we checking the size? Did you forget to add the values to `raw`?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4cc2454b_cb1fa94f",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Will we eventually support little endian?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2e2a13c_bebb29d4",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Similar comment as above. Why do we need `raw`?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f09b1ee5_81e9926f",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-22T20:42:15Z",
+      "side": 1,
+      "message": "Can we make these errors messages a little better so it\u0027s easier to tell what\u0027s happening when they fire?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
