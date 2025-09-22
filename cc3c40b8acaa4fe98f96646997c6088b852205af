@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "90cea8ac_fe1bf4ca",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "I am creating diffs based on functional units, hence i have broken the patches at that level as it becomes easier to understand how the complete unit will come together. Also, i have written my unit testing in terms of consumption model, as no one is directly going to use the Modbus Message but it will be used via the library APIs, hence i have written my unit testing for the library APIs and not the internal classes as testing library APIs will automatically test the internal classes. Having said that this doesn\u0027t mean that we cannot add unit testing for individual classes but if needed we can always add that as a separate patch.",
+      "parentUuid": "c3845476_6b73b880",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e038eb85_cbfc8128",
@@ -31,6 +49,24 @@
       "writtenOn": "2025-09-22T20:42:15Z",
       "side": 1,
       "message": "nit: you return success/failure, not the parity settings. Naming this applyParitySettings or configureParity seems better",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3681038_5f4f06e4",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e038eb85_cbfc8128",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -52,6 +88,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a539f9c9_d6363149",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "I am doing so to flush any remnant data from old operation to start a clean new operation.",
+      "parentUuid": "2adb3469_3dcf4777",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ce94e59_f87bc2ea",
@@ -65,6 +119,24 @@
       "writtenOn": "2025-09-22T20:42:15Z",
       "side": 1,
       "message": "Do we need both deviceAddress and address? Can we just use the message address?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8f3a7a9e_71315acc",
+        "filename": "rtu/modbus/modbus_commands.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "I don\u0027t see a use for address var at the moment, so i have dropped it.",
+      "parentUuid": "8ce94e59_f87bc2ea",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -86,6 +158,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d43690b_9afe28dc",
+        "filename": "rtu/modbus/modbus_commands.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac7004a9_d18b91ce",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2567e65a_b4e2fd99",
@@ -99,6 +189,24 @@
       "writtenOn": "2025-09-22T20:42:15Z",
       "side": 1,
       "message": "I see a constructor use this but it\u0027s hard to tell why we need it. Can you explain that?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "92255f61_c8fd151b",
+        "filename": "rtu/modbus/modbus_commands.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "The returned response is stored in the registers vector. I have added description above the class var definition.",
+      "parentUuid": "2567e65a_b4e2fd99",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -120,6 +228,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f2d08be_d0c0b7a0",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "raw is maxADUSize buffer which is used to marshall the modbus message for sending to a device. Here while marshalling we are checking if we are still within the message bounds otherwise throwing an overflow_error.\n\nRaw is getting used in uint8_t function on line#10 as unit16_t does 2 (x uint8_t) pushes to *this as function on line10 is the operator \u003c\u003c overloaded function for uint8_t.",
+      "parentUuid": "ab320bd6_7fe7bc71",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4cc2454b_cb1fa94f",
@@ -133,6 +259,24 @@
       "writtenOn": "2025-09-22T20:42:15Z",
       "side": 1,
       "message": "Will we eventually support little endian?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf52dc48_06cc4e2d",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "No, as per modbus spec its only big endian.",
+      "parentUuid": "4cc2454b_cb1fa94f",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -154,6 +298,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8e2d006_9099f40b",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "Please see my response in same comment.",
+      "parentUuid": "b2e2a13c_bebb29d4",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f09b1ee5_81e9926f",
@@ -167,6 +329,24 @@
       "writtenOn": "2025-09-22T20:42:15Z",
       "side": 1,
       "message": "Can we make these errors messages a little better so it\u0027s easier to tell what\u0027s happening when they fire?",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78ff7d67_5a3eb54e",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-22T22:22:27Z",
+      "side": 1,
+      "message": "The exception will have the stack trace along with the specific exception, so it will be evident from that we were inside which decode function when this specific exception fired, so i don\u0027t think we need to duplicate that information again inside the message.",
+      "parentUuid": "f09b1ee5_81e9926f",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
