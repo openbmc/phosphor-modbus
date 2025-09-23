@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d1cfa7b_b9075a85",
+        "filename": "tests/test_modbus.cpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-09-23T21:49:13Z",
+      "side": 1,
+      "message": "I think this needs some documentation on whats going on here. Overall, it took me a while to realize that we are creating mock TTYs to mock the modbus device. Can we throw that somewhere? A readme perhaps?",
+      "revId": "d77be4c5f6aa44b68c242b31b4a11928d46f91e9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
