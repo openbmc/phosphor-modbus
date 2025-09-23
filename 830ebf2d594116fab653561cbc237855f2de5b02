@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8fc8366b_6ae5a9d9",
+        "filename": "common/entity_manager_interface.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "Can we get here? Isn\u0027t the callback set in the constructor?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8189d796_5d3b6316",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "spelling: as-\u003ehas",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e228996_307a38de",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "You aren\u0027t using `addressRanges` variable\nWouldn\u0027t the linter catch that?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e460cca_8be6cef0",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "Why are you passing the reference to the unique pointer? You should be able to pass a reference without the smart pointer",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "55ee198b_bd1b57c5",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "Will this eventually move to configuration? Can we put a TODO for that?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cee318d6_22384fb1",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "2 things:\n1) Can you put a comment that this is doing ascii decoding?\n2) I think you need to break when you hit `\\0` or -`\\0`. We do similar stuff in: https://github.com/facebook/openbmc/blob/helium/common/recipes-core/rackmon2/rackmon/Register.cpp#L29-L35",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd1c3e17_f500bf6d",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "This might be a premature optimization but why do you create a string value for registers you don\u0027t care about? Can you do the string creation in fillInventorySourceProperties when you need it?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e609ba1_e5653b39",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "Is the expectation that all registers are strings? If not, how will the type be distinguished?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ecbe6ee2_25326e5e",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "Can we use a type here that has an explicit `start` and `end`",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e5a91c9b_cc5e66e7",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T04:52:11Z",
+      "side": 1,
+      "message": "can you explain what port means here?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
