@@ -54,6 +54,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "468581db_61b276c9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-23T09:27:18Z",
+      "side": 1,
+      "message": "\u003e For testing, IMO, best practices say otherwise. I\u0027m not really sure what you mean by \"testing in terms of consumption model\" but it sounds like you\u0027ll hit the same pitfalls of integration tests.  \n\u003e \n\u003e It seems strange to think that \"no one is directly going to use the Modbus Message\". That shouldn\u0027t be the reason why we don\u0027t write tests. Things will evolve with time and waiting until we need tests because things are so buggy or painful to develop seems backwards to me\n\nLooks like there is some misunderstanding. Both request and responses are inherited from Message class. I already have unit testing around message marshaling and validating to make sure the marshaled message is correct. There were some fields which were not being validated which i have added in my latest commit. Also, added test for failure scenario. Please check that.",
+      "parentUuid": "1609970b_13929953",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e038eb85_cbfc8128",
@@ -142,6 +160,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "51d17610_7c96e8e1",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-23T09:27:18Z",
+      "side": 1,
+      "message": "I think when i said flush in my previous response, it created some misunderstanding for you.\n\nThe call tcflush(fd, TCIOFLUSH) discards all unread input data and all un-transmitted output data from the terminal device associated with the file descriptor fd.\n\nSo, any new operation has a fresh start, which will start in next line with write operation of next command.",
+      "parentUuid": "bb951fec_53086dd0",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ce94e59_f87bc2ea",
@@ -191,6 +227,24 @@
       "side": 1,
       "message": "Are you sure? \n\nFrom my understanding, this should have changed your raw message first byte to always be 0. Is that correct? Doesn\u0027t this change the CRC as well?\n\nI\u0027ll reiterate that some tests here would be useful since it\u0027s pretty unclear to me what the correct value is supposed to look like. And how do we make sure someone doesn\u0027t accidentally change things in the future?",
       "parentUuid": "8f3a7a9e_71315acc",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "99cd0d8b_7f0d7ec0",
+        "filename": "rtu/modbus/modbus_commands.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-23T09:27:18Z",
+      "side": 1,
+      "message": "This address var was only supposed to be used as a reference to the raw[0] for easy use. The  device address is already being encoded/set into message as part of encode API. Thats why i said we don\u0027t need this assignment. I have added a check for deviceAddress verification in my UT and it passes.",
+      "parentUuid": "91092fbe_30ba7541",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -318,6 +372,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd7270ff_c1ad2fdf",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-23T09:27:18Z",
+      "side": 1,
+      "message": "Sure, will drop the redundant checks.",
+      "parentUuid": "80d12529_a3112311",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4cc2454b_cb1fa94f",
@@ -437,6 +509,24 @@
       "side": 1,
       "message": "I disagree. These lines can shift a bit with future modifications. Why not spend a minute now to disambiguate the errors instead of making our lives more painful when we are debugging a live system and trying to figure out what version of the code we have running to figure out which spot we ended up in?",
       "parentUuid": "78ff7d67_5a3eb54e",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "434a491a_683284d9",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-09-23T09:27:18Z",
+      "side": 1,
+      "message": "\u003e I disagree. These lines can shift a bit with future modifications. Why not spend a minute now to disambiguate the errors instead of making our lives more painful when we are debugging a live system and trying to figure out what version of the code we have running to figure out which spot we ended up in?\n\nIn lastest patch i have dropped the throw from other 2 APIs and only left it in decode of uint8_t as per your comment https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/81497/comment/ab320bd6_7fe7bc71/. So, i don\u0027t think we don\u0027t need any specific message as there is only one decode and encode throw. If you still think otherwise, please feel free to suggest here if you have any specific message in mind and we can discuss on that.",
+      "parentUuid": "549abb35_ae0a3a42",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
