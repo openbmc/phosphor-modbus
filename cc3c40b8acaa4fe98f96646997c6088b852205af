@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1609970b_13929953",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T05:41:44Z",
+      "side": 1,
+      "message": "For testing, IMO, best practices say otherwise. I\u0027m not really sure what you mean by \"testing in terms of consumption model\" but it sounds like you\u0027ll hit the same pitfalls of integration tests.  \n\nIt seems strange to think that \"no one is directly going to use the Modbus Message\". That shouldn\u0027t be the reason why we don\u0027t write tests. Things will evolve with time and waiting until we need tests because things are so buggy or painful to develop seems backwards to me",
+      "parentUuid": "90cea8ac_fe1bf4ca",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e038eb85_cbfc8128",
         "filename": "rtu/modbus/modbus.cpp",
         "patchSetId": 11
@@ -108,6 +126,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bb951fec_53086dd0",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T05:41:44Z",
+      "side": 1,
+      "message": "If there was data left to be flushed, wouldn\u0027t that mess up the write command your are about to make?",
+      "parentUuid": "a539f9c9_d6363149",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8ce94e59_f87bc2ea",
         "filename": "rtu/modbus/modbus_commands.cpp",
         "patchSetId": 11
@@ -137,6 +173,24 @@
       "side": 1,
       "message": "I don\u0027t see a use for address var at the moment, so i have dropped it.",
       "parentUuid": "8ce94e59_f87bc2ea",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "91092fbe_30ba7541",
+        "filename": "rtu/modbus/modbus_commands.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T05:41:44Z",
+      "side": 1,
+      "message": "Are you sure? \n\nFrom my understanding, this should have changed your raw message first byte to always be 0. Is that correct? Doesn\u0027t this change the CRC as well?\n\nI\u0027ll reiterate that some tests here would be useful since it\u0027s pretty unclear to me what the correct value is supposed to look like. And how do we make sure someone doesn\u0027t accidentally change things in the future?",
+      "parentUuid": "8f3a7a9e_71315acc",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -246,6 +300,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "80d12529_a3112311",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T05:41:44Z",
+      "side": 1,
+      "message": "Ahh, this feels a mix of clever and confusing. But I\u0027m not sure what the style rules are for this. \n\nAll the size checks are redundant since you\u0027ll eventually hit the unit8 case that will make sure we have enough space",
+      "parentUuid": "2f2d08be_d0c0b7a0",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4cc2454b_cb1fa94f",
@@ -347,6 +419,24 @@
       "side": 1,
       "message": "The exception will have the stack trace along with the specific exception, so it will be evident from that we were inside which decode function when this specific exception fired, so i don\u0027t think we need to duplicate that information again inside the message.",
       "parentUuid": "f09b1ee5_81e9926f",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "549abb35_ae0a3a42",
+        "filename": "rtu/modbus/modbus_message.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002303
+      },
+      "writtenOn": "2025-09-23T05:41:44Z",
+      "side": 1,
+      "message": "I disagree. These lines can shift a bit with future modifications. Why not spend a minute now to disambiguate the errors instead of making our lives more painful when we are debugging a live system and trying to figure out what version of the code we have running to figure out which spot we ended up in?",
+      "parentUuid": "78ff7d67_5a3eb54e",
       "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
