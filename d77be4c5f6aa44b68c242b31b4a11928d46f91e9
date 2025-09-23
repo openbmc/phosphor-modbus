@@ -3,6 +3,40 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5e16c143_c7d5115e",
+        "filename": "tests/modbus_server_tester.cpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-09-23T22:05:13Z",
+      "side": 1,
+      "message": "Can we throw in a comment saying that you know the helpers exist in modbus_message.hpp but are not using it so those methods are tested here implicitly.",
+      "revId": "d77be4c5f6aa44b68c242b31b4a11928d46f91e9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d0051fa2_be948321",
+        "filename": "tests/modbus_server_tester.cpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-09-23T22:05:13Z",
+      "side": 1,
+      "message": "Do you want to define these somewhere? https://github.com/facebook/openbmc/blob/helium/common/recipes-core/rackmon2/rackmon/ModbusError.h#L10\nTheoretically, a device should respond with ILLEGAL_DATA_ADDRESS (2) if it did not like the register address.",
+      "revId": "d77be4c5f6aa44b68c242b31b4a11928d46f91e9",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "0d1cfa7b_b9075a85",
         "filename": "tests/test_modbus.cpp",
         "patchSetId": 16
