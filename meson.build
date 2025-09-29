@@ -17,6 +17,8 @@ default_deps = [
     sdbusplus_dep,
 ]
 
+common_include = include_directories('.')
+
 subdir('common')
 
 if get_option('modbus-rtu').allowed()

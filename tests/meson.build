@@ -40,3 +40,14 @@ test(
         include_directories: ['.'],
     ),
 )
+
+test(
+    'test_port',
+    executable(
+        'test_port',
+        'test_port.cpp',
+        'modbus_server_tester.cpp',
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
