@@ -21,11 +21,15 @@ constexpr uint8_t readHoldingRegistersFunctionCode = 0x3;
 constexpr uint8_t readHoldingRegistersErrorFunctionCode = 0x83;
 
 ServerTester::ServerTester(sdbusplus::async::context& ctx, int fd) :
-    fd(fd), fdioInstance(ctx, fd)
+    fd(fd), fdioInstance(ctx, fd), mutex("TestMutex")
 {}
 
 auto ServerTester::processRequests() -> sdbusplus::async::task<void>
 {
+    // Acquire lock to guard against concurrent access to fdioInstance
+    sdbusplus::async::lock_guard lg{mutex};
+    co_await lg.lock();
+
     MessageIntf request;
     co_await fdioInstance.next();
     auto ret = read(fd, request.raw.data(), request.raw.size());
@@ -94,6 +98,11 @@ void ServerTester::processMessage(MessageIntf& request, size_t requestSize,
     }
 }
 
+static inline void checkRequestSize(size_t requestSize, size_t expectedSize)
+{
+    EXPECT_EQ(requestSize, expectedSize) << "Invalid request size";
+}
+
 void ServerTester::processReadHoldingRegisters(
     MessageIntf& request, size_t requestSize, MessageIntf& response,
     bool& segmentedResponse)
@@ -113,11 +122,11 @@ void ServerTester::processReadHoldingRegisters(
     uint16_t registerOffset = request.raw[2] << 8 | request.raw[3];
     uint16_t registerCount = request.raw[4] << 8 | request.raw[5];
 
-    EXPECT_EQ(registerCount, testSuccessReadHoldingRegisterCount);
-
     if (registerOffset == testSuccessReadHoldingRegisterOffset ||
         registerOffset == testSuccessReadHoldingRegisterSegmentedOffset)
     {
+        checkRequestSize(registerCount, testSuccessReadHoldingRegisterCount);
+
         response << request.raw[0] << request.raw[1]
                  << uint8_t(2 * registerCount)
                  << uint16_t(testSuccessReadHoldingRegisterResponse[0])
@@ -126,8 +135,22 @@ void ServerTester::processReadHoldingRegisters(
         segmentedResponse =
             (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
     }
+    else if (registerOffset == testReadHoldingRegisterModelOffset)
+    {
+        checkRequestSize(registerCount, testReadHoldingRegisterModelCount);
+
+        response << request.raw[0] << request.raw[1]
+                 << uint8_t(2 * testReadHoldingRegisterModelCount);
+        for (size_t i = 0; i < testReadHoldingRegisterModelCount; i++)
+        {
+            response << uint16_t(testReadHoldingRegisterModel[i]);
+        }
+        response.appendCRC();
+    }
     else if (registerOffset == testFailureReadHoldingRegister)
     {
+        checkRequestSize(registerCount, testSuccessReadHoldingRegisterCount);
+
         response << request.raw[0]
                  << (uint8_t)readHoldingRegistersErrorFunctionCode
                  << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
