@@ -1,6 +1,10 @@
 modbus_rtu_lib = static_library(
     'modbus_rtu_lib',
-    ['modbus/modbus_commands.cpp', 'modbus/modbus_message.cpp'],
+    [
+        'modbus/modbus.cpp',
+        'modbus/modbus_commands.cpp',
+        'modbus/modbus_message.cpp',
+    ],
     include_directories: ['.'],
     dependencies: [default_deps],
 )
