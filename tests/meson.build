@@ -29,3 +29,14 @@ test(
         include_directories: ['.'],
     ),
 )
+
+test(
+    'test_modbus',
+    executable(
+        'test_modbus',
+        'test_modbus.cpp',
+        'modbus_server_tester.cpp',
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.'],
+    ),
+)
