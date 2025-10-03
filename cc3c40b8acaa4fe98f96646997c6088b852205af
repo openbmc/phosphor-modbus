@@ -72,6 +72,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fe98e0b_46f4ecb3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-03T01:31:54Z",
+      "side": 1,
+      "message": "I have broken this patch further and added another patch https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/84203 with more unit testing. Thanks",
+      "parentUuid": "468581db_61b276c9",
+      "revId": "cc3c40b8acaa4fe98f96646997c6088b852205af",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e038eb85_cbfc8128",
