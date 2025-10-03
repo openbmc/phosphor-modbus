@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "aec2acb5_5d1f8ebe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-03T01:31:40Z",
+      "side": 1,
+      "message": "This patch is broken from next patch based on comment https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/81497/comments/c3845476_6b73b880.",
+      "revId": "2ff4985fe8393023e2be21af603d18b948d3c116",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
