@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f5590b3_409c2e59",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T22:03:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf553f44_414a547f",
+      "revId": "826a3f7a9afd4c394a98e305613997cbb93bde6f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e70904e_c9ef016b",
@@ -31,6 +49,24 @@
       "writtenOn": "2025-10-06T21:50:12Z",
       "side": 1,
       "message": "This will be a no-op since inBaudRate \u003d\u003d baudRate.",
+      "revId": "826a3f7a9afd4c394a98e305613997cbb93bde6f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ca73b173_81c32dec",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T22:03:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e70904e_c9ef016b",
       "revId": "826a3f7a9afd4c394a98e305613997cbb93bde6f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
