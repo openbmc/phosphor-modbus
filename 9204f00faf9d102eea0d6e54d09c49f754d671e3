@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b1455f3_65d18031",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 20
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-10-06T20:03:36Z",
+      "side": 1,
+      "message": "Can you just call `setProperties(baudrate, parity)`? I see a bit of duplication between this and the other function. What might help is make setProperties take a force parameter which unconditionally sets the parameters (so you can workaround the inBaud,baud equality checks.",
+      "revId": "9204f00faf9d102eea0d6e54d09c49f754d671e3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
