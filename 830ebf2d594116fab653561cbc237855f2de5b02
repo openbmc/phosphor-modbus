@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f390285_2088c5c3",
+        "filename": "common/entity_manager_interface.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Yes because the caller can pass in a nullptr as well, also will run into clang errors if we don\u0027t check this.",
+      "parentUuid": "8fc8366b_6ae5a9d9",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8189d796_5d3b6316",
@@ -31,6 +49,24 @@
       "writtenOn": "2025-09-23T04:52:11Z",
       "side": 1,
       "message": "spelling: as-\u003ehas",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "05481e0e_9c7c7d74",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "this is expected to be as \"as\" it states the reason for skip.",
+      "parentUuid": "8189d796_5d3b6316",
       "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -52,6 +88,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5120bb11_fd2232de",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e228996_307a38de",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e460cca_8be6cef0",
@@ -69,6 +123,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6bb4dbd7_effdd2cc",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e460cca_8be6cef0",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "55ee198b_bd1b57c5",
@@ -82,6 +154,24 @@
       "writtenOn": "2025-09-23T04:52:11Z",
       "side": 1,
       "message": "Will this eventually move to configuration? Can we put a TODO for that?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a50468c_f960b854",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "No, this will continue to be here. The configuration will define this as a string.",
+      "parentUuid": "55ee198b_bd1b57c5",
       "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -120,6 +210,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb1ecec2_8f717201",
+        "filename": "rtu/inventory_device.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "I am only creating the string value for registers which are part of config and passing it to fillInventorySourceProperties to set it. The config will only have the registers as mentioned in fillInventorySourceProperties not more than that. So, no extra work is being done.",
+      "parentUuid": "fd1c3e17_f500bf6d",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8e609ba1_e5653b39",
@@ -133,6 +241,24 @@
       "writtenOn": "2025-09-23T04:52:11Z",
       "side": 1,
       "message": "Is the expectation that all registers are strings? If not, how will the type be distinguished?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "147f037a_8c83e324",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Yes, all inventory registers are strings.",
+      "parentUuid": "8e609ba1_e5653b39",
       "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -154,6 +280,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5cb3f3c_7e714d93",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ecbe6ee2_25326e5e",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e5a91c9b_cc5e66e7",
@@ -167,6 +311,24 @@
       "writtenOn": "2025-09-23T04:52:11Z",
       "side": 1,
       "message": "can you explain what port means here?",
+      "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "517b6aef_53c1489b",
+        "filename": "rtu/inventory_device.hpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-06T21:37:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5a91c9b_cc5e66e7",
       "revId": "830ebf2d594116fab653561cbc237855f2de5b02",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
