@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bf553f44_414a547f",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-10-06T21:50:12Z",
+      "side": 1,
+      "message": "remove baudRate initialization here. Set the default to 0 in the class definition.\nThat way, buadRate will always !\u003d inBaudRAte in setProperties(). Probably one way to solve the other issue.",
+      "revId": "826a3f7a9afd4c394a98e305613997cbb93bde6f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e70904e_c9ef016b",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-10-06T21:50:12Z",
+      "side": 1,
+      "message": "This will be a no-op since inBaudRate \u003d\u003d baudRate.",
+      "revId": "826a3f7a9afd4c394a98e305613997cbb93bde6f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
