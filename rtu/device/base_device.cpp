@@ -500,8 +500,9 @@ auto updateBaseConfig(sdbusplus::async::context& ctx,
 } // namespace config
 
 BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
-                       const config::Config& config, PortIntf& serialPort) :
-    ctx(ctx), config(config), serialPort(serialPort)
+                       const config::Config& config, PortIntf& serialPort,
+                       EventIntf::Events& events) :
+    ctx(ctx), config(config), serialPort(serialPort), events(events)
 {
     createSensors();
 
@@ -636,6 +637,8 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
             sensor->second->value(regVal);
         }
 
+        co_await readStatusRegisters();
+
         constexpr auto pollInterval = 3;
         co_await sdbusplus::async::sleep_for(
             ctx, std::chrono::seconds(pollInterval));
@@ -644,6 +647,139 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
     }
 
     co_return;
+}
+
+static auto getObjectPath(const config::Config& config, config::StatusType type,
+                          const std::string& name)
+    -> sdbusplus::message::object_path
+{
+    switch (type)
+    {
+        case config::StatusType::sensorReadingCritical:
+        case config::StatusType::sensorReadingWarning:
+        case config::StatusType::sensorFailure:
+            return sdbusplus::message::object_path(
+                std::string(SensorValueIntf::namespace_path::value) + "/" +
+                name);
+        case config::StatusType::controllerFailure:
+            return config.inventoryPath;
+        case config::StatusType::pumpFailure:
+            return sdbusplus::message::object_path(
+                "/xyz/openbmc_project/state/pump/" + name);
+        case config::StatusType::filterFailure:
+            return sdbusplus::message::object_path(
+                "/xyz/openbmc_project/state/filter/" + name);
+        case config::StatusType::powerFault:
+            return sdbusplus::message::object_path(
+                "/xyz/openbmc_project/state/power_rail/" + name);
+        case config::StatusType::fanFailure:
+            return sdbusplus::message::object_path(
+                "/xyz/openbmc_project/state/fan/" + name);
+        case config::StatusType::leakDetectedCritical:
+        case config::StatusType::leakDetectedWarning:
+            using DetectorIntf =
+                sdbusplus::aserver::xyz::openbmc_project::state::leak::Detector<
+                    Device>;
+            return sdbusplus::message::object_path(
+                std::string(DetectorIntf::namespace_path::value) + "/" +
+                DetectorIntf::namespace_path::detector + "/" + name);
+        case config::StatusType::unknown:
+            error("Unknown status type for {NAME}", "NAME", name);
+    }
+
+    return sdbusplus::message::object_path();
+}
+
+auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
+{
+    for (const auto& [address, statusBits] : config.statusRegisters)
+    {
+        auto registers = std::vector<uint16_t>(1);
+        auto ret = co_await serialPort.readHoldingRegisters(
+            config.address, address, config.baudRate, config.parity, registers);
+        if (!ret)
+        {
+            error("Failed to read holding registers for {DEVICE_ADDRESS}",
+                  "DEVICE_ADDRESS", config.address);
+            continue;
+        }
+
+        for (const auto& statusBit : statusBits)
+        {
+            auto statusBitValue = (registers[0] & (1 << statusBit.bitPostion));
+            auto statusAsserted = (statusBitValue == statusBit.value);
+            auto objectPath =
+                getObjectPath(config, statusBit.type, statusBit.name);
+            double sensorValue = std::numeric_limits<double>::quiet_NaN();
+            SensorValueIntf::Unit sensorUnit = SensorValueIntf::Unit::Percent;
+            auto sensorIter = sensors.find(statusBit.name);
+            if (sensorIter != sensors.end())
+            {
+                sensorValue = sensorIter->second->value();
+                sensorUnit = sensorIter->second->unit();
+            }
+
+            co_await generateEvent(statusBit, objectPath, sensorValue,
+                                   sensorUnit, statusAsserted);
+        }
+    }
+
+    co_return;
+}
+
+auto BaseDevice::generateEvent(
+    const config::StatusBit& statusBit,
+    const sdbusplus::message::object_path& objectPath, double sensorValue,
+    SensorValueIntf::Unit sensorUnit, bool statusAsserted)
+    -> sdbusplus::async::task<void>
+{
+    switch (statusBit.type)
+    {
+        case config::StatusType::sensorReadingCritical:
+            co_await events.generateSensorReadingEvent(
+                objectPath, EventIntf::EventLevel::critical, sensorValue,
+                sensorUnit, statusAsserted);
+            break;
+        case config::StatusType::sensorReadingWarning:
+            co_await events.generateSensorReadingEvent(
+                objectPath, EventIntf::EventLevel::warning, sensorValue,
+                sensorUnit, statusAsserted);
+            break;
+        case config::StatusType::sensorFailure:
+            co_await events.generateSensorFailureEvent(objectPath,
+                                                       statusAsserted);
+            break;
+        case config::StatusType::controllerFailure:
+            co_await events.generateControllerFailureEvent(
+                objectPath, statusBit.name, statusAsserted);
+            break;
+        case config::StatusType::powerFault:
+            co_await events.generatePowerFaultEvent(objectPath, statusBit.name,
+                                                    statusAsserted);
+            break;
+        case config::StatusType::filterFailure:
+            co_await events.generateFilterFailureEvent(objectPath,
+                                                       statusAsserted);
+            break;
+        case config::StatusType::pumpFailure:
+            co_await events.generatePumpFailureEvent(objectPath,
+                                                     statusAsserted);
+            break;
+        case config::StatusType::fanFailure:
+            co_await events.generateFanFailureEvent(objectPath, statusAsserted);
+            break;
+        case config::StatusType::leakDetectedCritical:
+            co_await events.generateLeakDetectedEvent(
+                objectPath, EventIntf::EventLevel::critical, statusAsserted);
+            break;
+        case config::StatusType::leakDetectedWarning:
+            co_await events.generateLeakDetectedEvent(
+                objectPath, EventIntf::EventLevel::warning, statusAsserted);
+            break;
+        case config::StatusType::unknown:
+            error("Unknown status type for {NAME}", "NAME", statusBit.name);
+            break;
+    }
 }
 
 } // namespace phosphor::modbus::rtu::device
