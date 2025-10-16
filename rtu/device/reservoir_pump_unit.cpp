@@ -16,10 +16,10 @@ static const std::unordered_map<std::string_view, config::DeviceModel>
     validDevices = {{ModbusRDF040DSS5193E0ReservoirPumpUnitInterface,
                      config::DeviceModel::RDF040DSS5193E0}};
 
-ReservoirPumpUnit::ReservoirPumpUnit(sdbusplus::async::context& ctx,
-                                     const config::Config& config,
-                                     PortIntf& serialPort) :
-    BaseDevice(ctx, config, serialPort)
+ReservoirPumpUnit::ReservoirPumpUnit(
+    sdbusplus::async::context& ctx, const config::Config& config,
+    PortIntf& serialPort, EventIntf::Events& events) :
+    BaseDevice(ctx, config, serialPort, events)
 {
     info("Reservoir pump unit {NAME} created successfully", "NAME",
          config.name);
