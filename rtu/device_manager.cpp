@@ -38,7 +38,8 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
     ctx(ctx),
     entityManager(ctx, getInterfaces(),
                   std::bind_front(&DeviceManager::processConfigAdded, this),
-                  std::bind_front(&DeviceManager::processConfigRemoved, this))
+                  std::bind_front(&DeviceManager::processConfigRemoved, this)),
+    events(ctx)
 {
     ctx.spawn(entityManager.handleInventoryGet());
     info("DeviceManager created successfully");
@@ -151,8 +152,8 @@ auto DeviceManager::processDeviceAdded(
             co_return;
         }
 
-        auto device =
-            DeviceFactoryIntf::create(ctx, config, *(serialPort->second));
+        auto device = DeviceFactoryIntf::create(ctx, config,
+                                                *(serialPort->second), events);
         ctx.spawn(device->readSensorRegisters());
         devices[config.name] = std::move(device);
     }
