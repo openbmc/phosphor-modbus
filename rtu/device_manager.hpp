@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/entity_manager_interface.hpp"
+#include "common/events.hpp"
 #include "device/base_device.hpp"
 #include "inventory/modbus_inventory.hpp"
 #include "port/base_port.hpp"
@@ -14,6 +15,7 @@ namespace InventoryIntf = phosphor::modbus::rtu::inventory;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace ModbusIntf = phosphor::modbus::rtu;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
+namespace EventIntf = phosphor::modbus::events;
 
 class DeviceManager
 {
@@ -59,6 +61,7 @@ class DeviceManager
 
     sdbusplus::async::context& ctx;
     entity_manager::EntityManagerInterface entityManager;
+    EventIntf::Events events;
     inventory_device_map_t inventoryDevices;
     port_map_t ports;
     device_map_t devices; // Modbus devices
