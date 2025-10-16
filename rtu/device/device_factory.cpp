@@ -39,12 +39,14 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
 
 auto DeviceFactory::create(sdbusplus::async::context& ctx,
                            const config::DeviceFactoryConfig& config,
-                           const std::unique_ptr<PortIntf>& serialPort)
+                           const std::unique_ptr<PortIntf>& serialPort,
+                           EventIntf::Events& events)
     -> std::unique_ptr<BaseDevice>
 {
     if (config.deviceType == config::DeviceType::reservoirPumpUnit)
     {
-        return std::make_unique<ReservoirPumpUnit>(ctx, config, serialPort);
+        return std::make_unique<ReservoirPumpUnit>(ctx, config, serialPort,
+                                                   events);
     }
 
     return nullptr;
