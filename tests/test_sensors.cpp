@@ -1,3 +1,4 @@
+#include "common/events.hpp"
 #include "device/device_factory.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
@@ -21,6 +22,7 @@ namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace DeviceConfigIntf = DeviceIntf::config;
+namespace EventIntf = phosphor::modbus::events;
 
 class MockPort : public PortIntf::BasePort
 {
@@ -121,11 +123,12 @@ class SensorsTest : public ::testing::Test
             DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
         };
 
-        auto mockPort =
-            std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
+        EventIntf::Events events{ctx};
+
+        MockPort mockPort(ctx, portConfig, clientDevicePath);
 
         auto device = DeviceIntf::DeviceFactory::create(
-            ctx, deviceFactoryConfig, *mockPort);
+            ctx, deviceFactoryConfig, mockPort, events);
 
         co_await device->readSensorRegisters();
 
