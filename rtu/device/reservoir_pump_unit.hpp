@@ -17,7 +17,8 @@ class ReservoirPumpUnit : public BaseDevice
   public:
     explicit ReservoirPumpUnit(sdbusplus::async::context& ctx,
                                const config::Config& config,
-                               const std::unique_ptr<PortIntf>& serialPort);
+                               const std::unique_ptr<PortIntf>& serialPort,
+                               EventIntf::Events& events);
 
     static auto getInterfaces() -> std::vector<std::string>;
 

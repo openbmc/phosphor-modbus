@@ -18,8 +18,8 @@ static const std::unordered_map<std::string_view, config::DeviceModel>
 
 ReservoirPumpUnit::ReservoirPumpUnit(
     sdbusplus::async::context& ctx, const config::Config& config,
-    const std::unique_ptr<PortIntf>& serialPort) :
-    BaseDevice(ctx, config, serialPort)
+    const std::unique_ptr<PortIntf>& serialPort, EventIntf::Events& events) :
+    BaseDevice(ctx, config, serialPort, events)
 {
     info("USB port {NAME} created successfully", "NAME", config.name);
 }
