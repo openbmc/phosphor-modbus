@@ -122,35 +122,8 @@ void ServerTester::processReadHoldingRegisters(
     uint16_t registerOffset = request.raw[2] << 8 | request.raw[3];
     uint16_t registerCount = request.raw[4] << 8 | request.raw[5];
 
-    if (registerOffset == testSuccessReadHoldingRegisterOffset ||
-        registerOffset == testSuccessReadHoldingRegisterSegmentedOffset)
+    if (registerOffset == testFailureReadHoldingRegister)
     {
-        checkRequestSize(registerCount, testSuccessReadHoldingRegisterCount);
-
-        response << request.raw[0] << request.raw[1]
-                 << uint8_t(2 * registerCount)
-                 << uint16_t(testSuccessReadHoldingRegisterResponse[0])
-                 << uint16_t(testSuccessReadHoldingRegisterResponse[1]);
-        response.appendCRC();
-        segmentedResponse =
-            (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
-    }
-    else if (registerOffset == testReadHoldingRegisterModelOffset)
-    {
-        checkRequestSize(registerCount, testReadHoldingRegisterModelCount);
-
-        response << request.raw[0] << request.raw[1]
-                 << uint8_t(2 * testReadHoldingRegisterModelCount);
-        for (size_t i = 0; i < testReadHoldingRegisterModelCount; i++)
-        {
-            response << uint16_t(testReadHoldingRegisterModel[i]);
-        }
-        response.appendCRC();
-    }
-    else if (registerOffset == testFailureReadHoldingRegister)
-    {
-        checkRequestSize(registerCount, testSuccessReadHoldingRegisterCount);
-
         response << request.raw[0]
                  << (uint8_t)readHoldingRegistersErrorFunctionCode
                  << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
@@ -158,7 +131,29 @@ void ServerTester::processReadHoldingRegisters(
     }
     else
     {
-        FAIL() << "Invalid register offset:" << registerOffset;
+        auto expectedResponseIter =
+            testReadHoldingRegisterMap.find(registerOffset);
+        if (expectedResponseIter == testReadHoldingRegisterMap.end())
+        {
+            FAIL() << "Invalid register offset:" << registerOffset;
+            return;
+        }
+
+        checkRequestSize(registerCount,
+                         std::get<0>(expectedResponseIter->second));
+
+        auto& expectedResponse = std::get<1>(expectedResponseIter->second);
+
+        response << request.raw[0] << request.raw[1]
+                 << uint8_t(2 * registerCount);
+        for (size_t i = 0; i < registerCount; i++)
+        {
+            response << uint16_t(expectedResponse[i]);
+        }
+        response.appendCRC();
+
+        segmentedResponse =
+            (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
     }
 }
 
