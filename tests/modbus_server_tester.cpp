@@ -156,6 +156,24 @@ void ServerTester::processReadHoldingRegisters(
                  << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
         response.appendCRC();
     }
+    else if (registerOffset == testReadHoldingRegisterTempUnsignedOffset)
+    {
+        checkRequestSize(registerCount, testReadHoldingRegisterTempCount);
+
+        response << request.raw[0] << request.raw[1]
+                 << uint8_t(2 * registerCount)
+                 << uint16_t(testReadHoldingRegisterTempUnsigned);
+        response.appendCRC();
+    }
+    else if (registerOffset == testReadHoldingRegisterTempSignedOffset)
+    {
+        checkRequestSize(registerCount, testReadHoldingRegisterTempCount);
+
+        response << request.raw[0] << request.raw[1]
+                 << uint8_t(2 * registerCount)
+                 << uint16_t(testReadHoldingRegisterTempSigned);
+        response.appendCRC();
+    }
     else
     {
         FAIL() << "Invalid register offset:" << registerOffset;

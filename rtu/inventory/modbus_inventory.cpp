@@ -236,7 +236,7 @@ auto getConfig(sdbusplus::async::context& ctx,
 
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
                serial_port_map_t& serialPorts) :
-    ctx(ctx), config(config), serialPorts(serialPorts)
+    config(config), ctx(ctx), serialPorts(serialPorts)
 {
     for (const auto& [serialPort, _] : config.addressMap)
     {

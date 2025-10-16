@@ -31,6 +31,13 @@ constexpr std::array<uint16_t, testReadHoldingRegisterModelCount>
                                     0x5335, 0x3139, 0x0000, 0x3000};
 constexpr std::string testReadHoldingRegisterModelStr = "RDF040DSS519";
 
+// Device Sensors Testing Constants
+constexpr uint16_t testReadHoldingRegisterTempCount = 0x1;
+constexpr uint16_t testReadHoldingRegisterTempUnsignedOffset = 0x0113;
+constexpr uint16_t testReadHoldingRegisterTempUnsigned = 0x0050; // 80.0
+constexpr uint16_t testReadHoldingRegisterTempSignedOffset = 0x0114;
+constexpr uint16_t testReadHoldingRegisterTempSigned = 0xFFB0;   // -80.0
+
 class ServerTester
 {
   public:
