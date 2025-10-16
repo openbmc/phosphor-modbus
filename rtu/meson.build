@@ -25,9 +25,16 @@ modbus_rtu_dep = declare_dependency(
 
 inventory_src = files('inventory/modbus_inventory.cpp')
 
+device_src = files(
+    'device/base_config.cpp',
+    'device/base_device.cpp',
+    'device/device_factory.cpp',
+    'device/reservoir_pump_unit.cpp',
+)
+
 executable(
     'phosphor-modbus-rtu',
-    ['device_manager.cpp', inventory_src],
+    ['device_manager.cpp', inventory_src, device_src],
     include_directories: ['.', common_include],
     dependencies: [default_deps],
     link_with: [modbus_common_lib, modbus_rtu_lib, modbus_rtu_port_lib],
