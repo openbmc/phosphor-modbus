@@ -44,7 +44,8 @@ class DeviceFactory
 
     static auto create(sdbusplus::async::context& ctx,
                        const config::DeviceFactoryConfig& config,
-                       PortIntf& serialPort) -> std::unique_ptr<BaseDevice>;
+                       PortIntf& serialPort, EventIntf::Events& events)
+        -> std::unique_ptr<BaseDevice>;
 };
 
 } // namespace phosphor::modbus::rtu::device
