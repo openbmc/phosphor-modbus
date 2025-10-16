@@ -1,5 +1,6 @@
 #include "device_manager.hpp"
 
+#include "device/device_factory.hpp"
 #include "port/port_factory.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -14,6 +15,7 @@ namespace phosphor::modbus::rtu
 
 using ModbusRTUDetectIntf =
     sdbusplus::client::xyz::openbmc_project::configuration::ModbusRTUDetect<>;
+using DeviceFactoryIntf = phosphor::modbus::rtu::device::DeviceFactory;
 
 static entity_manager::interface_list_t getInterfaces()
 {
@@ -22,7 +24,12 @@ static entity_manager::interface_list_t getInterfaces()
     auto portInterfaces = PortIntf::PortFactory::getInterfaces();
     interfaces.insert(interfaces.end(), portInterfaces.begin(),
                       portInterfaces.end());
+
     interfaces.emplace_back(ModbusRTUDetectIntf::interface);
+
+    auto deviceInterfaces = DeviceFactoryIntf::getInterfaces();
+    interfaces.insert(interfaces.end(), deviceInterfaces.begin(),
+                      deviceInterfaces.end());
 
     return interfaces;
 }
@@ -54,48 +61,106 @@ auto DeviceManager::processConfigAdded(
     if (std::find(portInterfaces.begin(), portInterfaces.end(),
                   interfaceName) != portInterfaces.end())
     {
-        auto config = co_await PortIntf::PortFactory::getConfig(
-            ctx, objectPath, interfaceName);
-        if (!config)
-        {
-            error("Failed to get Port config for {PATH}", "PATH", objectPath);
-            co_return;
-        }
-
-        try
-        {
-            ports[config->name] = PortIntf::PortFactory::create(ctx, *config);
-        }
-        catch (const std::exception& e)
-        {
-            error("Failed to create Port for {PATH} with {ERROR}", "PATH",
-                  objectPath, "ERROR", e);
-            co_return;
-        }
+        co_return co_await processPortAdded(objectPath, interfaceName);
     }
-    else if (interfaceName == ModbusRTUDetectIntf::interface)
+
+    if (interfaceName == ModbusRTUDetectIntf::interface)
     {
-        auto res = co_await InventoryIntf::config::getConfig(ctx, objectPath);
-        if (!res)
+        co_return co_await processInventoryAdded(objectPath);
+    }
+
+    auto deviceInterfaces = DeviceFactoryIntf::getInterfaces();
+    if (std::find(deviceInterfaces.begin(), deviceInterfaces.end(),
+                  interfaceName) != deviceInterfaces.end())
+    {
+        co_return co_await processDeviceAdded(objectPath, interfaceName);
+    }
+}
+
+auto DeviceManager::processPortAdded(
+    const sdbusplus::message::object_path& objectPath,
+    const std::string& interfaceName) -> sdbusplus::async::task<>
+{
+    auto config = co_await PortIntf::PortFactory::getConfig(
+        ctx, objectPath, interfaceName);
+    if (!config)
+    {
+        error("Failed to get Port config for {PATH}", "PATH", objectPath);
+        co_return;
+    }
+
+    try
+    {
+        ports[config->name] = PortIntf::PortFactory::create(ctx, *config);
+    }
+    catch (const std::exception& e)
+    {
+        error("Failed to create Port for {PATH} with {ERROR}", "PATH",
+              objectPath, "ERROR", e);
+        co_return;
+    }
+}
+
+auto DeviceManager::processInventoryAdded(
+    const sdbusplus::message::object_path& objectPath)
+    -> sdbusplus::async::task<>
+{
+    auto res = co_await InventoryIntf::config::getConfig(ctx, objectPath);
+    if (!res)
+    {
+        error("Failed to get Inventory Device config for {PATH}", "PATH",
+              objectPath);
+        co_return;
+    }
+    auto config = res.value();
+    try
+    {
+        auto inventoryDevice =
+            std::make_unique<InventoryIntf::Device>(ctx, config, ports);
+        ctx.spawn(inventoryDevice->probePorts());
+        inventoryDevices[config.name] = std::move(inventoryDevice);
+    }
+    catch (const std::exception& e)
+    {
+        error("Failed to create Inventory Device for {PATH} with {ERROR}",
+              "PATH", objectPath, "ERROR", e);
+        co_return;
+    }
+}
+
+auto DeviceManager::processDeviceAdded(
+    const sdbusplus::message::object_path& objectPath,
+    const std::string& interfaceName) -> sdbusplus::async::task<>
+{
+    auto res =
+        co_await DeviceFactoryIntf::getConfig(ctx, objectPath, interfaceName);
+    if (!res)
+    {
+        error("Failed to get Device config for {PATH}", "PATH", objectPath);
+        co_return;
+    }
+    auto config = res.value();
+
+    try
+    {
+        auto serialPort = ports.find(config.portName);
+        if (serialPort == ports.end())
         {
             error("Failed to get Inventory Device config for {PATH}", "PATH",
                   objectPath);
             co_return;
         }
-        auto config = res.value();
-        try
-        {
-            auto inventoryDevice =
-                std::make_unique<InventoryIntf::Device>(ctx, config, ports);
-            ctx.spawn(inventoryDevice->probePorts());
-            inventoryDevices[config.name] = std::move(inventoryDevice);
-        }
-        catch (const std::exception& e)
-        {
-            error("Failed to create Inventory Device for {PATH} with {ERROR}",
-                  "PATH", objectPath, "ERROR", e);
-            co_return;
-        }
+
+        auto device =
+            DeviceFactoryIntf::create(ctx, config, *(serialPort->second));
+        ctx.spawn(device->readSensorRegisters());
+        devices[config.name] = std::move(device);
+    }
+    catch (const std::exception& e)
+    {
+        error("Failed to create Device for {PATH} with {ERROR}", "PATH",
+              objectPath, "ERROR", e);
+        co_return;
     }
 }
 
