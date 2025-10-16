@@ -81,9 +81,10 @@ class Device
                             SerialPortIntf& port)
         -> sdbusplus::async::task<void>;
 
+    const config::Config config;
+
   private:
     sdbusplus::async::context& ctx;
-    const config::Config config;
     serial_port_map_t& serialPorts;
     std::map<std::string, std::unique_ptr<InventorySourceIntf>>
         inventorySources;

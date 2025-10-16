@@ -62,3 +62,15 @@ test(
         include_directories: ['.', common_include],
     ),
 )
+
+test(
+    'test_sensors',
+    executable(
+        'test_sensors',
+        'test_sensors.cpp',
+        'modbus_server_tester.cpp',
+        device_src,
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)

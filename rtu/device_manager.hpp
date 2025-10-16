@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/entity_manager_interface.hpp"
+#include "device/base_device.hpp"
 #include "inventory/modbus_inventory.hpp"
 #include "port/base_port.hpp"
 
@@ -11,6 +12,8 @@ namespace phosphor::modbus::rtu
 
 namespace InventoryIntf = phosphor::modbus::rtu::inventory;
 namespace PortIntf = phosphor::modbus::rtu::port;
+namespace ModbusIntf = phosphor::modbus::rtu;
+namespace DeviceIntf = phosphor::modbus::rtu::device;
 
 class DeviceManager
 {
@@ -26,10 +29,27 @@ class DeviceManager
   private:
     using inventory_device_map_t =
         std::unordered_map<std::string, std::unique_ptr<InventoryIntf::Device>>;
+
     using port_map_t =
         std::unordered_map<std::string, std::unique_ptr<PortIntf::BasePort>>;
 
+    using device_map_t =
+        std::unordered_map<std::string,
+                           std::unique_ptr<DeviceIntf::BaseDevice>>;
+
     auto processConfigAdded(const sdbusplus::message::object_path& objectPath,
+                            const std::string& interfaceName)
+        -> sdbusplus::async::task<>;
+
+    auto processPortAdded(const sdbusplus::message::object_path& objectPath,
+                          const std::string& interfaceName)
+        -> sdbusplus::async::task<>;
+
+    auto processInventoryAdded(
+        const sdbusplus::message::object_path& objectPath)
+        -> sdbusplus::async::task<>;
+
+    auto processDeviceAdded(const sdbusplus::message::object_path& objectPath,
                             const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
@@ -41,6 +61,7 @@ class DeviceManager
     entity_manager::EntityManagerInterface entityManager;
     inventory_device_map_t inventoryDevices;
     port_map_t ports;
+    device_map_t devices; // Modbus devices
 };
 
 } // namespace phosphor::modbus::rtu
