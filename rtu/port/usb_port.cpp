@@ -29,14 +29,18 @@ struct USBPortConfig : public PortFactoryConfig
     std::string address = "unknown";
     uint16_t port = 0;
     uint16_t interface = 0;
+
+    virtual ~USBPortConfig() = default;
 };
 
 } // namespace config
 
-static auto getDevicePath(const config::Config& inConfig) -> std::string
+static auto getDevicePath(const config::PortFactoryConfig& inConfig)
+    -> std::string
 {
     namespace fs = std::filesystem;
     auto config = static_cast<const config::USBPortConfig&>(inConfig);
+
     std::regex pattern(
         std::format("platform-{}\\.usb-usb.*{}-port{}", config.address,
                     config.interface, config.port));
@@ -59,7 +63,7 @@ static auto getDevicePath(const config::Config& inConfig) -> std::string
 }
 
 USBPort::USBPort(sdbusplus::async::context& ctx,
-                 config::PortFactoryConfig& config) :
+                 const config::PortFactoryConfig& config) :
     BasePort(ctx, config, getDevicePath(config))
 {
     info("USB port {NAME} created successfully", "NAME", config.name);
@@ -67,9 +71,13 @@ USBPort::USBPort(sdbusplus::async::context& ctx,
 
 auto USBPort::getConfig(sdbusplus::async::context& ctx,
                         const sdbusplus::message::object_path& objectPath)
-    -> sdbusplus::async::task<std::optional<config::PortFactoryConfig>>
+    -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>
 {
-    config::USBPortConfig config = {};
+    auto config = std::make_unique<config::USBPortConfig>();
+    if (!config)
+    {
+        co_return std::nullptr_t();
+    }
 
     auto properties =
         co_await USBPortConfigIntf(ctx)
@@ -77,22 +85,24 @@ auto USBPort::getConfig(sdbusplus::async::context& ctx,
             .path(objectPath.str)
             .properties();
 
-    auto res = updateBaseConfig(config, properties);
+    auto res = updateBaseConfig(*config, properties);
     if (!res)
     {
-        co_return std::nullopt;
+        co_return std::nullptr_t();
     }
 
-    config.address = properties.device_address;
-    config.port = properties.port;
-    config.interface = properties.device_interface;
+    config->address = properties.device_address;
+    config->port = properties.port;
+    config->interface = properties.device_interface;
+    config->portType = config::PortType::usb;
 
     debug(
         "USB port config: {NAME} {PORT_TYPE} {PORT_MODE} {ADDRESS} {PORT} {INTERFACE} {BAUD_RATE} {RTS_DELAY}",
-        "NAME", config.name, "PORT_TYPE", config.portType, "PORT_MODE",
-        config.portMode, "ADDRESS", config.address, "PORT", config.port,
-        "INTERFACE", config.interface, "BAUD_RATE", config.baudRate,
-        "RTS_DELAY", config.rtsDelay);
+        "NAME", config->name, "PORT_TYPE", config->portType, "PORT_MODE",
+        config->portMode, "ADDRESS", config->address, "PORT", config->port,
+        "INTERFACE", config->interface, "BAUD_RATE", config->baudRate,
+        "RTS_DELAY", config->rtsDelay);
+
     co_return config;
 }
 
