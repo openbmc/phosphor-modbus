@@ -50,3 +50,15 @@ test(
         include_directories: ['.', common_include],
     ),
 )
+
+test(
+    'test_inventory',
+    executable(
+        'test_inventory',
+        'test_inventory.cpp',
+        'modbus_server_tester.cpp',
+        inventory_src,
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
