@@ -5,4 +5,11 @@ option(
     description: 'Enable modbus RTU.',
 )
 
-option('tests', type: 'feature', description: 'Build tests')
+option(
+    'mocked-test-device',
+    type: 'feature',
+    value: 'enabled',
+    description: 'Build mocked modbus devuce.',
+)
+
+option('tests', type: 'feature', description: 'Build tests.')
