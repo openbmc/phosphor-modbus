@@ -25,6 +25,10 @@ if get_option('modbus-rtu').allowed()
     subdir('rtu')
 endif
 
+if get_option('mocked-test-device').allowed()
+    subdir('mocked_test_device')
+endif
+
 if get_option('tests').allowed()
     subdir('tests')
 endif
