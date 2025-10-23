@@ -1,16 +1,40 @@
+#include "common/entity_manager_interface.hpp"
 #include "modbus_server_tester.hpp"
-#include "port/base_port.hpp"
+#include "port/port_factory.hpp"
 
 #include <fcntl.h>
+
+#include <xyz/openbmc_project/Configuration/USBPort/aserver.hpp>
+#include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
 #include <gtest/gtest.h>
 
 using namespace std::literals;
 
+namespace phosphor::modbus::rtu::port::config
+{
+
+// Local copy of the USBPortConfig struct definition
+struct TestPortConfig : public PortFactoryConfig
+{
+    std::string address = "unknown";
+    uint16_t port = 0;
+    uint16_t interface = 0;
+
+    virtual ~TestPortConfig() = default;
+};
+
+} // namespace phosphor::modbus::rtu::port::config
+
+class PortTest;
+
 namespace TestIntf = phosphor::modbus::test;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace RTUIntf = phosphor::modbus::rtu;
+using PortFactoryIntf = PortIntf::PortFactory;
+using USBPortConfigServerIntf =
+    sdbusplus::aserver::xyz::openbmc_project::configuration::USBPort<PortTest>;
 
 struct properties_t
 {
@@ -41,6 +65,7 @@ class PortTest : public ::testing::Test
     int fdClient = -1;
     std::unique_ptr<TestIntf::ServerTester> serverTester;
     int fdServer = -1;
+    bool getPortConfigPassed = false;
 
     PortTest()
     {
@@ -86,6 +111,11 @@ class PortTest : public ::testing::Test
         kill(socat_pid, SIGTERM);
     }
 
+    void SetUp() override
+    {
+        getPortConfigPassed = false;
+    }
+
     auto TestHoldingRegisters(PortConfigIntf::Config& config, MockPort& port,
                               uint16_t registerOffset, bool res)
         -> sdbusplus::async::task<void>
@@ -112,6 +142,47 @@ class PortTest : public ::testing::Test
 
         co_return;
     }
+
+    template <typename Config, typename Properties>
+    static inline void VerifyConfig(const Config& config,
+                                    const Properties& property)
+    {
+        EXPECT_EQ(config, property);
+    }
+
+    auto TestGetUSBPortConfig(
+        const USBPortConfigServerIntf::properties_t properties, bool shouldPass)
+        -> sdbusplus::async::task<void>
+    {
+        static constexpr auto objectPath =
+            "/xyz/openbmc_project/inventory/system/board/Ventura_Modbus/DevTTYUSB0";
+
+        auto configServer = std::make_unique<USBPortConfigServerIntf>(
+            ctx, objectPath, properties);
+
+        auto config = co_await PortFactoryIntf::getConfig(
+            ctx, std::string(objectPath), USBPortConfigServerIntf::interface);
+
+        if (!shouldPass)
+        {
+            VerifyConfig(config, nullptr);
+            co_return;
+        }
+
+        auto usbConfig = static_cast<PortConfigIntf::TestPortConfig&>(*config);
+
+        VerifyConfig(usbConfig.name, properties.name);
+        VerifyConfig(usbConfig.portMode, PortConfigIntf::PortMode::rs485);
+        VerifyConfig(usbConfig.baudRate, properties.baud_rate);
+        VerifyConfig(usbConfig.rtsDelay, properties.rts_delay);
+        VerifyConfig(usbConfig.address, properties.device_address);
+        VerifyConfig(usbConfig.port, properties.port);
+        VerifyConfig(usbConfig.interface, properties.device_interface);
+
+        getPortConfigPassed = true;
+
+        co_return;
+    }
 };
 
 TEST_F(PortTest, TestUpdateConfig)
@@ -124,6 +195,60 @@ TEST_F(PortTest, TestUpdateConfig)
     EXPECT_EQ(config.portMode, PortConfigIntf::PortMode::rs485);
     EXPECT_EQ(config.baudRate, properties.baud_rate);
     EXPECT_EQ(config.rtsDelay, properties.rts_delay);
+}
+
+TEST_F(PortTest, TestGetUSBPortConfigSucess)
+{
+    using InventoryIntf =
+        sdbusplus::client::xyz::openbmc_project::inventory::Item<>;
+    sdbusplus::server::manager_t manager{ctx, InventoryIntf::namespace_path};
+
+    const USBPortConfigServerIntf::properties_t properties = {
+        .type = "USBPort",
+        .name = "USBPort1",
+        .device_address = "0xa",
+        .device_interface = 1,
+        .port = 1,
+        .mode = "RS485",
+        .baud_rate = 115200,
+        .rts_delay = 100};
+
+    ctx.spawn(TestGetUSBPortConfig(properties, true));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.request_name(entity_manager::EntityManagerInterface::serviceName);
+    ctx.run();
+
+    EXPECT_EQ(getPortConfigPassed, true);
+}
+
+TEST_F(PortTest, TestGetUSBPortConfigFailureForInvalidPortMode)
+{
+    using InventoryIntf =
+        sdbusplus::client::xyz::openbmc_project::inventory::Item<>;
+    sdbusplus::server::manager_t manager{ctx, InventoryIntf::namespace_path};
+
+    const USBPortConfigServerIntf::properties_t properties = {
+        .type = "USBPort",
+        .name = "USBPort1",
+        .device_address = "0xa",
+        .device_interface = 1,
+        .port = 1,
+        .mode = "RSXXX", // Invalid port mode
+        .baud_rate = 115200,
+        .rts_delay = 100};
+
+    ctx.spawn(TestGetUSBPortConfig(properties, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.request_name(entity_manager::EntityManagerInterface::serviceName);
+    ctx.run();
+
+    EXPECT_EQ(getPortConfigPassed, false);
 }
 
 TEST_F(PortTest, TestReadHoldingRegisterSuccess)

@@ -32,6 +32,8 @@ struct Config
     PortMode portMode = PortMode::unknown;
     uint32_t baudRate = 0;
     uint16_t rtsDelay = 0;
+
+    virtual ~Config() = default;
 };
 
 template <typename T>

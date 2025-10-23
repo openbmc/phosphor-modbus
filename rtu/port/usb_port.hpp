@@ -18,11 +18,11 @@ class USBPort : public BasePort
 {
   public:
     explicit USBPort(sdbusplus::async::context& ctx,
-                     config::PortFactoryConfig& config);
+                     const config::PortFactoryConfig& config);
 
     static auto getConfig(sdbusplus::async::context& ctx,
                           const sdbusplus::message::object_path& objectPath)
-        -> sdbusplus::async::task<std::optional<config::PortFactoryConfig>>;
+        -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>;
 };
 
 } // namespace phosphor::modbus::rtu::port
