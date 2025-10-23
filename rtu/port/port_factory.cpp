@@ -18,25 +18,18 @@ auto PortFactory::getInterfaces() -> std::vector<std::string>
 auto PortFactory::getConfig(sdbusplus::async::context& ctx,
                             const sdbusplus::message::object_path& objectPath,
                             const std::string& interfaceName)
-    -> sdbusplus::async::task<std::optional<config::PortFactoryConfig>>
+    -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>
 {
     if (interfaceName == USBPortConfigIntf::interface)
     {
-        auto res = co_await USBPort::getConfig(ctx, objectPath);
-        if (!res)
-        {
-            co_return std::nullopt;
-        }
-        config::PortFactoryConfig config = res.value();
-        config.portType = config::PortType::usb;
-        co_return config;
+        co_return co_await USBPort::getConfig(ctx, objectPath);
     }
 
-    co_return std::nullopt;
+    co_return std::nullptr_t();
 }
 
 auto PortFactory::create(sdbusplus::async::context& ctx,
-                         config::PortFactoryConfig& config)
+                         const config::PortFactoryConfig& config)
     -> std::unique_ptr<BasePort>
 {
     if (config.portType == config::PortType::usb)
