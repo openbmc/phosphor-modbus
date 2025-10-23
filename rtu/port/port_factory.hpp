@@ -34,10 +34,10 @@ class PortFactory
     static auto getConfig(sdbusplus::async::context& ctx,
                           const sdbusplus::message::object_path& objectPath,
                           const std::string& interfaceName)
-        -> sdbusplus::async::task<std::optional<config::PortFactoryConfig>>;
+        -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>;
 
     static auto create(sdbusplus::async::context& ctx,
-                       config::PortFactoryConfig& config)
+                       const config::PortFactoryConfig& config)
         -> std::unique_ptr<BasePort>;
 };
 
