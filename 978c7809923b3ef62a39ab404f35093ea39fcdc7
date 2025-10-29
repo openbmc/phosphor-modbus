@@ -16,6 +16,24 @@
       "message": "Why do we need flatmap at all?  Can\u0027t a normal map work?",
       "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2d6fb526_15215dd2",
+        "filename": "common/entity_manager_interface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-10-29T19:21:37Z",
+      "side": 1,
+      "message": "I am following the convention which is consistent for all EM interface related code for configuration - https://grok.openbmc.org/search?full\u003d%22flat_map%22\u0026project\u003dopenbmc\u0026n\u003d25. I could be wrong but my understanding is its being done because of nested structure of related data items.",
+      "parentUuid": "f591ad77_ac7e490c",
+      "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
