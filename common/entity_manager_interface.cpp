@@ -1,12 +1,12 @@
 #include "entity_manager_interface.hpp"
 
-#include <boost/container/flat_map.hpp>
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/message/native_types.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
 #include <algorithm>
+#include <flat_map>
 #include <utility>
 
 namespace entity_manager
@@ -20,10 +20,10 @@ using BasicVariantType =
     std::variant<std::vector<std::string>, std::vector<uint8_t>, std::string,
                  int64_t, uint64_t, double, int32_t, uint32_t, int16_t,
                  uint16_t, uint8_t, bool>;
-using BaseConfigMap = boost::container::flat_map<std::string, BasicVariantType>;
-using ConfigData = boost::container::flat_map<std::string, BaseConfigMap>;
+using BaseConfigMap = std::flat_map<std::string, BasicVariantType>;
+using ConfigData = std::flat_map<std::string, BaseConfigMap>;
 using ManagedObjectType =
-    boost::container::flat_map<sdbusplus::message::object_path, ConfigData>;
+    std::flat_map<sdbusplus::message::object_path, ConfigData>;
 
 EntityManagerInterface::EntityManagerInterface(
     sdbusplus::async::context& ctx, const interface_list_t& interfaceNames,
