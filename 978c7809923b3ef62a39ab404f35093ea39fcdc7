@@ -34,6 +34,24 @@
       "parentUuid": "f591ad77_ac7e490c",
       "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f6d5c2b5_89a9da66",
+        "filename": "common/entity_manager_interface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-10-29T19:53:37Z",
+      "side": 1,
+      "message": "better than boost at least.",
+      "parentUuid": "2d6fb526_15215dd2",
+      "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
