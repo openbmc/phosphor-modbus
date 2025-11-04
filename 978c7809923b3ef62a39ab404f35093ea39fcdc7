@@ -52,6 +52,24 @@
       "parentUuid": "2d6fb526_15215dd2",
       "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81066bcb_51ae6cf2",
+        "filename": "common/entity_manager_interface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-04T03:12:17Z",
+      "side": 1,
+      "message": "@patrick@stwcx.xyz I am marking this as resolved based on above reasoning. Please let me know if there are still any concerns.",
+      "parentUuid": "f6d5c2b5_89a9da66",
+      "revId": "978c7809923b3ef62a39ab404f35093ea39fcdc7",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
