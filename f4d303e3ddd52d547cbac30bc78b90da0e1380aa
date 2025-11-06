@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52077420_fe852219",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "Looking at the code using this, I think it will be a lot cleaner if this returned T and threw an exception if there was a problem.\nThat way, for example, processDeviceInterface would look like\n```\n  config.name \u003d getValue\u003cstd::string\u003e(configMap, \"Name\", config.name);\n  config.address \u003d getValue\u003cuint64_t\u003e(configMap, \"Address\", config.name);\n  config.baudRate \u003d getValue\u003cuint64_t\u003e(configMap, \"BaudRate\", config.name);\n  config.portName \u003d getValue\u003cstd::string\u003e(configMap, \"SerialPort\", config.name);\n  auto type \u003d getValue\u003cstd::string\u003e(configMap, \"Type\", config.name);\n```\nAnd we can in fact make the exception fall through and have processDeviceInterface (and other process* functions) return void and have the try catch in line 439 (function getConfigSubTree).",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b3bad9b_62b194cf",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "eliminate individual if conditions and throw all these in a try/catch block and have just one error() call in the catch which also returns false.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f25760b7_86ce7756",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "(nit) Can we have sensor be a member of sensorRegister instead of in another map? I am seeing if we can eliminate doing a map lookup in readSensorRegisters() `sensor \u003d sensors.find(sensorRegister.name);`.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8dd81cf8_01e78088",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "Ahh my comment from line 29, we could make getInterfaces() return a std::map\u003cstd::string, config::DeviceType\u003e. And callers who only want the interfaces can just use the keys. But I need to still see the callers to find out how viable this is.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02f7a8b2_cff9db19",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "Same thing here. this might expand to multiple devices in the future. A potential future optimization could be to allow Intf units to statically register their interfaces with the factory at init.\nSo a static mapping from interfaceName -\u003e config::DeviceType could be useful.\n\nIMHO this could also be a future optimization before we add the next device type.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d575cbaa_c14c5083",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2025-11-06T19:27:11Z",
+      "side": 1,
+      "message": "(nit) I envision that this would expand in the future. Would it make sense to start with a switch/case here?",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
