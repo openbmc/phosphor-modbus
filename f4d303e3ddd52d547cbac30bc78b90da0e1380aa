@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "115d1a1b_bd0f90ab",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52077420_fe852219",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3b3bad9b_62b194cf",
@@ -31,6 +49,24 @@
       "writtenOn": "2025-11-06T19:27:11Z",
       "side": 1,
       "message": "eliminate individual if conditions and throw all these in a try/catch block and have just one error() call in the catch which also returns false.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5782d23_e3df8fab",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b3bad9b_62b194cf",
       "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -52,6 +88,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e7e1c1e_4569a95c",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "They are 2 different objects because one is a config and other is an actual concrete object. Config flow is a precursor to actual object creation hence they have been kept separate. map lookup should either be constant or logarithmic complexity, but if we see some performance issue in the future we can extend the sensor object to store a reference to sensor config. Since, this is marked as nit at the moment i will skip this for now because of stated reasoning.",
+      "parentUuid": "f25760b7_86ce7756",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8dd81cf8_01e78088",
@@ -65,6 +119,24 @@
       "writtenOn": "2025-11-06T19:27:11Z",
       "side": 1,
       "message": "Ahh my comment from line 29, we could make getInterfaces() return a std::map\u003cstd::string, config::DeviceType\u003e. And callers who only want the interfaces can just use the keys. But I need to still see the callers to find out how viable this is.",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0004bf94_5d168c2a",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "I have changed the return type for getInterfaces to std::unordered_set\u003cstd::string\u003e for easy lookup.",
+      "parentUuid": "8dd81cf8_01e78088",
       "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -86,6 +158,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "24dd1951_6638b530",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "I have changed the return type for getInterfaces to std::unordered_set\u003cstd::string\u003e for easy lookup. We can always revisit this if any further optimizations would be required in future based on need.",
+      "parentUuid": "02f7a8b2_cff9db19",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d575cbaa_c14c5083",
@@ -99,6 +189,24 @@
       "writtenOn": "2025-11-06T19:27:11Z",
       "side": 1,
       "message": "(nit) I envision that this would expand in the future. Would it make sense to start with a switch/case here?",
+      "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dcde67ad_0e80ac8c",
+        "filename": "rtu/device/device_factory.cpp",
+        "patchSetId": 31
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2025-11-10T23:17:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d575cbaa_c14c5083",
       "revId": "f4d303e3ddd52d547cbac30bc78b90da0e1380aa",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
