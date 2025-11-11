@@ -1,0 +1,9 @@
+Code-Review+2: Jagpal S Gill <paligill@gmail.com>
+Verified+1: OpenBMC CI <openbmcbump-ci@yahoo.com>
+Code-Review+1: Amithash Prasad <amithash@meta.com>
+Submitted-by: Jagpal S Gill <paligill@gmail.com>
+Submitted-at: Tue, 11 Nov 2025 17:53:21 +0000
+Reviewed-on: https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/83268
+Comments-Total: 12
+Project: openbmc/phosphor-modbus
+Branch: refs/heads/main
