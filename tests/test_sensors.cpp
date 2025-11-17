@@ -5,7 +5,10 @@
 
 #include <fcntl.h>
 
+#include <xyz/openbmc_project/Association/Definitions/client.hpp>
 #include <xyz/openbmc_project/Sensor/Value/client.hpp>
+#include <xyz/openbmc_project/State/Decorator/Availability/client.hpp>
+#include <xyz/openbmc_project/State/Decorator/OperationalStatus/client.hpp>
 
 #include <cmath>
 #include <string>
@@ -16,6 +19,12 @@ using namespace std::literals;
 using namespace testing;
 using SensorValueIntf =
     sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
+using OperationalStatusIntf = sdbusplus::client::xyz::openbmc_project::state::
+    decorator::OperationalStatus<>;
+using AvailabilityIntf =
+    sdbusplus::client::xyz::openbmc_project::state::decorator::Availability<>;
+using AssociationIntf =
+    sdbusplus::client::xyz::openbmc_project::association::Definitions<>;
 
 namespace TestIntf = phosphor::modbus::test;
 namespace ModbusIntf = phosphor::modbus::rtu;
@@ -114,6 +123,18 @@ class SensorsTest : public ::testing::Test
         kill(socat_pid, SIGTERM);
     }
 
+    auto checkInventoryAssociations() -> sdbusplus::async::task<void>
+    {
+        constexpr auto numOfInventoryAssociations = 2;
+        auto associationProperties =
+            co_await AssociationIntf(ctx)
+                .service(serviceName)
+                .path(objectPath)
+                .properties();
+        EXPECT_EQ(associationProperties.associations.size(),
+                  numOfInventoryAssociations);
+    }
+
     auto testSensorCreation(std::string objectPath,
                             DeviceConfigIntf::SensorRegister sensorRegister,
                             double expectedValue)
@@ -135,11 +156,8 @@ class SensorsTest : public ::testing::Test
             DeviceConfigIntf::DeviceType::reservoirPumpUnit,
             DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
         };
-
         EventIntf::Events events{ctx};
-
         MockPort mockPort(ctx, portConfig, clientDevicePath);
-
         auto device = DeviceIntf::DeviceFactory::create(
             ctx, deviceFactoryConfig, mockPort, events);
 
@@ -149,12 +167,29 @@ class SensorsTest : public ::testing::Test
                               .service(serviceName)
                               .path(objectPath)
                               .properties();
-
         EXPECT_EQ(properties.value, expectedValue) << "Sensor value mismatch";
         EXPECT_EQ(properties.unit, sensorRegister.unit)
             << "Sensor unit mismatch";
         EXPECT_TRUE(std::isnan(properties.min_value)) << "Min value mismatch";
         EXPECT_TRUE(std::isnan(properties.max_value)) << "Max value mismatch";
+
+        auto operationalProperties =
+            co_await OperationalStatusIntf(ctx)
+                .service(serviceName)
+                .path(objectPath)
+                .properties();
+        EXPECT_EQ(operationalProperties.functional, true)
+            << "Operational status mismatch";
+
+        auto availabilityProperties =
+            co_await AvailabilityIntf(ctx)
+                .service(serviceName)
+                .path(objectPath)
+                .properties();
+        EXPECT_EQ(availabilityProperties.available, true)
+            << "Availability mismatch";
+
+        co_await checkInventoryAssociations();
 
         co_return;
     }

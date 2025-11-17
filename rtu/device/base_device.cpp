@@ -32,15 +32,24 @@ static auto getObjectPath(const std::string& sensorType,
     -> sdbusplus::message::object_path
 {
     return sdbusplus::message::object_path(
-        std::string(SensorValueIntf::namespace_path::value) + "/" + sensorType +
+        std::string(SensorIntf::namespace_path::value) + "/" + sensorType +
         "/" + sensorName);
 }
 
 auto BaseDevice::createSensors() -> void
 {
+    constexpr SensorIntf::Availability::properties_t initAvailability{};
+    constexpr SensorIntf::OperationalStatus::properties_t initOperationalStatus{
+        true};
+    constexpr SensorIntf::Warning::properties_t initWarning{};
+    constexpr SensorIntf::Critical::properties_t initCritical{};
+    const SensorIntf::Definitions::properties_t initAssociations{
+        {{"monitoring", "monitored_by", config.inventoryPath},
+         {"inventory", "sensors", config.inventoryPath}}};
+
     for (const auto& sensorRegister : config.sensorRegisters)
     {
-        SensorValueIntf::properties_t initProperties = {
+        SensorIntf::Value::properties_t initValue = {
             std::numeric_limits<double>::quiet_NaN(),
             std::numeric_limits<double>::quiet_NaN(),
             std::numeric_limits<double>::quiet_NaN(), sensorRegister.unit};
@@ -48,10 +57,16 @@ auto BaseDevice::createSensors() -> void
         auto sensorPath = getObjectPath(
             sensorRegister.pathSuffix, config.name + "_" + sensorRegister.name);
 
-        auto sensor = std::make_unique<SensorValueIntf>(
-            ctx, sensorPath.str.c_str(), initProperties);
+        auto sensor = std::make_unique<SensorIntf>(
+            ctx, sensorPath.str.c_str(), initValue, initAvailability,
+            initOperationalStatus, initWarning, initCritical, initAssociations);
 
-        sensor->emit_added();
+        sensor->Value::emit_added();
+        sensor->Availability::emit_added();
+        sensor->OperationalStatus::emit_added();
+        sensor->Warning::emit_added();
+        sensor->Critical::emit_added();
+        sensor->Definitions::emit_added();
 
         sensors.emplace(sensorRegister.name, std::move(sensor));
     }
@@ -140,6 +155,8 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
                     "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
                     "NAME", sensorRegister.name, "DEVICE_ADDRESS",
                     config.address);
+                sensor->second->value(std::numeric_limits<double>::quiet_NaN());
+                sensor->second->functional(false);
                 continue;
             }
 
@@ -177,8 +194,7 @@ static auto getObjectPath(const config::Config& config, config::StatusType type,
         case config::StatusType::sensorReadingWarning:
         case config::StatusType::sensorFailure:
             return sdbusplus::message::object_path(
-                std::string(SensorValueIntf::namespace_path::value) + "/" +
-                name);
+                std::string(SensorIntf::namespace_path::value) + "/" + name);
         case config::StatusType::controllerFailure:
             return config.inventoryPath;
         case config::StatusType::pumpFailure:
@@ -197,7 +213,7 @@ static auto getObjectPath(const config::Config& config, config::StatusType type,
         case config::StatusType::leakDetectedWarning:
             using DetectorIntf =
                 sdbusplus::aserver::xyz::openbmc_project::state::leak::Detector<
-                    Device>;
+                    BaseDevice>;
             return sdbusplus::message::object_path(
                 std::string(DetectorIntf::namespace_path::value) + "/" +
                 DetectorIntf::namespace_path::detector + "/" + name);
@@ -206,6 +222,28 @@ static auto getObjectPath(const config::Config& config, config::StatusType type,
     }
 
     return sdbusplus::message::object_path();
+}
+
+static auto updateSensorOnStatusChange(
+    SensorIntf& sensor, config::StatusType statusType, bool statusAsserted)
+{
+    if (statusType == config::StatusType::sensorReadingCritical)
+    {
+        sensor.critical_alarm_high(statusAsserted);
+    }
+    else if (statusType == config::StatusType::sensorReadingWarning)
+    {
+        sensor.warning_alarm_high(statusAsserted);
+    }
+    else if (statusType == config::StatusType::sensorFailure)
+    {
+        if (statusAsserted)
+        {
+            sensor.value(std::numeric_limits<double>::quiet_NaN());
+        }
+        sensor.available(!statusAsserted);
+        sensor.functional(!statusAsserted);
+    }
 }
 
 auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
@@ -240,12 +278,15 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
             auto objectPath =
                 getObjectPath(config, statusBit.type, statusBit.name);
             double sensorValue = std::numeric_limits<double>::quiet_NaN();
-            SensorValueIntf::Unit sensorUnit = SensorValueIntf::Unit::Percent;
+            SensorIntf::Unit sensorUnit = SensorIntf::Unit::Percent;
             auto sensorIter = sensors.find(statusBit.name);
             if (sensorIter != sensors.end())
             {
                 sensorValue = sensorIter->second->value();
                 sensorUnit = sensorIter->second->unit();
+
+                updateSensorOnStatusChange(*(sensorIter->second),
+                                           statusBit.type, statusAsserted);
             }
 
             co_await generateEvent(statusBit, objectPath, sensorValue,
@@ -259,7 +300,7 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
 auto BaseDevice::generateEvent(
     const config::StatusBit& statusBit,
     const sdbusplus::message::object_path& objectPath, double sensorValue,
-    SensorValueIntf::Unit sensorUnit, bool statusAsserted)
+    SensorIntf::Unit sensorUnit, bool statusAsserted)
     -> sdbusplus::async::task<void>
 {
     switch (statusBit.type)
