@@ -39,7 +39,7 @@ class Modbus
     int fd;
     uint16_t rtsDelay;
     uint32_t baudRate = 0;
-    Parity parity = Parity::odd;
+    Parity parity = Parity::unknown;
     sdbusplus::async::fdio fdioInstance;
 };
 

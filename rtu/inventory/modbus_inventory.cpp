@@ -155,7 +155,7 @@ auto getConfigSubInterfaces(sdbusplus::async::context& ctx,
          co_await entityManager.call<ManagedObjectType>(ctx,
                                                         "GetManagedObjects"))
     {
-        if (!(path.str).starts_with(objectPath.str))
+        if (path.str != objectPath.str)
         {
             debug("Skipping device {PATH}", "PATH", path.str);
             continue;
