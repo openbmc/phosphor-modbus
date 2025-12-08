@@ -19,6 +19,13 @@ if not gtest_dep.found() or not gmock_dep.found()
     endif
 endif
 
+test_base_lib = static_library(
+    'test_base_lib',
+    ['test_base.cpp'],
+    include_directories: ['.', common_include],
+    dependencies: [default_deps, modbus_rtu_dep],
+)
+
 test(
     'test_modbus_commands',
     executable(
@@ -35,6 +42,7 @@ test(
         'test_modbus',
         'test_modbus.cpp',
         'modbus_server_tester.cpp',
+        link_with: [test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.'],
     ),
@@ -46,6 +54,7 @@ test(
         'test_port',
         'test_port.cpp',
         'modbus_server_tester.cpp',
+        link_with: [test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
@@ -58,6 +67,7 @@ test(
         'test_inventory.cpp',
         'modbus_server_tester.cpp',
         inventory_src,
+        link_with: [test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
@@ -71,7 +81,7 @@ test(
         'modbus_server_tester.cpp',
         device_src,
         firmware_src,
-        link_with: [modbus_common_lib],
+        link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
@@ -95,7 +105,7 @@ test(
         'test_firmware.cpp',
         'modbus_server_tester.cpp',
         firmware_src,
-        link_with: [modbus_common_lib],
+        link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),

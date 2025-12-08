@@ -1,79 +1,25 @@
 #include "modbus/modbus.hpp"
 #include "modbus_server_tester.hpp"
+#include "test_base.hpp"
 
-#include <fcntl.h>
-
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 using namespace std::literals;
 
 namespace RTUIntf = phosphor::modbus::rtu;
 using ModbusIntf = RTUIntf::Modbus;
-namespace TestIntf = phosphor::modbus::test;
 
-class ModbusTest : public ::testing::Test
+class ModbusTest : public BaseTest
 {
   public:
-    static constexpr const char* clientDevicePath = "/tmp/ttyV0";
-    static constexpr const char* serverDevicePath = "/tmp/ttyV1";
-    static constexpr const auto defaultBaudeRate = "b115200";
-    int socat_pid = -1;
-    sdbusplus::async::context ctx;
+    static constexpr auto clientDevicePath = "/tmp/ttyV0";
+    static constexpr auto serverDevicePath = "/tmp/ttyV1";
+    static constexpr auto serviceName = "xyz.openbmc_project.TestModbus";
     std::unique_ptr<ModbusIntf> modbus;
-    int fdClient = -1;
-    std::unique_ptr<TestIntf::ServerTester> serverTester;
-    int fdServer = -1;
 
-    ModbusTest()
+    ModbusTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
     {
-        std::string socatCmd = std::format(
-            "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",
-            serverDevicePath, defaultBaudeRate, clientDevicePath,
-            defaultBaudeRate);
-
-        // Start socat in the background and capture its PID
-        FILE* fp = popen(socatCmd.c_str(), "r");
-        EXPECT_NE(fp, nullptr) << "Failed to start socat: " << strerror(errno);
-        EXPECT_GT(fscanf(fp, "%d", &socat_pid), 0);
-        pclose(fp);
-
-        // Wait for socat to start up
-        sleep(1);
-
-        fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdClient, -1)
-            << "Failed to open serial port " << clientDevicePath
-            << " with error: " << strerror(errno);
-
         modbus = std::make_unique<ModbusIntf>(ctx, fdClient, 115200, 0);
-
-        fdServer = open(serverDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdServer, -1)
-            << "Failed to open serial port " << serverDevicePath
-            << " with error: " << strerror(errno);
-
-        serverTester = std::make_unique<TestIntf::ServerTester>(ctx, fdServer);
-    }
-
-    ~ModbusTest() noexcept override
-    {
-        if (fdClient != -1)
-        {
-            close(fdClient);
-            fdClient = -1;
-        }
-        if (fdServer != -1)
-        {
-            close(fdServer);
-            fdServer = -1;
-        }
-        kill(socat_pid, SIGTERM);
-    }
-
-    void SetUp() override
-    {
-        ctx.spawn(serverTester->processRequests());
     }
 
     auto TestHoldingRegisters(uint16_t registerOffset, bool res)

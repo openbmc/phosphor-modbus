@@ -1,8 +1,7 @@
 #include "common/entity_manager_interface.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/port_factory.hpp"
-
-#include <fcntl.h>
+#include "test_base.hpp"
 
 #include <xyz/openbmc_project/Configuration/USBPort/aserver.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
@@ -13,7 +12,6 @@ using namespace std::literals;
 
 class PortTest;
 
-namespace TestIntf = phosphor::modbus::test;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace RTUIntf = phosphor::modbus::rtu;
@@ -38,67 +36,21 @@ class MockPort : public PortIntf::BasePort
     {}
 };
 
-class PortTest : public ::testing::Test
+class PortTest : public BaseTest
 {
   public:
     static constexpr properties_t properties = {"TestPort", "RS485", 115200, 1};
-    static constexpr const char* clientDevicePath = "/tmp/ttyPortV0";
-    static constexpr const char* serverDevicePath = "/tmp/ttyPortV1";
-    static constexpr const auto defaultBaudeRate = "b115200";
-    int socat_pid = -1;
-    sdbusplus::async::context ctx;
-    int fdClient = -1;
-    std::unique_ptr<TestIntf::ServerTester> serverTester;
-    int fdServer = -1;
+    static constexpr auto clientDevicePath = "/tmp/ttyPortV0";
+    static constexpr auto serverDevicePath = "/tmp/ttyPortV1";
+    static constexpr auto serviceName = "xyz.openbmc_project.TestModbusPort";
     bool getPortConfigPassed = false;
 
-    PortTest()
-    {
-        std::string socatCmd = std::format(
-            "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",
-            serverDevicePath, defaultBaudeRate, clientDevicePath,
-            defaultBaudeRate);
-
-        // Start socat in the background and capture its PID
-        FILE* fp = popen(socatCmd.c_str(), "r");
-        EXPECT_NE(fp, nullptr) << "Failed to start socat: " << strerror(errno);
-        EXPECT_GT(fscanf(fp, "%d", &socat_pid), 0);
-        pclose(fp);
-
-        // Wait for socat to start up
-        sleep(1);
-
-        fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdClient, -1)
-            << "Failed to open serial port " << clientDevicePath
-            << " with error: " << strerror(errno);
-
-        fdServer = open(serverDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdServer, -1)
-            << "Failed to open serial port " << serverDevicePath
-            << " with error: " << strerror(errno);
-
-        serverTester = std::make_unique<TestIntf::ServerTester>(ctx, fdServer);
-    }
-
-    ~PortTest() noexcept override
-    {
-        if (fdClient != -1)
-        {
-            close(fdClient);
-            fdClient = -1;
-        }
-        if (fdServer != -1)
-        {
-            close(fdServer);
-            fdServer = -1;
-        }
-        kill(socat_pid, SIGTERM);
-    }
+    PortTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName) {}
 
     void SetUp() override
     {
         getPortConfigPassed = false;
+        BaseTest::SetUp();
     }
 
     auto TestHoldingRegisters(PortConfigIntf::Config& config, MockPort& port,
@@ -239,8 +191,6 @@ TEST_F(PortTest, TestReadHoldingRegisterSuccess)
 
     MockPort port(ctx, config, clientDevicePath);
 
-    ctx.spawn(serverTester->processRequests());
-
     ctx.spawn(TestHoldingRegisters(
         config, port, TestIntf::testSuccessReadHoldingRegisterOffset, true));
 
@@ -257,8 +207,6 @@ TEST_F(PortTest, TestReadHoldingRegisterFailure)
     EXPECT_TRUE(res) << "Failed to update config";
 
     MockPort port(ctx, config, clientDevicePath);
-
-    ctx.spawn(serverTester->processRequests());
 
     ctx.spawn(TestHoldingRegisters(
         config, port, TestIntf::testFailureReadHoldingRegister, false));

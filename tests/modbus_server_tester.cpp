@@ -24,21 +24,17 @@ ServerTester::ServerTester(sdbusplus::async::context& ctx, int fd) :
     fd(fd), fdioInstance(ctx, fd), mutex("TestMutex")
 {}
 
-auto ServerTester::processRequests() -> sdbusplus::async::task<void>
+auto ServerTester::processRequestsInternal() -> void
 {
-    // Acquire lock to guard against concurrent access to fdioInstance
-    sdbusplus::async::lock_guard lg{mutex};
-    co_await lg.lock();
-
     MessageIntf request;
-    co_await fdioInstance.next();
+
     auto ret = read(fd, request.raw.data(), request.raw.size());
     // Request message need to be at least 4 bytes long - address(1),
     // function code(1), ..., CRC(2)
     if (ret < 4)
     {
         error("Invalid Server message size {SIZE}, drop it", "SIZE", ret);
-        co_return;
+        return;
     }
 
     MessageIntf response;
@@ -52,7 +48,7 @@ auto ServerTester::processRequests() -> sdbusplus::async::task<void>
         {
             error("Failed to send response {ERROR}", "ERROR", strerror(errno));
         }
-        co_return;
+        return;
     }
 
     // Segmented response
@@ -61,7 +57,7 @@ auto ServerTester::processRequests() -> sdbusplus::async::task<void>
     {
         error("Failed to send 1st segment response {ERROR}", "ERROR",
               strerror(errno));
-        co_return;
+        return;
     }
 
     debug("First segment sent successfully");
@@ -71,12 +67,42 @@ auto ServerTester::processRequests() -> sdbusplus::async::task<void>
     {
         error("Failed to send 2nd segment response {ERROR}", "ERROR",
               strerror(errno));
-        co_return;
+        return;
     }
 
     debug("Second segment sent successfully");
+}
 
-    co_return;
+auto ServerTester::processRequests() -> void
+{
+    fd_set readFds;
+    FD_ZERO(&readFds);
+    FD_SET(fd, &readFds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500000;
+
+    int readyFds = select(fd + 1, &readFds, nullptr, nullptr, &timeout);
+
+    if (readyFds == -1)
+    {
+        // Error handling
+        error("Error in select {ERROR}", "ERROR", strerror(errno));
+    }
+    else if (readyFds == 0)
+    {
+        // Timeout occurred, no data to read
+        warning("Timeout occurred, no data to read");
+    }
+    else
+    {
+        if (FD_ISSET(fd, &readFds))
+        {
+            // Data is available to read
+            processRequestsInternal();
+        }
+    }
 }
 
 void ServerTester::processMessage(MessageIntf& request, size_t requestSize,

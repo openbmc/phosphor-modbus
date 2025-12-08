@@ -1,9 +1,7 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
-#include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
-
-#include <fcntl.h>
+#include "test_base.hpp"
 
 #include <xyz/openbmc_project/Association/Definitions/client.hpp>
 #include <xyz/openbmc_project/Sensor/Value/client.hpp>
@@ -26,7 +24,6 @@ using AvailabilityIntf =
 using AssociationIntf =
     sdbusplus::client::xyz::openbmc_project::association::Definitions<>;
 
-namespace TestIntf = phosphor::modbus::test;
 namespace ModbusIntf = phosphor::modbus::rtu;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
@@ -43,28 +40,22 @@ class MockPort : public PortIntf::BasePort
     {}
 };
 
-class SensorsTest : public ::testing::Test
+class SensorsTest : public BaseTest
 {
   public:
-    PortConfigIntf::Config portConfig;
-    static constexpr const char* clientDevicePath = "/tmp/ttySensorsTestPort0";
-    static constexpr const char* serverDevicePath = "/tmp/ttySensorsTestPort1";
+    static constexpr auto clientDevicePath = "/tmp/ttySensorsTestPort0";
+    static constexpr auto serverDevicePath = "/tmp/ttySensorsTestPort1";
     static constexpr auto portName = "TestPort0";
-    static constexpr auto baudRate = 115200;
-    static constexpr const auto strBaudeRate = "b115200";
-    std::string deviceName;
-    std::string fullSensorName;
-    std::string objectPath;
     static constexpr auto serviceName =
         "xyz.openbmc_project.TestModbusRTUSensors";
     static constexpr auto sensorName = "OutletTemperature";
-    int socat_pid = -1;
-    sdbusplus::async::context ctx;
-    int fdClient = -1;
-    std::unique_ptr<TestIntf::ServerTester> serverTester;
-    int fdServer = -1;
 
-    SensorsTest()
+    PortConfigIntf::Config portConfig;
+    std::string deviceName;
+    std::string fullSensorName;
+    std::string objectPath;
+
+    SensorsTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
     {
         portConfig.name = portName;
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
@@ -79,48 +70,6 @@ class SensorsTest : public ::testing::Test
         objectPath = std::format(
             "{}/{}/{}", SensorValueIntf::namespace_path::value,
             SensorValueIntf::namespace_path::temperature, fullSensorName);
-
-        std::string socatCmd = std::format(
-            "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",
-            serverDevicePath, strBaudeRate, clientDevicePath, strBaudeRate);
-
-        // Start socat in the background and capture its PID
-        FILE* fp = popen(socatCmd.c_str(), "r");
-        EXPECT_NE(fp, nullptr) << "Failed to start socat: " << strerror(errno);
-        EXPECT_GT(fscanf(fp, "%d", &socat_pid), 0);
-        pclose(fp);
-
-        // Wait for socat to start up
-        sleep(1);
-
-        fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdClient, -1)
-            << "Failed to open serial port " << clientDevicePath
-            << " with error: " << strerror(errno);
-
-        fdServer = open(serverDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdServer, -1)
-            << "Failed to open serial port " << serverDevicePath
-            << " with error: " << strerror(errno);
-
-        ctx.request_name(serviceName);
-
-        serverTester = std::make_unique<TestIntf::ServerTester>(ctx, fdServer);
-    }
-
-    ~SensorsTest() noexcept override
-    {
-        if (fdClient != -1)
-        {
-            close(fdClient);
-            fdClient = -1;
-        }
-        if (fdServer != -1)
-        {
-            close(fdServer);
-            fdServer = -1;
-        }
-        kill(socat_pid, SIGTERM);
     }
 
     auto checkInventoryAssociations() -> sdbusplus::async::task<void>
@@ -192,12 +141,6 @@ class SensorsTest : public ::testing::Test
         co_await checkInventoryAssociations();
 
         co_return;
-    }
-
-    void SetUp() override
-    {
-        // Process request for sensor poll
-        ctx.spawn(serverTester->processRequests());
     }
 };
 

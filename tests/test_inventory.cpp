@@ -1,8 +1,7 @@
 #include "inventory/modbus_inventory.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
-
-#include <fcntl.h>
+#include "test_base.hpp"
 
 #include <xyz/openbmc_project/Inventory/Source/Modbus/FRU/client.hpp>
 
@@ -13,7 +12,6 @@ using namespace testing;
 using InventorySourceIntf =
     sdbusplus::client::xyz::openbmc_project::inventory::source::modbus::FRU<>;
 
-namespace TestIntf = phosphor::modbus::test;
 namespace ModbusIntf = phosphor::modbus::rtu;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
@@ -29,72 +27,23 @@ class MockPort : public PortIntf::BasePort
     {}
 };
 
-class InventoryTest : public ::testing::Test
+class InventoryTest : public BaseTest
 {
   public:
-    PortConfigIntf::Config portConfig;
     static constexpr const char* clientDevicePath =
         "/tmp/ttyInventoryTestPort0";
     static constexpr const char* serverDevicePath =
         "/tmp/ttyInventoryTestPort1";
-    static constexpr const auto defaultBaudeRate = "b115200";
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
-    int socat_pid = -1;
-    sdbusplus::async::context ctx;
-    int fdClient = -1;
-    std::unique_ptr<TestIntf::ServerTester> serverTester;
-    int fdServer = -1;
+    PortConfigIntf::Config portConfig;
 
-    InventoryTest()
+    InventoryTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
     {
         portConfig.name = "TestPort1";
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
         portConfig.baudRate = 115200;
         portConfig.rtsDelay = 1;
-
-        std::string socatCmd = std::format(
-            "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",
-            serverDevicePath, defaultBaudeRate, clientDevicePath,
-            defaultBaudeRate);
-
-        // Start socat in the background and capture its PID
-        FILE* fp = popen(socatCmd.c_str(), "r");
-        EXPECT_NE(fp, nullptr) << "Failed to start socat: " << strerror(errno);
-        EXPECT_GT(fscanf(fp, "%d", &socat_pid), 0);
-        pclose(fp);
-
-        // Wait for socat to start up
-        sleep(1);
-
-        fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdClient, -1)
-            << "Failed to open serial port " << clientDevicePath
-            << " with error: " << strerror(errno);
-
-        fdServer = open(serverDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
-        EXPECT_NE(fdServer, -1)
-            << "Failed to open serial port " << serverDevicePath
-            << " with error: " << strerror(errno);
-
-        ctx.request_name(serviceName);
-
-        serverTester = std::make_unique<TestIntf::ServerTester>(ctx, fdServer);
-    }
-
-    ~InventoryTest() noexcept override
-    {
-        if (fdClient != -1)
-        {
-            close(fdClient);
-            fdClient = -1;
-        }
-        if (fdServer != -1)
-        {
-            close(fdServer);
-            fdServer = -1;
-        }
-        kill(socat_pid, SIGTERM);
     }
 
     auto testInventorySourceCreation(std::string objPath)
@@ -141,18 +90,6 @@ class InventoryTest : public ::testing::Test
             << "Part Number mismatch";
 
         co_return;
-    }
-
-    void SetUp() override
-    {
-        // Process request for probe device call
-        ctx.spawn(serverTester->processRequests());
-
-        // Process request to read `Model` holding register call
-        ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
-                  sdbusplus::async::execution::then([&]() {
-                      ctx.spawn(serverTester->processRequests());
-                  }));
     }
 };
 

@@ -71,15 +71,17 @@ class ServerTester
   public:
     explicit ServerTester(sdbusplus::async::context& ctx, int fd);
 
-    auto processRequests() -> sdbusplus::async::task<void>;
+    auto processRequests() -> void;
 
   private:
-    void processMessage(MessageIntf& request, size_t requestSize,
-                        MessageIntf& response, bool& segmentedResponse);
+    auto processMessage(MessageIntf& request, size_t requestSize,
+                        MessageIntf& response, bool& segmentedResponse) -> void;
 
-    void processReadHoldingRegisters(MessageIntf& request, size_t requestSize,
+    auto processRequestsInternal() -> void;
+
+    auto processReadHoldingRegisters(MessageIntf& request, size_t requestSize,
                                      MessageIntf& response,
-                                     bool& segmentedResponse);
+                                     bool& segmentedResponse) -> void;
 
     int fd;
     sdbusplus::async::fdio fdioInstance;
