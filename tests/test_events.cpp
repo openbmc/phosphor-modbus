@@ -70,7 +70,7 @@ class TestEventServer : public EventServerIntf
 
         // Append the count to the object path to make it unique for each event
         std::string objectPath =
-            "/xyz/openbmc_project/logging/entry/TestEvent1" +
+            "/xyz/openbmc_project/logging/entry/TestEvent" +
             std::to_string(cnt);
         EXPECT_EQ(message, expectedEvent) << "Event name mismatch";
 

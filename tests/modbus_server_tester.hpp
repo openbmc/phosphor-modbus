@@ -46,6 +46,12 @@ const std::vector<uint16_t> testReadHoldingRegisterFirmwareVersion = {
     0x5244, 0x4630};
 constexpr std::string testReadHoldingRegisterFirmwareVersionStr = "RDF0";
 
+// Device Event Testing Constants
+constexpr uint16_t testReadHoldingRegisterEventCount = 0x1;
+constexpr uint16_t testReadHoldingRegisterEventOffset = 0x0116;
+const std::vector<uint16_t> testReadHoldingRegisterEvent = {
+    0x0001}; // Event is enabled
+
 static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
     testReadHoldingRegisterMap = {
         {testSuccessReadHoldingRegisterOffset,
@@ -64,7 +70,8 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
         {testReadHoldingRegisterFirmwareVersionOffset,
          {testReadHoldingRegisterFirmwareVersionCount,
           testReadHoldingRegisterFirmwareVersion}},
-};
+        {testReadHoldingRegisterEventOffset,
+         {testReadHoldingRegisterEventCount, testReadHoldingRegisterEvent}}};
 
 class ServerTester
 {

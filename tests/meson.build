@@ -99,6 +99,21 @@ test(
 )
 
 test(
+    'test_device_events',
+    executable(
+        'test_device_events',
+        'test_device_events.cpp',
+        'modbus_server_tester.cpp',
+        device_src,
+        firmware_src,
+        link_with: [modbus_common_lib, test_base_lib],
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+    is_parallel: false,  # To avoid conflict with test_events, which also simulates xyz.openbmc_project.Logging service operations
+)
+
+test(
     'test_firmware',
     executable(
         'test_firmware',
