@@ -19,9 +19,12 @@ const std::unordered_map<int, speed_t> baudRateMap = {
     {4800, B4800},   {9600, B9600},    {19200, B19200}, {38400, B38400},
     {57600, B57600}, {115200, B115200}};
 
+static constexpr auto fdioTimeoutInMicroSec = 1000000; // 1 second
+
 Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
                uint16_t rtsDelay) :
-    ctx(ctx), fd(fd), rtsDelay(rtsDelay), fdioInstance(ctx, fd)
+    ctx(ctx), fd(fd), rtsDelay(rtsDelay),
+    fdioInstance(ctx, fd, std::chrono::microseconds(fdioTimeoutInMicroSec))
 {
     if (!setProperties(baudRate, Parity::even))
     {
