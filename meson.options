@@ -9,7 +9,7 @@ option(
     'mocked-test-device',
     type: 'feature',
     value: 'enabled',
-    description: 'Build mocked modbus devuce.',
+    description: 'Build mocked modbus device.',
 )
 
 option('tests', type: 'feature', description: 'Build tests.')
