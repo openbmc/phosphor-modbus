@@ -24,8 +24,8 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
     if (fd == -1)
     {
-        throw("Failed to open serial port " + devicePath +
-              " with error: " + strerror(errno));
+        throw std::runtime_error("Failed to open serial port " + devicePath +
+                                 " with error: " + strerror(errno));
     }
 
     modbus =
