@@ -28,10 +28,14 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
                                  " with error: " + strerror(errno));
     }
 
-    modbus =
-        std::make_unique<ModbusIntf>(ctx, fd, config.baudRate, config.rtsDelay);
-    if (!modbus)
+    try
     {
+        modbus = std::make_unique<ModbusIntf>(ctx, fd, config.baudRate,
+                                              config.rtsDelay);
+    }
+    catch (...)
+    {
+        close(fd);
         throw std::runtime_error("Failed to create Modbus interface");
     }
 
