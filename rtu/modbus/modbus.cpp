@@ -64,12 +64,7 @@ auto Modbus::setProperties(uint32_t inBaudRate, Parity inParity) -> bool
         return true;
     }
 
-    termios tty;
-    if (tcgetattr(fd, &tty) != 0)
-    {
-        error("Error getting termios");
-        return false;
-    }
+    termios tty{};
 
     if (inBaudRate != baudRate)
     {
