@@ -45,7 +45,8 @@ auto BaseDevice::createSensors() -> void
     constexpr SensorIntf::Critical::properties_t initCritical{};
     const SensorIntf::Definitions::properties_t initAssociations{
         {{"monitoring", "monitored_by", config.inventoryPath},
-         {"inventory", "sensors", config.inventoryPath}}};
+         {"inventory", "sensors", config.inventoryPath},
+         {"inventory", "all_sensors", config.inventoryPath}}};
 
     for (const auto& sensorRegister : config.sensorRegisters)
     {
