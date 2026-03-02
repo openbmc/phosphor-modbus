@@ -74,7 +74,7 @@ class SensorsTest : public BaseTest
 
     auto checkInventoryAssociations() -> sdbusplus::async::task<void>
     {
-        constexpr auto numOfInventoryAssociations = 2;
+        constexpr auto numOfInventoryAssociations = 3;
         auto associationProperties =
             co_await AssociationIntf(ctx)
                 .service(serviceName)
