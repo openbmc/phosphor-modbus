@@ -51,11 +51,17 @@ auto DeviceManager::processConfigAdded(
 {
     debug("Config added for {PATH} with {INTF}", "PATH", objectPath, "INTF",
           interfaceName);
-    if (interfaceName == ModbusRTUDetectIntf::interface && ports.size() == 0)
+    if (interfaceName == ModbusRTUDetectIntf::interface)
     {
-        warning(
-            "Skip processing ModbusRTUDetectIntf::interface as no serial ports detected yet");
-        co_return;
+        // Maintain a store of device configs so we can defer handling it
+        // to after the port config is added.
+        deviceConfigPaths.insert(objectPath);
+        if (ports.size() == 0)
+        {
+            warning(
+                "Skip processing ModbusRTUDetectIntf::interface as no serial ports detected yet");
+            co_return;
+        }
     }
 
     auto portInterfaces = PortIntf::PortFactory::getInterfaces();
@@ -99,6 +105,11 @@ auto DeviceManager::processPortAdded(
         error("Failed to create Port for {PATH} with {ERROR}", "PATH",
               objectPath, "ERROR", e);
         co_return;
+    }
+    for (const auto& configObjectPath : deviceConfigPaths)
+    {
+        co_await processConfigAdded(configObjectPath,
+                                    ModbusRTUDetectIntf::interface);
     }
 }
 
