@@ -65,6 +65,7 @@ class DeviceManager
     inventory_device_map_t inventoryDevices;
     port_map_t ports;
     device_map_t devices; // Modbus devices
+    std::set<sdbusplus::message::object_path> deviceConfigPaths{};
 };
 
 } // namespace phosphor::modbus::rtu
