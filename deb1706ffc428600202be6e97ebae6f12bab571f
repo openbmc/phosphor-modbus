@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "22c225f2_63a15072",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-03-19T21:02:27Z",
+      "side": 1,
+      "message": "It was not clear which one was the problem.",
+      "parentUuid": "7e1ef97a_467feab1",
+      "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5992db46_53cad44e",
         "filename": "rtu/modbus/modbus.cpp",
         "patchSetId": 1
@@ -31,6 +49,24 @@
       "writtenOn": "2026-03-03T16:28:34Z",
       "side": 1,
       "message": "Since, you are not doing tcgetattr anymore, this if condition will set the baudrate as 0 in case it matches the local class one, this seems incorrect. Same goes for parity.",
+      "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20d95fa7_7215265f",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-03-19T21:02:27Z",
+      "side": 1,
+      "message": "setProperties is called from Modbus::Modbus(). So, inBaudRate will never be 0.",
+      "parentUuid": "5992db46_53cad44e",
       "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
