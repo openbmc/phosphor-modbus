@@ -16,6 +16,24 @@
       "message": "`all_sensors` is a different association with chassis as reverse entry\n\nhttps://grok.openbmc.org/xref/openbmc/dbus-sensors/src/Utils.cpp?r\u003d80c68051de173c7bbde2dafa127ff612d8e5bb04#633\n\nSo, lets add that as separate entry.",
       "revId": "f2aacd439c0bf37ccae69d0bd58c8429772181b3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a74a2f03_ef7e13c0",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-03-19T21:18:21Z",
+      "side": 1,
+      "message": "Done. kept the existing one and added a new entry for all_sensors.",
+      "parentUuid": "982c2142_4d24e531",
+      "revId": "f2aacd439c0bf37ccae69d0bd58c8429772181b3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
