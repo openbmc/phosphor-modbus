@@ -36,6 +36,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4bcf90b3_ce38f21f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-07T16:51:07Z",
+      "side": 1,
+      "message": "Did an experiment on a live system. this is right after reboot.\nThe left of the equality is the one where the termios struct is zeroed, the right is when you use the one got from tcgetattr. I also translated the value to the actual configs from the headers.\n```\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_iflag differs: 16 !\u003d 1296  INPCK !\u003d  (INPCK | ICRNL | IXON)\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_oflag differs: 0 !\u003d 5        0 !\u003d OPOST | ONLCR    (post-process output,  Map NL to CR-NL on output.)\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cflag differs: 6578 !\u003d 7602  (PARODD | CLOCAL | CSTOPB | CREAD | CS8 | 0x2) !\u003d (PARODD | CLOCAL | PARENB | CSTOPB | CREAD | CS8 | 0x2)\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_lflag differs: 0 !\u003d 35387  0 !\u003d (ISIG  | ICANON | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | IEXTEN)\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VINTR] differs: 0 !\u003d 3\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VQUIT] differs: 0 !\u003d 28\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VERASE] differs: 0 !\u003d 127\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VKILL] differs: 0 !\u003d 21\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VEOF] differs: 0 !\u003d 4\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VSTART] differs: 0 !\u003d 17\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VSTOP] differs: 0 !\u003d 19\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VSUSP] differs: 0 !\u003d 26\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VREPRINT] differs: 0 !\u003d 18\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VDISCARD] differs: 0 !\u003d 15\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VWERASE] differs: 0 !\u003d 23\nApr 06 16:37:01 bmc phosphor-modbus-rtu[1096]: c_cc[VLNEXT] differs: 0 !\u003d 22\n```\na lot of these configs are not what we want. So, its more apparant on why we need to zero the struct rather than take whats default set by the kernel.",
+      "parentUuid": "22c225f2_63a15072",
+      "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5992db46_53cad44e",
@@ -67,6 +85,24 @@
       "side": 1,
       "message": "setProperties is called from Modbus::Modbus(). So, inBaudRate will never be 0.",
       "parentUuid": "5992db46_53cad44e",
+      "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49961f75_321fa38d",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-07T16:51:07Z",
+      "side": 1,
+      "message": "Confirmed from experimentation. `baudRate` property is set by constructor to https://github.com/openbmc/phosphor-modbus/blob/main/rtu/modbus/modbus.hpp#L41. So, the first time the constructor is called, it calls setProperties() with the passed baudrate and even parity: https://github.com/openbmc/phosphor-modbus/blob/main/rtu/modbus/modbus.cpp#L26.\nSo first ever call of setProperties from the constructor will always pass the `inBaudRate !\u003d baudRate` condition. \nSame thing for parity, its constructed with unknown https://github.com/openbmc/phosphor-modbus/blob/main/rtu/modbus/modbus.hpp#L42, so the first call with even https://github.com/openbmc/phosphor-modbus/blob/main/rtu/modbus/modbus.cpp#L26 is gauranteed to set this.",
+      "parentUuid": "20d95fa7_7215265f",
       "revId": "deb1706ffc428600202be6e97ebae6f12bab571f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
