@@ -22,8 +22,7 @@ using BasicVariantType =
                  uint16_t, uint8_t, bool>;
 using BaseConfigMap = std::flat_map<std::string, BasicVariantType>;
 using ConfigData = std::flat_map<std::string, BaseConfigMap>;
-using ManagedObjectType =
-    std::flat_map<sdbusplus::message::object_path, ConfigData>;
+using ManagedObjectType = std::flat_map<sdbusplus::object_path, ConfigData>;
 
 EntityManagerInterface::EntityManagerInterface(
     sdbusplus::async::context& ctx, const interface_list_t& interfaceNames,
@@ -82,8 +81,8 @@ auto EntityManagerInterface::handleInventoryAdded() -> sdbusplus::async::task<>
 
     while (!ctx.stop_requested())
     {
-        auto result = co_await addedMatch
-                          .next<sdbusplus::message::object_path, ConfigData>();
+        auto result =
+            co_await addedMatch.next<sdbusplus::object_path, ConfigData>();
         auto& [objectPath, inventoryData] = result;
 
         for (const auto& interfaceName : interfaceNames)
@@ -112,9 +111,8 @@ auto EntityManagerInterface::handleInventoryRemoved()
 
     while (!ctx.stop_requested())
     {
-        auto result =
-            co_await removedMatch
-                .next<sdbusplus::message::object_path, interface_list_t>();
+        auto result = co_await removedMatch
+                          .next<sdbusplus::object_path, interface_list_t>();
         auto& [objectPath, interfaces] = result;
 
         for (const auto& interfaceName : interfaceNames)

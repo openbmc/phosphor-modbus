@@ -54,7 +54,7 @@ struct Config
 };
 
 auto getConfig(sdbusplus::async::context& ctx,
-               sdbusplus::message::object_path objectPath)
+               sdbusplus::object_path objectPath)
     -> sdbusplus::async::task<std::optional<Config>>;
 
 } // namespace config

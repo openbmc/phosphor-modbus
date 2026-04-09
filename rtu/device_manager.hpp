@@ -39,23 +39,22 @@ class DeviceManager
         std::unordered_map<std::string,
                            std::unique_ptr<DeviceIntf::BaseDevice>>;
 
-    auto processConfigAdded(const sdbusplus::message::object_path& objectPath,
+    auto processConfigAdded(const sdbusplus::object_path& objectPath,
                             const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
-    auto processPortAdded(const sdbusplus::message::object_path& objectPath,
+    auto processPortAdded(const sdbusplus::object_path& objectPath,
                           const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
-    auto processInventoryAdded(
-        const sdbusplus::message::object_path& objectPath)
+    auto processInventoryAdded(const sdbusplus::object_path& objectPath)
         -> sdbusplus::async::task<>;
 
-    auto processDeviceAdded(const sdbusplus::message::object_path& objectPath,
+    auto processDeviceAdded(const sdbusplus::object_path& objectPath,
                             const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
-    auto processConfigRemoved(const sdbusplus::message::object_path& objectPath,
+    auto processConfigRemoved(const sdbusplus::object_path& objectPath,
                               const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 

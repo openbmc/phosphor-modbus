@@ -45,9 +45,9 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
     info("DeviceManager created successfully");
 }
 
-auto DeviceManager::processConfigAdded(
-    const sdbusplus::message::object_path& objectPath,
-    const std::string& interfaceName) -> sdbusplus::async::task<>
+auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
+                                       const std::string& interfaceName)
+    -> sdbusplus::async::task<>
 {
     debug("Config added for {PATH} with {INTF}", "PATH", objectPath, "INTF",
           interfaceName);
@@ -78,9 +78,9 @@ auto DeviceManager::processConfigAdded(
     }
 }
 
-auto DeviceManager::processPortAdded(
-    const sdbusplus::message::object_path& objectPath,
-    const std::string& interfaceName) -> sdbusplus::async::task<>
+auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
+                                     const std::string& interfaceName)
+    -> sdbusplus::async::task<>
 {
     auto config = co_await PortIntf::PortFactory::getConfig(
         ctx, objectPath, interfaceName);
@@ -103,8 +103,7 @@ auto DeviceManager::processPortAdded(
 }
 
 auto DeviceManager::processInventoryAdded(
-    const sdbusplus::message::object_path& objectPath)
-    -> sdbusplus::async::task<>
+    const sdbusplus::object_path& objectPath) -> sdbusplus::async::task<>
 {
     auto res = co_await InventoryIntf::config::getConfig(ctx, objectPath);
     if (!res)
@@ -129,9 +128,9 @@ auto DeviceManager::processInventoryAdded(
     }
 }
 
-auto DeviceManager::processDeviceAdded(
-    const sdbusplus::message::object_path& objectPath,
-    const std::string& interfaceName) -> sdbusplus::async::task<>
+auto DeviceManager::processDeviceAdded(const sdbusplus::object_path& objectPath,
+                                       const std::string& interfaceName)
+    -> sdbusplus::async::task<>
 {
     auto res =
         co_await DeviceFactoryIntf::getConfig(ctx, objectPath, interfaceName);
@@ -166,8 +165,8 @@ auto DeviceManager::processDeviceAdded(
 }
 
 auto DeviceManager::processConfigRemoved(
-    const sdbusplus::message::object_path& /*unused*/,
-    const std::string& /*unused*/) -> sdbusplus::async::task<>
+    const sdbusplus::object_path& /*unused*/, const std::string& /*unused*/)
+    -> sdbusplus::async::task<>
 {
     // TODO: Implement this
     co_return;

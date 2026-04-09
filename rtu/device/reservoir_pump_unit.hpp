@@ -24,7 +24,7 @@ class ReservoirPumpUnit : public BaseDevice
     static auto getInterfaces() -> std::unordered_set<std::string>;
 
     static auto getConfig(sdbusplus::async::context& ctx,
-                          const sdbusplus::message::object_path& objectPath,
+                          const sdbusplus::object_path& objectPath,
                           const std::string& interfaceName)
         -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>;
 };

@@ -19,8 +19,7 @@ using BasicVariantType =
                  uint16_t, uint8_t, bool>;
 using InventoryBaseConfigMap = std::flat_map<std::string, BasicVariantType>;
 using InventoryData = std::flat_map<std::string, InventoryBaseConfigMap>;
-using ManagedObjectType =
-    std::flat_map<sdbusplus::message::object_path, InventoryData>;
+using ManagedObjectType = std::flat_map<sdbusplus::object_path, InventoryData>;
 
 static constexpr std::array<std::pair<std::string_view, Parity>, 3>
     validParities = {
@@ -339,7 +338,7 @@ static auto getConfigSubTree(Config& config, const std::string& interfaceName,
 }
 
 auto updateBaseConfig(sdbusplus::async::context& ctx,
-                      const sdbusplus::message::object_path& objectPath,
+                      const sdbusplus::object_path& objectPath,
                       const std::string& interfaceName, Config& config)
     -> sdbusplus::async::task<bool>
 {

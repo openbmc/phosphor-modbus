@@ -23,7 +23,7 @@ const std::unordered_map<EventLevel, std::string> eventLevelToName = {
 };
 
 auto Events::generateSensorReadingEvent(
-    sdbusplus::message::object_path objectPath, EventLevel level, double value,
+    sdbusplus::object_path objectPath, EventLevel level, double value,
     SensorValueIntf::Unit unit, bool asserted) -> sdbusplus::async::task<>
 {
     namespace error_intf =
@@ -39,7 +39,7 @@ auto Events::generateSensorReadingEvent(
     {
         if (pendingEvent == pendingEvents.end())
         {
-            sdbusplus::message::object_path eventPath{};
+            sdbusplus::object_path eventPath{};
             if (level == EventLevel::critical)
             {
                 eventPath = co_await lg2::commit(
@@ -77,8 +77,8 @@ auto Events::generateSensorReadingEvent(
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generateSensorFailureEvent(
-    sdbusplus::message::object_path objectPath, bool asserted)
+auto Events::generateSensorFailureEvent(sdbusplus::object_path objectPath,
+                                        bool asserted)
     -> sdbusplus::async::task<>
 {
     namespace error_intf = sdbusplus::error::xyz::openbmc_project::Sensor;
@@ -113,7 +113,7 @@ auto Events::generateSensorFailureEvent(
 }
 
 auto Events::generateControllerFailureEvent(
-    sdbusplus::message::object_path objectPath, std::string additionalInfo,
+    sdbusplus::object_path objectPath, std::string additionalInfo,
     bool asserted) -> sdbusplus::async::task<>
 {
     namespace error_intf = sdbusplus::error::xyz::openbmc_project::state::SMC;
@@ -149,7 +149,7 @@ auto Events::generateControllerFailureEvent(
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generatePowerFaultEvent(sdbusplus::message::object_path objectPath,
+auto Events::generatePowerFaultEvent(sdbusplus::object_path objectPath,
                                      std::string additionalInfo, bool asserted)
     -> sdbusplus::async::task<>
 {
@@ -187,8 +187,8 @@ auto Events::generatePowerFaultEvent(sdbusplus::message::object_path objectPath,
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generateFilterFailureEvent(
-    sdbusplus::message::object_path objectPath, bool asserted)
+auto Events::generateFilterFailureEvent(sdbusplus::object_path objectPath,
+                                        bool asserted)
     -> sdbusplus::async::task<>
 {
     namespace error_intf =
@@ -226,9 +226,8 @@ auto Events::generateFilterFailureEvent(
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generatePumpFailureEvent(
-    sdbusplus::message::object_path objectPath, bool asserted)
-    -> sdbusplus::async::task<>
+auto Events::generatePumpFailureEvent(sdbusplus::object_path objectPath,
+                                      bool asserted) -> sdbusplus::async::task<>
 {
     namespace error_intf = sdbusplus::error::xyz::openbmc_project::state::Pump;
     namespace event_intf = sdbusplus::event::xyz::openbmc_project::state::Pump;
@@ -262,7 +261,7 @@ auto Events::generatePumpFailureEvent(
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generateFanFailureEvent(sdbusplus::message::object_path objectPath,
+auto Events::generateFanFailureEvent(sdbusplus::object_path objectPath,
                                      bool asserted) -> sdbusplus::async::task<>
 {
     namespace error_intf = sdbusplus::error::xyz::openbmc_project::state::Fan;
@@ -297,8 +296,8 @@ auto Events::generateFanFailureEvent(sdbusplus::message::object_path objectPath,
           eventName, "STATUS", (asserted ? "asserted" : "deasserted"));
 }
 
-auto Events::generateLeakDetectedEvent(
-    sdbusplus::message::object_path objectPath, EventLevel level, bool asserted)
+auto Events::generateLeakDetectedEvent(sdbusplus::object_path objectPath,
+                                       EventLevel level, bool asserted)
     -> sdbusplus::async::task<>
 {
     auto eventName = objectPath.str + ".Leak." + eventLevelToName.at(level);
@@ -322,7 +321,7 @@ auto Events::generateLeakDetectedEvent(
 
     namespace error_intf =
         sdbusplus::error::xyz::openbmc_project::state::leak::Detector;
-    sdbusplus::message::object_path eventPath{};
+    sdbusplus::object_path eventPath{};
 
     if (level == EventLevel::critical)
     {

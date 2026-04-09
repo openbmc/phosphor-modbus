@@ -21,8 +21,7 @@ using BasicVariantType =
                  uint16_t, uint8_t, bool>;
 using InventoryBaseConfigMap = std::flat_map<std::string, BasicVariantType>;
 using InventoryData = std::flat_map<std::string, InventoryBaseConfigMap>;
-using ManagedObjectType =
-    std::flat_map<sdbusplus::message::object_path, InventoryData>;
+using ManagedObjectType = std::flat_map<sdbusplus::object_path, InventoryData>;
 
 static constexpr std::array<std::pair<std::string_view, Parity>, 3>
     validParities = {
@@ -134,8 +133,8 @@ static auto printConfig(const Config& config) -> void
 }
 
 auto getConfigSubInterfaces(sdbusplus::async::context& ctx,
-                            sdbusplus::message::object_path objectPath,
-                            Config& config) -> sdbusplus::async::task<bool>
+                            sdbusplus::object_path objectPath, Config& config)
+    -> sdbusplus::async::task<bool>
 {
     constexpr auto modbusAddressInterface =
         "xyz.openbmc_project.Configuration.ModbusRTUDetect.Address";
@@ -190,7 +189,7 @@ auto getConfigSubInterfaces(sdbusplus::async::context& ctx,
 }
 
 auto getConfig(sdbusplus::async::context& ctx,
-               sdbusplus::message::object_path objectPath)
+               sdbusplus::object_path objectPath)
     -> sdbusplus::async::task<std::optional<Config>>
 {
     using ModbusRTUDetectIntf = sdbusplus::client::xyz::openbmc_project::

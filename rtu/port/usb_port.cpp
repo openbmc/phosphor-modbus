@@ -70,7 +70,7 @@ USBPort::USBPort(sdbusplus::async::context& ctx,
 }
 
 auto USBPort::getConfig(sdbusplus::async::context& ctx,
-                        const sdbusplus::message::object_path& objectPath)
+                        const sdbusplus::object_path& objectPath)
     -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>
 {
     auto config = std::make_unique<config::USBPortConfig>();

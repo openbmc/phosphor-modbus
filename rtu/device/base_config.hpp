@@ -86,14 +86,14 @@ struct Config
     uint32_t baudRate = 0;
     std::string name = "unknown";
     std::string portName = "unknown";
-    sdbusplus::message::object_path inventoryPath;
+    sdbusplus::object_path inventoryPath;
     sensor_registers_t sensorRegisters;
     status_registers_t statusRegisters;
     firmware_registers_t firmwareRegisters;
 };
 
 auto updateBaseConfig(sdbusplus::async::context& ctx,
-                      const sdbusplus::message::object_path& objectPath,
+                      const sdbusplus::object_path& objectPath,
                       const std::string& interfaceName, Config& config)
     -> sdbusplus::async::task<bool>;
 

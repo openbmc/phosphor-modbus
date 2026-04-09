@@ -21,7 +21,7 @@ class USBPort : public BasePort
                      const config::PortFactoryConfig& config);
 
     static auto getConfig(sdbusplus::async::context& ctx,
-                          const sdbusplus::message::object_path& objectPath)
+                          const sdbusplus::object_path& objectPath)
         -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>;
 };
 

@@ -91,7 +91,7 @@ class TestEventServer : public EventServerIntf
         eventEntries.emplace_back(
             std::make_unique<TestEventEntry>(ctx, objectPath.c_str()));
 
-        co_return sdbusplus::message::object_path(objectPath);
+        co_return sdbusplus::object_path(objectPath);
     }
 
     auto method_call(create_with_ffdc_files_t, auto, auto, auto, auto)
@@ -219,7 +219,7 @@ class DeviceEventsTest : public BaseTest
                 .baudRate = baudRate,
                 .name = deviceName,
                 .portName = portConfig.name,
-                .inventoryPath = sdbusplus::message::object_path(
+                .inventoryPath = sdbusplus::object_path(
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
                 .sensorRegisters = sensorRegisters,
                 .statusRegisters = statusRegisters,

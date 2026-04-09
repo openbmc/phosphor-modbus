@@ -77,7 +77,7 @@ class TestEventServer : public EventServerIntf
         eventEntries.emplace_back(
             std::make_unique<TestEventEntry>(ctx, objectPath.c_str()));
 
-        co_return sdbusplus::message::object_path(objectPath);
+        co_return sdbusplus::object_path(objectPath);
     }
 
     auto method_call(create_with_ffdc_files_t, auto, auto, auto, auto)
@@ -136,7 +136,7 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorThresholdErrorIntf::ReadingWarning::errName;
                 co_await events.generateSensorReadingEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::warning, 60,
                     EventIntf::SensorValueIntf::Unit::DegreesC, assert);
                 break;
@@ -144,7 +144,7 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorThresholdErrorIntf::ReadingCritical::errName;
                 co_await events.generateSensorReadingEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::critical, 80,
                     EventIntf::SensorValueIntf::Unit::DegreesC, assert);
                 break;
@@ -152,34 +152,32 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorErrorIntf::SensorFailure::errName;
                 co_await events.generateSensorFailureEvent(
-                    sdbusplus::message::object_path(sensorObjectPath), assert);
+                    sdbusplus::object_path(sensorObjectPath), assert);
                 break;
             case EventTestType::controllerFailureEvent:
                 eventServer.expectedEvent =
                     ControllerErrorIntf::SMCFailed::errName;
                 co_await events.generateControllerFailureEvent(
-                    sdbusplus::message::object_path(sensorObjectPath), "",
-                    assert);
+                    sdbusplus::object_path(sensorObjectPath), "", assert);
                 break;
             case EventTestType::powerFailureEvent:
                 eventServer.expectedEvent =
                     PowerErrorIntf::PowerRailFault::errName;
                 co_await events.generatePowerFaultEvent(
-                    sdbusplus::message::object_path(sensorObjectPath), "",
-                    assert);
+                    sdbusplus::object_path(sensorObjectPath), "", assert);
                 break;
             case EventTestType::leakWarningEvent:
                 eventServer.expectedEvent =
                     LeakErrorIntf::LeakDetectedWarning::errName;
                 co_await events.generateLeakDetectedEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::warning, assert);
                 break;
             case EventTestType::leakCriticalEvent:
                 eventServer.expectedEvent =
                     LeakErrorIntf::LeakDetectedCritical::errName;
                 co_await events.generateLeakDetectedEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::critical, assert);
                 break;
         }
@@ -194,7 +192,7 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorThresholdEventIntf::SensorReadingNormalRange::errName;
                 co_await events.generateSensorReadingEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::warning, 40,
                     EventIntf::SensorValueIntf::Unit::DegreesC, deassert);
                 break;
@@ -202,7 +200,7 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorThresholdEventIntf::SensorReadingNormalRange::errName;
                 co_await events.generateSensorReadingEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::critical, 40,
                     EventIntf::SensorValueIntf::Unit::DegreesC, deassert);
                 break;
@@ -210,35 +208,32 @@ class EventsTest : public ::testing::Test
                 eventServer.expectedEvent =
                     SensorEventIntf::SensorRestored::errName;
                 co_await events.generateSensorFailureEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
-                    deassert);
+                    sdbusplus::object_path(sensorObjectPath), deassert);
                 break;
             case EventTestType::controllerFailureEvent:
                 eventServer.expectedEvent =
                     ControllerEventIntf::SMCRestored::errName;
                 co_await events.generateControllerFailureEvent(
-                    sdbusplus::message::object_path(sensorObjectPath), "",
-                    deassert);
+                    sdbusplus::object_path(sensorObjectPath), "", deassert);
                 break;
             case EventTestType::powerFailureEvent:
                 eventServer.expectedEvent =
                     PowerEventIntf::PowerRailFaultRecovered::errName;
                 co_await events.generatePowerFaultEvent(
-                    sdbusplus::message::object_path(sensorObjectPath), "",
-                    deassert);
+                    sdbusplus::object_path(sensorObjectPath), "", deassert);
                 break;
             case EventTestType::leakWarningEvent:
                 eventServer.expectedEvent =
                     LeakEventIntf::LeakDetectedNormal::errName;
                 co_await events.generateLeakDetectedEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::warning, deassert);
                 break;
             case EventTestType::leakCriticalEvent:
                 eventServer.expectedEvent =
                     LeakEventIntf::LeakDetectedNormal::errName;
                 co_await events.generateLeakDetectedEvent(
-                    sdbusplus::message::object_path(sensorObjectPath),
+                    sdbusplus::object_path(sensorObjectPath),
                     EventIntf::EventLevel::critical, deassert);
                 break;
         }

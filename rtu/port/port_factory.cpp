@@ -16,7 +16,7 @@ auto PortFactory::getInterfaces() -> std::vector<std::string>
 }
 
 auto PortFactory::getConfig(sdbusplus::async::context& ctx,
-                            const sdbusplus::message::object_path& objectPath,
+                            const sdbusplus::object_path& objectPath,
                             const std::string& interfaceName)
     -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>
 {

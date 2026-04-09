@@ -44,7 +44,7 @@ class DeviceFirmware
     // Object path of current firmware object
     // TODO: check if its possible to get rid off this via mocking since its
     // only used in tests
-    const sdbusplus::message::object_path objectPath;
+    const sdbusplus::object_path objectPath;
 
   private:
     std::unique_ptr<FirmwareIntf> currentFirmware;

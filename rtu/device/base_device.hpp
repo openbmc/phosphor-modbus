@@ -48,7 +48,7 @@ class BaseDevice
     auto readStatusRegisters() -> sdbusplus::async::task<void>;
 
     auto generateEvent(const config::StatusBit& statusBit,
-                       const sdbusplus::message::object_path& objectPath,
+                       const sdbusplus::object_path& objectPath,
                        double sensorValue, SensorIntf::Unit sensorUnit,
                        bool statusAsserted) -> sdbusplus::async::task<void>;
 

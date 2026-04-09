@@ -36,7 +36,7 @@ class TestFirmware : public DeviceIntf::DeviceFirmware
         DeviceIntf::DeviceFirmware(ctx, config, serialPort)
     {}
 
-    auto getObjectPath() -> sdbusplus::message::object_path
+    auto getObjectPath() -> sdbusplus::object_path
     {
         return objectPath;
     }
@@ -84,7 +84,7 @@ class FirmwareTest : public BaseTest
                 .baudRate = baudRate,
                 .name = deviceName,
                 .portName = portConfig.name,
-                .inventoryPath = sdbusplus::message::object_path(
+                .inventoryPath = sdbusplus::object_path(
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
                 .sensorRegisters = {},
                 .statusRegisters = {},

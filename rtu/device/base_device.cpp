@@ -29,9 +29,9 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
 
 static auto getObjectPath(const std::string& sensorType,
                           const std::string& sensorName)
-    -> sdbusplus::message::object_path
+    -> sdbusplus::object_path
 {
-    return sdbusplus::message::object_path(
+    return sdbusplus::object_path(
         std::string(SensorIntf::namespace_path::value) + "/" + sensorType +
         "/" + sensorName);
 }
@@ -186,43 +186,42 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
 }
 
 static auto getObjectPath(const config::Config& config, config::StatusType type,
-                          const std::string& name)
-    -> sdbusplus::message::object_path
+                          const std::string& name) -> sdbusplus::object_path
 {
     switch (type)
     {
         case config::StatusType::sensorReadingCritical:
         case config::StatusType::sensorReadingWarning:
         case config::StatusType::sensorFailure:
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 std::string(SensorIntf::namespace_path::value) + "/" + name);
         case config::StatusType::controllerFailure:
             return config.inventoryPath;
         case config::StatusType::pumpFailure:
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/pump/" + name);
         case config::StatusType::filterFailure:
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/filter/" + name);
         case config::StatusType::powerFault:
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/power_rail/" + name);
         case config::StatusType::fanFailure:
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/fan/" + name);
         case config::StatusType::leakDetectedCritical:
         case config::StatusType::leakDetectedWarning:
             using DetectorIntf =
                 sdbusplus::aserver::xyz::openbmc_project::state::leak::Detector<
                     BaseDevice>;
-            return sdbusplus::message::object_path(
+            return sdbusplus::object_path(
                 std::string(DetectorIntf::namespace_path::value) + "/" +
                 DetectorIntf::namespace_path::detector + "/" + name);
         case config::StatusType::unknown:
             error("Unknown status type for {NAME}", "NAME", name);
     }
 
-    return sdbusplus::message::object_path();
+    return sdbusplus::object_path();
 }
 
 static auto updateSensorOnStatusChange(
@@ -298,10 +297,10 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
     co_return;
 }
 
-auto BaseDevice::generateEvent(
-    const config::StatusBit& statusBit,
-    const sdbusplus::message::object_path& objectPath, double sensorValue,
-    SensorIntf::Unit sensorUnit, bool statusAsserted)
+auto BaseDevice::generateEvent(const config::StatusBit& statusBit,
+                               const sdbusplus::object_path& objectPath,
+                               double sensorValue, SensorIntf::Unit sensorUnit,
+                               bool statusAsserted)
     -> sdbusplus::async::task<void>
 {
     switch (statusBit.type)

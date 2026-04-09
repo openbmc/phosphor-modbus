@@ -30,10 +30,9 @@ auto ReservoirPumpUnit::getInterfaces() -> std::unordered_set<std::string>
     return {ModbusRDF040DSS5193E0ReservoirPumpUnitInterface};
 }
 
-auto ReservoirPumpUnit::getConfig(
-    sdbusplus::async::context& ctx,
-    const sdbusplus::message::object_path& objectPath,
-    const std::string& interfaceName)
+auto ReservoirPumpUnit::getConfig(sdbusplus::async::context& ctx,
+                                  const sdbusplus::object_path& objectPath,
+                                  const std::string& interfaceName)
     -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>
 {
     config::DeviceFactoryConfig config{};

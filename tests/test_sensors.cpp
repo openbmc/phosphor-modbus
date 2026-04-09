@@ -96,7 +96,7 @@ class SensorsTest : public BaseTest
                 .baudRate = baudRate,
                 .name = deviceName,
                 .portName = portConfig.name,
-                .inventoryPath = sdbusplus::message::object_path(
+                .inventoryPath = sdbusplus::object_path(
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
                 .sensorRegisters = {sensorRegister},
                 .statusRegisters = {},

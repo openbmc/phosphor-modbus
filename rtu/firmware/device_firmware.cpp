@@ -19,7 +19,7 @@ static auto getRandomId() -> long int
 }
 
 static auto getObjectPath(const config_intf::Config& config)
-    -> sdbusplus::message::object_path
+    -> sdbusplus::object_path
 {
     for (const auto& firmwareRegister : config.firmwareRegisters)
     {
@@ -27,14 +27,12 @@ static auto getObjectPath(const config_intf::Config& config)
         {
             if (firmwareRegister.name.empty())
             {
-                return sdbusplus::message::object_path(
-                           FirmwareIntf::namespace_path) /
+                return sdbusplus::object_path(FirmwareIntf::namespace_path) /
                        std::format("{}_{}", config.name, getRandomId());
             }
             else
             {
-                return sdbusplus::message::object_path(
-                           FirmwareIntf::namespace_path) /
+                return sdbusplus::object_path(FirmwareIntf::namespace_path) /
                        std::format("{}_{}_{}", config.name,
                                    firmwareRegister.name, getRandomId());
             }

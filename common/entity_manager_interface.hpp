@@ -16,7 +16,7 @@ class EntityManagerInterface
 {
   public:
     using Callback_t = std::function<sdbusplus::async::task<>(
-        const sdbusplus::message::object_path&, const std::string&)>;
+        const sdbusplus::object_path&, const std::string&)>;
     static constexpr auto serviceName = "xyz.openbmc_project.EntityManager";
 
     EntityManagerInterface() = delete;

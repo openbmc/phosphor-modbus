@@ -34,7 +34,7 @@ class PortFactory
     static auto getInterfaces() -> std::vector<std::string>;
 
     static auto getConfig(sdbusplus::async::context& ctx,
-                          const sdbusplus::message::object_path& objectPath,
+                          const sdbusplus::object_path& objectPath,
                           const std::string& interfaceName)
         -> sdbusplus::async::task<std::unique_ptr<config::PortFactoryConfig>>;
 
