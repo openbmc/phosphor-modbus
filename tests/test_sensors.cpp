@@ -40,6 +40,14 @@ class MockPort : public PortIntf::BasePort
     {}
 };
 
+struct DeviceTestConfig
+{
+    std::string devicePrefix;
+    std::string inventoryPath;
+    DeviceConfigIntf::DeviceType deviceType;
+    DeviceConfigIntf::DeviceModel deviceModel;
+};
+
 class SensorsTest : public BaseTest
 {
   public:
@@ -51,18 +59,17 @@ class SensorsTest : public BaseTest
     static constexpr auto sensorName = "OutletTemperature";
 
     PortConfigIntf::Config portConfig;
+    DeviceTestConfig deviceTestConfig;
     std::string deviceName;
     std::string fullSensorName;
     std::string objectPath;
 
-    SensorsTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    void setupDevice(const DeviceTestConfig& config)
     {
-        portConfig.name = portName;
-        portConfig.portMode = PortConfigIntf::PortMode::rs485;
-        portConfig.baudRate = baudRate;
-        portConfig.rtsDelay = 1;
+        deviceTestConfig = config;
 
-        deviceName = std::format("ResorviorPumpUnit_{}_{}",
+        deviceName = std::format("{}_{}_{}",
+                                 deviceTestConfig.devicePrefix,
                                  TestIntf::testDeviceAddress, portName);
 
         fullSensorName = std::format("{}_{}", deviceName, sensorName);
@@ -70,6 +77,14 @@ class SensorsTest : public BaseTest
         objectPath = std::format(
             "{}/{}/{}", SensorValueIntf::namespace_path::value,
             SensorValueIntf::namespace_path::temperature, fullSensorName);
+    }
+
+    SensorsTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    {
+        portConfig.name = portName;
+        portConfig.portMode = PortConfigIntf::PortMode::rs485;
+        portConfig.baudRate = baudRate;
+        portConfig.rtsDelay = 1;
     }
 
     auto checkInventoryAssociations() -> sdbusplus::async::task<void>
@@ -97,13 +112,13 @@ class SensorsTest : public BaseTest
                 .name = deviceName,
                 .portName = portConfig.name,
                 .inventoryPath = sdbusplus::message::object_path(
-                    "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
+                    deviceTestConfig.inventoryPath),
                 .sensorRegisters = {sensorRegister},
                 .statusRegisters = {},
                 .firmwareRegisters = {},
             },
-            DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-            DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+            deviceTestConfig.deviceType,
+            deviceTestConfig.deviceModel,
         };
         EventIntf::Events events{ctx};
         MockPort mockPort(ctx, portConfig, clientDevicePath);
@@ -144,8 +159,15 @@ class SensorsTest : public BaseTest
     }
 };
 
-TEST_F(SensorsTest, TestSensorValueUnsigned)
+TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
 {
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .pathSuffix = SensorValueIntf::namespace_path::temperature,
@@ -165,8 +187,15 @@ TEST_F(SensorsTest, TestSensorValueUnsigned)
     ctx.run();
 }
 
-TEST_F(SensorsTest, TestSensorValueSigned)
+TEST_F(SensorsTest, TestRpuSensorValueSigned)
 {
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .pathSuffix = SensorValueIntf::namespace_path::temperature,
@@ -195,8 +224,15 @@ static auto applyValueSettings(double value, double shift, double scale,
     return (shift + (scale * (value / (1ULL << precision))));
 }
 
-TEST_F(SensorsTest, TestSensorValueWithSettings)
+TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
 {
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .pathSuffix = SensorValueIntf::namespace_path::temperature,
@@ -214,6 +250,34 @@ TEST_F(SensorsTest, TestSensorValueWithSettings)
         applyValueSettings(TestIntf::testReadHoldingRegisterTempUnsigned[0],
                            sensorRegister.shift, sensorRegister.scale,
                            sensorRegister.precision)));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
+{
+    setupDevice({
+        "PowerMonitorModule",
+        "xyz/openbmc_project/Inventory/PowerMonitorModule",
+        DeviceConfigIntf::DeviceType::powerMonitorModule,
+        DeviceConfigIntf::DeviceModel::PanasonicBJBPM102A0001,
+    });
+
+    const DeviceConfigIntf::SensorRegister sensorRegister = {
+        .name = sensorName,
+        .pathSuffix = SensorValueIntf::namespace_path::temperature,
+        .unit = SensorValueIntf::Unit::DegreesC,
+        .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+        .size = TestIntf::testReadHoldingRegisterTempCount,
+        .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+    };
+
+    ctx.spawn(
+        testSensorCreation(objectPath, sensorRegister,
+                           TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));

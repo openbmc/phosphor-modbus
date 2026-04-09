@@ -1,5 +1,6 @@
 #include "device_factory.hpp"
 
+#include "power_monitor_module.hpp"
 #include "reservoir_pump_unit.hpp"
 
 #include <string>
@@ -8,6 +9,7 @@
 namespace phosphor::modbus::rtu::device
 {
 
+using PowerMonitorModuleIntf = phosphor::modbus::rtu::device::PowerMonitorModule;
 using ReservoirPumpUnitIntf = phosphor::modbus::rtu::device::ReservoirPumpUnit;
 
 auto DeviceFactory::getInterfaces() -> std::vector<std::string>
@@ -17,6 +19,10 @@ auto DeviceFactory::getInterfaces() -> std::vector<std::string>
     auto rpuInterfaces = ReservoirPumpUnitIntf::getInterfaces();
     interfaces.insert(interfaces.end(), rpuInterfaces.begin(),
                       rpuInterfaces.end());
+
+    auto pmmInterfaces = PowerMonitorModuleIntf::getInterfaces();
+    interfaces.insert(interfaces.end(), pmmInterfaces.begin(),
+                      pmmInterfaces.end());
 
     return interfaces;
 }
@@ -33,6 +39,13 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
                                                             interfaceName);
     }
 
+    auto pmmInterfaces = PowerMonitorModuleIntf::getInterfaces();
+    if (pmmInterfaces.find(interfaceName) != pmmInterfaces.end())
+    {
+        co_return co_await PowerMonitorModuleIntf::getConfig(ctx, objectPath,
+                                                             interfaceName);
+    }
+
     co_return std::nullopt;
 }
 
@@ -46,6 +59,9 @@ auto DeviceFactory::create(sdbusplus::async::context& ctx,
         case config::DeviceType::reservoirPumpUnit:
             return std::make_unique<ReservoirPumpUnit>(ctx, config, serialPort,
                                                        events);
+        case config::DeviceType::powerMonitorModule:
+            return std::make_unique<PowerMonitorModule>(ctx, config, serialPort,
+                                                        events);
         default:
             break;
     }
