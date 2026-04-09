@@ -6,6 +6,7 @@
 #include <sdbusplus/async.hpp>
 #include <xyz/openbmc_project/Inventory/Source/Modbus/FRU/aserver.hpp>
 
+#include <chrono>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -88,6 +89,12 @@ class Device
     serial_port_map_t& serialPorts;
     std::map<std::string, std::unique_ptr<InventorySourceIntf>>
         inventorySources;
+    struct ProbeInfo
+    {
+        std::chrono::steady_clock::time_point startTime;
+        std::chrono::steady_clock::time_point lastLoggedTime{};
+    };
+    std::map<std::string, ProbeInfo> activeProbes;
 };
 
 } // namespace phosphor::modbus::rtu::inventory
