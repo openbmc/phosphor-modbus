@@ -260,6 +260,31 @@ auto Device::probePorts() -> sdbusplus::async::task<void>
             {
                 continue;
             }
+
+            // Check if we are actively probing this port
+            auto it = activeProbes.find(serialPort);
+            if (it != activeProbes.end())
+            {
+                constexpr auto probeTimeout = std::chrono::minutes(8);
+                auto now = std::chrono::steady_clock::now();
+                auto elapsed = now - it->second.startTime;
+                auto sinceLastLog = now - it->second.lastLoggedTime;
+                if (elapsed > probeTimeout && sinceLastLog > probeTimeout)
+                {
+                    auto elapsedMinutes =
+                        std::chrono::duration_cast<std::chrono::minutes>(
+                            elapsed)
+                            .count();
+                    error(
+                        "Probe for {NAME} on {PORT} has been running for {MINUTES} minutes!",
+                        "NAME", config.name, "PORT", serialPort, "MINUTES",
+                        elapsedMinutes);
+                    it->second.lastLoggedTime = now;
+                }
+                continue;
+            }
+
+            activeProbes[serialPort] = {std::chrono::steady_clock::now(), {}};
             ctx.spawn(probePort(serialPort));
         }
         constexpr auto probeInterval = 3;
@@ -272,6 +297,24 @@ auto Device::probePorts() -> sdbusplus::async::task<void>
 
 auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
 {
+    // Ensure we always clear the active probe when leaving this method
+    struct ScopeExit
+    {
+        Device* self;
+        std::string port;
+        ScopeExit(Device* self, std::string port) :
+            self(self), port(std::move(port))
+        {}
+        ScopeExit(const ScopeExit&) = delete;
+        ScopeExit(ScopeExit&&) = delete;
+        ScopeExit& operator=(const ScopeExit&) = delete;
+        ScopeExit& operator=(ScopeExit&&) = delete;
+        ~ScopeExit()
+        {
+            self->activeProbes.erase(port);
+        }
+    } clearProbe{this, portName};
+
     debug("Probing port {PORT}", "PORT", portName);
 
     auto portConfig = config.addressMap.find(portName);
