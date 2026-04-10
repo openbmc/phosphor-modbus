@@ -42,6 +42,7 @@ device_src = files(
     'device/base_config.cpp',
     'device/base_device.cpp',
     'device/device_factory.cpp',
+    'device/power_monitor_module.cpp',
     'device/reservoir_pump_unit.cpp',
 )
 
