@@ -1,0 +1,11 @@
+#pragma once
+
+#include <chrono>
+
+namespace phosphor::modbus::rtu
+{
+
+inline constexpr auto modbusRTUTimeout =
+    std::chrono::microseconds(@MODBUS_RTU_TIMEOUT_MICROSECONDS@);
+
+} // namespace phosphor::modbus::rtu
