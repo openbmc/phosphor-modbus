@@ -1,6 +1,7 @@
 #include "modbus.hpp"
 
 #include "modbus_commands.hpp"
+#include "modbus_rtu_config.hpp"
 
 #include <termios.h>
 
@@ -21,7 +22,8 @@ const std::unordered_map<int, speed_t> baudRateMap = {
 
 Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
                uint16_t rtsDelay) :
-    ctx(ctx), fd(fd), rtsDelay(rtsDelay), fdioInstance(ctx, fd)
+    ctx(ctx), fd(fd), rtsDelay(rtsDelay),
+    fdioInstance(ctx, fd, modbusRTUTimeout)
 {
     if (!setProperties(baudRate, Parity::even))
     {
