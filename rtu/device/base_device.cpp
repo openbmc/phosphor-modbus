@@ -48,8 +48,16 @@ auto BaseDevice::createSensors() -> void
          {"inventory", "sensors", config.inventoryPath},
          {"inventory", "all_sensors", config.inventoryPath}}};
 
+    static constexpr auto maxRegisterSize = 4;
     for (const auto& sensorRegister : config.sensorRegisters)
     {
+        if (sensorRegister.size > maxRegisterSize)
+        {
+            error("Unsupported size for register {NAME}, skipping", "NAME",
+                  sensorRegister.name);
+            continue;
+        }
+
         SensorIntf::Value::properties_t initValue = {
             std::numeric_limits<double>::quiet_NaN(),
             std::numeric_limits<double>::quiet_NaN(),
@@ -69,10 +77,10 @@ auto BaseDevice::createSensors() -> void
         sensor->Critical::emit_added();
         sensor->Definitions::emit_added();
 
+        sensorEntries.push_back({sensorRegister, *sensor});
+
         sensors.emplace(sensorRegister.name, std::move(sensor));
     }
-
-    return;
 }
 
 static auto getRawIntegerFromRegister(const std::vector<uint16_t>& reg,
@@ -129,40 +137,25 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
 {
     while (!ctx.stop_requested())
     {
-        for (const auto& sensorRegister : config.sensorRegisters)
+        for (auto& [sensorRegister, sensor] : sensorEntries)
         {
-            auto sensor = sensors.find(sensorRegister.name);
-            if (sensor == sensors.end())
-            {
-                error("Sensor not found for {NAME}", "NAME",
-                      sensorRegister.name);
-                continue;
-            }
-
-            if (sensorRegister.size > 4)
-            {
-                error("Unsupported size for register {NAME}", "NAME",
-                      sensorRegister.name);
-                continue;
-            }
-
-            auto registers = std::vector<uint16_t>(sensorRegister.size);
+            auto readBuffer = std::vector<uint16_t>(sensorRegister.size);
             auto ret = co_await serialPort.readHoldingRegisters(
                 config.address, sensorRegister.offset, config.baudRate,
-                config.parity, registers);
+                config.parity, readBuffer);
             if (!ret)
             {
                 error(
                     "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
                     "NAME", sensorRegister.name, "DEVICE_ADDRESS",
                     config.address);
-                sensor->second->value(std::numeric_limits<double>::quiet_NaN());
-                sensor->second->functional(false);
+                sensor.value(std::numeric_limits<double>::quiet_NaN());
+                sensor.functional(false);
                 continue;
             }
 
             double regVal = static_cast<double>(
-                getRawIntegerFromRegister(registers, sensorRegister.isSigned));
+                getRawIntegerFromRegister(readBuffer, sensorRegister.isSigned));
             if (sensorRegister.format == config::SensorFormat::floatingPoint)
             {
                 regVal = sensorRegister.shift +
@@ -170,7 +163,7 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
                           (regVal / (1ULL << sensorRegister.precision)));
             }
 
-            sensor->second->value(regVal);
+            sensor.value(regVal);
         }
 
         co_await readStatusRegisters();
