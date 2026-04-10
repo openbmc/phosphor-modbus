@@ -1,3 +1,16 @@
+conf = configuration_data()
+
+conf.set(
+    'MODBUS_RTU_TIMEOUT_MICROSECONDS',
+    get_option('modbus-rtu-timeout-microseconds'),
+)
+
+configure_file(
+    input: 'modbus_rtu_config.hpp.in',
+    output: 'modbus_rtu_config.hpp',
+    configuration: conf,
+)
+
 modbus_rtu_lib = static_library(
     'modbus_rtu_lib',
     [
