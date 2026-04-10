@@ -52,6 +52,14 @@ class BaseDevice
                        double sensorValue, SensorIntf::Unit sensorUnit,
                        bool statusAsserted) -> sdbusplus::async::task<void>;
 
+    // Pre-computed pairing of register config and its corresponding sensor,
+    // built at construction to avoid map lookups on every poll cycle.
+    struct SensorEntry
+    {
+        const config::SensorRegister& reg;
+        SensorIntf& sensor;
+    };
+
     using sensors_map_t =
         std::unordered_map<std::string, std::unique_ptr<SensorIntf>>;
     sdbusplus::async::context& ctx;
@@ -60,6 +68,7 @@ class BaseDevice
     EventIntf::Events& events;
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
+    std::vector<SensorEntry> sensorEntries;
 };
 
 } // namespace phosphor::modbus::rtu::device
