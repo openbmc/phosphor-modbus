@@ -256,10 +256,20 @@ auto Device::probePorts() -> sdbusplus::async::task<void>
     {
         for (const auto& [serialPort, _] : config.addressMap)
         {
-            if (serialPorts.find(serialPort) == serialPorts.end())
+            auto portIter = serialPorts.find(serialPort);
+            if (portIter == serialPorts.end())
             {
                 continue;
             }
+            if (portIter->second->probeInProgress)
+            {
+                warning(
+                    "Previous probe still in progress for port {PORT} after {INTERVAL} seconds",
+                    "PORT", serialPort, "INTERVAL",
+                    inventoryProbeInterval.count());
+                continue;
+            }
+            portIter->second->probeInProgress = true;
             ctx.spawn(probePort(serialPort));
         }
         // Sleep in short increments to remain responsive to stop requests.
@@ -279,15 +289,6 @@ auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
 {
     debug("Probing port {PORT}", "PORT", portName);
 
-    auto portConfig = config.addressMap.find(portName);
-    if (portConfig == config.addressMap.end())
-    {
-        error("Serial port {PORT} address map not found for {NAME}", "PORT",
-              portName, "NAME", config.name);
-        co_return;
-    }
-    auto addressRanges = portConfig->second;
-
     auto port = serialPorts.find(portName);
     if (port == serialPorts.end())
     {
@@ -295,6 +296,16 @@ auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
               "NAME", config.name);
         co_return;
     }
+
+    auto portConfig = config.addressMap.find(portName);
+    if (portConfig == config.addressMap.end())
+    {
+        error("Serial port {PORT} address map not found for {NAME}", "PORT",
+              portName, "NAME", config.name);
+        port->second->probeInProgress = false;
+        co_return;
+    }
+    auto addressRanges = portConfig->second;
 
     for (const auto& addressRange : addressRanges)
     {
@@ -304,6 +315,8 @@ auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
             co_await probeDevice(address, portName, *port->second);
         }
     }
+
+    port->second->probeInProgress = false;
 }
 
 auto Device::probeDevice(uint8_t address, const std::string& portName,
