@@ -303,10 +303,12 @@ auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
 auto Device::probeDevice(uint8_t address, const std::string& portName,
                          SerialPortIntf& port) -> sdbusplus::async::task<void>
 {
+    auto deviceId = std::format("{}_{}", address, portName);
+
     debug("Probing device at {ADDRESS} on port {PORT}", "ADDRESS", address,
           "PORT", portName);
 
-    if (config.registers.size() == 0)
+    if (config.registers.empty())
     {
         error("No registers configured for {NAME}", "NAME", config.name);
         co_return;
@@ -314,13 +316,11 @@ auto Device::probeDevice(uint8_t address, const std::string& portName,
     auto probeRegister = config.registers[0].offset;
     auto registers = std::vector<uint16_t>(config.registers[0].size);
 
-    auto sourceId = std::to_string(address) + "_" + portName;
-
     auto ret = co_await port.readHoldingRegisters(
         address, probeRegister, config.baudRate, config.parity, registers);
     if (ret)
     {
-        if (inventorySources.find(sourceId) == inventorySources.end())
+        if (inventorySources.find(deviceId) == inventorySources.end())
         {
             debug("Device found at {ADDRESS}", "ADDRESS", address);
             co_await addInventorySource(address, portName, port);
@@ -332,13 +332,14 @@ auto Device::probeDevice(uint8_t address, const std::string& portName,
     }
     else
     {
-        if (inventorySources.find(sourceId) != inventorySources.end())
+        auto it = inventorySources.find(deviceId);
+        if (it != inventorySources.end())
         {
             warning(
                 "Device removed at {ADDRESS} due to probe failure for {PROBE_REGISTER}",
                 "ADDRESS", address, "PROBE_REGISTER", probeRegister);
-            inventorySources[sourceId]->emit_removed();
-            inventorySources.erase(sourceId);
+            it->second->emit_removed();
+            inventorySources.erase(it);
         }
     }
 }
