@@ -13,12 +13,16 @@ enum class DeviceType
     reservoirPumpUnit,
     heatExchanger,
     flowMeter,
+    powerMonitorModule,
     unknown
 };
 
 enum class DeviceModel
 {
     RDF040DSS5193E0,
+    PanasonicBJBPM102A0001,
+    Artesyn7000433970000,
+    DeltaECD70000020,
     unknown
 };
 
