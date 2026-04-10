@@ -1,5 +1,10 @@
 #include "test_base.hpp"
 
+#include <unistd.h>
+
+static constexpr auto maxRetries = 50;
+static constexpr auto retryIntervalUs = 100000; // 100ms
+
 BaseTest::BaseTest(const char* clientDevicePath, const char* serverDevicePath,
                    const char* serviceName)
 {
@@ -13,8 +18,16 @@ BaseTest::BaseTest(const char* clientDevicePath, const char* serverDevicePath,
     EXPECT_GT(fscanf(fp, "%d", &socatPid), 0);
     pclose(fp);
 
-    // Wait for socat to start up
-    sleep(1);
+    // Wait for socat to create the device symlinks
+    for (int i = 0; i < maxRetries; i++)
+    {
+        if (access(clientDevicePath, F_OK) == 0 &&
+            access(serverDevicePath, F_OK) == 0)
+        {
+            break;
+        }
+        usleep(retryIntervalUs);
+    }
 
     fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
     EXPECT_NE(fdClient, -1) << "Failed to open serial port " << clientDevicePath
