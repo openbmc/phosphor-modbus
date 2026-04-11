@@ -6,6 +6,7 @@
 #include <sdbusplus/async.hpp>
 #include <xyz/openbmc_project/Inventory/Source/Modbus/FRU/aserver.hpp>
 
+#include <chrono>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -66,9 +67,10 @@ class Device
     using serial_port_map_t =
         std::unordered_map<std::string, std::unique_ptr<SerialPortIntf>>;
 
-    explicit Device(sdbusplus::async::context& ctx,
-                    const config::Config& config,
-                    serial_port_map_t& serialPorts);
+    explicit Device(
+        sdbusplus::async::context& ctx, const config::Config& config,
+        serial_port_map_t& serialPorts,
+        std::chrono::seconds dormantPeriod = std::chrono::seconds(0));
 
     auto probePorts() -> sdbusplus::async::task<void>;
 
@@ -81,6 +83,11 @@ class Device
                             SerialPortIntf& port)
         -> sdbusplus::async::task<void>;
 
+    auto isDormant(const std::string& deviceId) const -> bool
+    {
+        return dormantDevices.contains(deviceId);
+    }
+
     const config::Config config;
 
   private:
@@ -88,6 +95,13 @@ class Device
     serial_port_map_t& serialPorts;
     std::map<std::string, std::unique_ptr<InventorySourceIntf>>
         inventorySources;
+    // Returns true if the device is still within its dormant period and
+    // should be skipped. Returns false if the device is not dormant or its
+    // dormant period has expired, in which case the entry is also removed.
+    auto checkAndClearDormant(const std::string& deviceId) -> bool;
+
+    std::chrono::seconds dormantPeriod;
+    std::map<std::string, std::chrono::steady_clock::time_point> dormantDevices;
 };
 
 } // namespace phosphor::modbus::rtu::inventory

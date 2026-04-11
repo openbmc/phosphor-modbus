@@ -22,12 +22,14 @@ class BaseTest : public ::testing::Test
     sdbusplus::async::context ctx;
     int fdClient = -1;
 
+  protected:
+    std::unique_ptr<TestIntf::ServerTester> serverTester;
+
   private:
     void ServerRequestHandler();
 
     static constexpr const auto strBaudeRate = "b115200";
     int socatPid = -1;
-    std::unique_ptr<TestIntf::ServerTester> serverTester;
     int fdServer = -1;
     std::atomic<bool> exitThread = false;
     std::thread serverThread;
