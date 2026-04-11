@@ -1,6 +1,7 @@
 #include "modbus_inventory.hpp"
 
 #include "common/entity_manager_interface.hpp"
+#include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Configuration/ModbusRTUDetect/client.hpp>
@@ -261,11 +262,16 @@ auto Device::probePorts() -> sdbusplus::async::task<void>
             }
             ctx.spawn(probePort(serialPort));
         }
-        constexpr auto probeInterval = 3;
-        co_await sdbusplus::async::sleep_for(
-            ctx, std::chrono::seconds(probeInterval));
+        // Sleep in short increments to remain responsive to stop requests.
+        constexpr auto stopCheckInterval = std::chrono::seconds(3);
+        for (auto elapsed = std::chrono::seconds(0);
+             elapsed < inventoryProbeInterval && !ctx.stop_requested();
+             elapsed += stopCheckInterval)
+        {
+            co_await sdbusplus::async::sleep_for(ctx, stopCheckInterval);
+        }
         debug("Probing ports for {NAME} in {INTERVAL} seconds", "NAME",
-              config.name, "INTERVAL", probeInterval);
+              config.name, "INTERVAL", inventoryProbeInterval.count());
     }
 }
 

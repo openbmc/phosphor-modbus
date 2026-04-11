@@ -31,3 +31,10 @@ option(
     value: 3,
     description: 'Sensor poll interval in seconds.',
 )
+
+option(
+    'inventory-probe-interval-seconds',
+    type: 'integer',
+    value: 256,
+    description: 'Inventory device discovery probe interval in seconds. This should balance bus traffic against timely detection of device insertion and removal (OIR).',
+)

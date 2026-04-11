@@ -11,4 +11,7 @@ inline constexpr auto modbusRTUTimeout =
 inline constexpr auto sensorPollInterval =
     std::chrono::seconds(@SENSOR_POLL_INTERVAL_SECONDS@);
 
+inline constexpr auto inventoryProbeInterval =
+    std::chrono::seconds(@INVENTORY_PROBE_INTERVAL_SECONDS@);
+
 } // namespace phosphor::modbus::rtu
