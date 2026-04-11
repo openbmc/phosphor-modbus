@@ -54,7 +54,20 @@ BaseTest::~BaseTest() noexcept
         close(fdServer);
         fdServer = -1;
     }
-    kill(socatPid, SIGTERM);
+    if (socatPid > 0)
+    {
+        kill(socatPid, SIGTERM);
+        // Wait for socat to fully exit so it cleans up its symlinks
+        // before the next test starts a new socat instance.
+        for (int i = 0; i < maxRetries; i++)
+        {
+            if (kill(socatPid, 0) != 0)
+            {
+                break;
+            }
+            usleep(retryIntervalUs);
+        }
+    }
 }
 
 void BaseTest::SetUp()
