@@ -113,6 +113,14 @@ auto DeviceManager::processInventoryAdded(
         co_return;
     }
     auto config = res.value();
+
+    if (inventoryDevices.contains(config.name))
+    {
+        debug("Inventory device {NAME} already exists, skipping", "NAME",
+              config.name);
+        co_return;
+    }
+
     try
     {
         auto inventoryDevice =
@@ -140,6 +148,12 @@ auto DeviceManager::processDeviceAdded(const sdbusplus::object_path& objectPath,
         co_return;
     }
     auto config = res.value();
+
+    if (devices.contains(config.name))
+    {
+        debug("Device {NAME} already exists, skipping", "NAME", config.name);
+        co_return;
+    }
 
     try
     {
