@@ -22,6 +22,8 @@ constexpr uint16_t testSuccessReadHoldingRegisterSegmentedOffset = 0x0103;
 const std::vector<uint16_t> testSuccessReadHoldingRegisterResponse = {
     0x1234, 0x5678};
 constexpr uint16_t testFailureReadHoldingRegister = 0x0105;
+constexpr uint16_t testFlakyReadHoldingRegisterOffset = 0x0106;
+constexpr uint16_t testFlakyReadHoldingRegisterCount = 0x1;
 
 // Device Inventory Testing Constants
 constexpr uint16_t testReadHoldingRegisterModelOffset = 0x0112;
@@ -80,6 +82,8 @@ class ServerTester
 
     auto processRequests() -> void;
 
+    std::atomic<uint32_t> totalRequestCount{0};
+
   private:
     auto processMessage(MessageIntf& request, size_t requestSize,
                         MessageIntf& response, bool& segmentedResponse) -> void;
@@ -90,8 +94,12 @@ class ServerTester
                                      MessageIntf& response,
                                      bool& segmentedResponse) -> void;
 
+    auto processFlakyRegister(MessageIntf& request, uint16_t registerCount,
+                              MessageIntf& response) -> void;
+
     int fd;
     sdbusplus::async::fdio fdioInstance;
     sdbusplus::async::mutex mutex;
+    uint32_t flakyRegisterRequestCount = 0;
 };
 } // namespace phosphor::modbus::test

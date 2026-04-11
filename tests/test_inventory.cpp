@@ -37,6 +37,7 @@ class InventoryTest : public BaseTest
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
     PortConfigIntf::Config portConfig;
+    InventoryIntf::Device::serial_port_map_t ports;
 
     InventoryTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
     {
@@ -46,8 +47,10 @@ class InventoryTest : public BaseTest
         portConfig.rtsDelay = 1;
     }
 
-    auto testInventorySourceCreation(std::string objPath)
-        -> sdbusplus::async::task<void>
+    auto createDevice(
+        const std::vector<InventoryConfigIntf::Register>& registers,
+        std::chrono::seconds dormantPeriod = std::chrono::seconds(0))
+        -> std::unique_ptr<InventoryIntf::Device>
     {
         InventoryConfigIntf::Config::port_address_map_t addressMap;
         addressMap[portConfig.name] = {{.start = TestIntf::testDeviceAddress,
@@ -55,17 +58,22 @@ class InventoryTest : public BaseTest
         InventoryConfigIntf::Config deviceConfig = {
             .name = deviceName,
             .addressMap = addressMap,
-            .registers = {{"Model",
-                           TestIntf::testReadHoldingRegisterModelOffset,
-                           TestIntf::testReadHoldingRegisterModelCount}},
+            .registers = registers,
             .parity = ModbusIntf::Parity::none,
             .baudRate = 115200};
-        InventoryIntf::Device::serial_port_map_t ports;
         ports[portConfig.name] =
             std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
 
-        auto inventoryDevice =
-            std::make_unique<InventoryIntf::Device>(ctx, deviceConfig, ports);
+        return std::make_unique<InventoryIntf::Device>(ctx, deviceConfig, ports,
+                                                       dormantPeriod);
+    }
+
+    auto testInventorySourceCreation(std::string objPath)
+        -> sdbusplus::async::task<void>
+    {
+        auto inventoryDevice = createDevice(
+            {{"Model", TestIntf::testReadHoldingRegisterModelOffset,
+              TestIntf::testReadHoldingRegisterModelCount}});
 
         co_await inventoryDevice->probePorts();
 
@@ -91,6 +99,50 @@ class InventoryTest : public BaseTest
 
         co_return;
     }
+
+    auto testDormantSkippedAndExpires() -> sdbusplus::async::task<void>
+    {
+        constexpr auto testDormantPeriod = std::chrono::seconds(2);
+
+        auto inventoryDevice = createDevice(
+            {{"Unknown", TestIntf::testFailureReadHoldingRegister, 0x1}},
+            testDormantPeriod);
+
+        auto deviceId =
+            std::format("{}_{}", TestIntf::testDeviceAddress, portConfig.name);
+
+        // Device should not be dormant initially
+        EXPECT_FALSE(inventoryDevice->isDormant(deviceId));
+
+        // First probe fails, device should be marked dormant
+        co_await inventoryDevice->probePort(portConfig.name);
+        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+            << "Device should be dormant after failed probe";
+
+        // Second probe should skip (device is dormant, no server request)
+        auto countBeforeDormantProbe = serverTester->totalRequestCount.load();
+        co_await inventoryDevice->probePort(portConfig.name);
+        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+            << "Device should still be dormant";
+        EXPECT_EQ(serverTester->totalRequestCount.load(),
+                  countBeforeDormantProbe)
+            << "Server should not receive a request for dormant device";
+
+        // Wait for dormant period to expire
+        co_await sdbusplus::async::sleep_for(
+            ctx, testDormantPeriod + std::chrono::seconds(1));
+
+        // Third probe should clear dormant state and re-probe
+        auto countBeforeReprobe = serverTester->totalRequestCount.load();
+        co_await inventoryDevice->probePort(portConfig.name);
+        // Device gets re-probed, fails again, so it's dormant again
+        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+            << "Device should be dormant again after re-probe failure";
+        EXPECT_GT(serverTester->totalRequestCount.load(), countBeforeReprobe)
+            << "Server should receive a request after dormant period expires";
+
+        co_return;
+    }
 };
 
 TEST_F(InventoryTest, TestAddInventorySource)
@@ -102,6 +154,101 @@ TEST_F(InventoryTest, TestAddInventorySource)
     ctx.spawn(testInventorySourceCreation(objPath));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that a failed probe does not create an inventory source on D-Bus.
+TEST_F(InventoryTest, TestNonRespondingAddressNoInventorySource)
+{
+    auto testProbe = [&]() -> sdbusplus::async::task<void> {
+        auto inventoryDevice = createDevice(
+            {{"Unknown", TestIntf::testFailureReadHoldingRegister, 0x1}});
+
+        co_await inventoryDevice->probePorts();
+
+        auto objPath = std::format(
+            "{}/{}_{}_{}", InventorySourceIntf::namespace_path, deviceName,
+            TestIntf::testDeviceAddress, portConfig.name);
+
+        bool exists = false;
+        try
+        {
+            co_await InventorySourceIntf(ctx)
+                .service(serviceName)
+                .path(objPath)
+                .properties();
+            exists = true;
+        }
+        catch (...)
+        {
+            exists = false;
+        }
+
+        EXPECT_FALSE(exists)
+            << "Inventory source should not exist for failed probe";
+
+        co_return;
+    };
+
+    ctx.spawn(testProbe());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify the dormant state machine: a failed probe for an undiscovered address
+// marks it dormant, subsequent probes skip it without hitting the bus, and
+// after the dormant period expires the address becomes eligible for probing
+// again.
+TEST_F(InventoryTest, TestDormantDeviceSkippedAndExpires)
+{
+    ctx.spawn(testDormantSkippedAndExpires());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 6s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that a previously discovered device is never marked dormant. Uses a
+// flaky register that alternates success/failure to simulate a device that
+// goes offline and comes back. The device should be removed on failure but
+// remain eligible for immediate re-probing (not dormant).
+TEST_F(InventoryTest, TestDiscoveredDeviceNotMarkedDormant)
+{
+    auto testProbe = [&]() -> sdbusplus::async::task<void> {
+        auto inventoryDevice = createDevice(
+            {{"Flaky", TestIntf::testFlakyReadHoldingRegisterOffset,
+              TestIntf::testFlakyReadHoldingRegisterCount}});
+
+        auto deviceId =
+            std::format("{}_{}", TestIntf::testDeviceAddress, portConfig.name);
+
+        // 1st probe succeeds - device discovered
+        co_await inventoryDevice->probePort(portConfig.name);
+        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+            << "Device should not be dormant after successful probe";
+
+        // 2nd probe fails - device removed but NOT dormant
+        co_await inventoryDevice->probePort(portConfig.name);
+        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+            << "Previously discovered device should not be marked dormant";
+
+        // 3rd probe succeeds - device re-discovered
+        co_await inventoryDevice->probePort(portConfig.name);
+        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+            << "Device should not be dormant after re-discovery";
+
+        co_return;
+    };
+
+    ctx.spawn(testProbe());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();

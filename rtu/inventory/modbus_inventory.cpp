@@ -235,8 +235,12 @@ auto getConfig(sdbusplus::async::context& ctx,
 } // namespace config
 
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
-               serial_port_map_t& serialPorts) :
-    config(config), ctx(ctx), serialPorts(serialPorts)
+               serial_port_map_t& serialPorts,
+               std::chrono::seconds dormantPeriod) :
+    config(config), ctx(ctx), serialPorts(serialPorts),
+    dormantPeriod(dormantPeriod > std::chrono::seconds(0)
+                      ? dormantPeriod
+                      : 2 * inventoryProbeInterval)
 {
     for (const auto& [serialPort, _] : config.addressMap)
     {
@@ -319,10 +323,33 @@ auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
     port->second->probeInProgress = false;
 }
 
+auto Device::checkAndClearDormant(const std::string& deviceId) -> bool
+{
+    auto dormantIt = dormantDevices.find(deviceId);
+    if (dormantIt == dormantDevices.end())
+    {
+        return false;
+    }
+    auto elapsed = std::chrono::steady_clock::now() - dormantIt->second;
+    if (elapsed < dormantPeriod)
+    {
+        return true;
+    }
+    dormantDevices.erase(dormantIt);
+    return false;
+}
+
 auto Device::probeDevice(uint8_t address, const std::string& portName,
                          SerialPortIntf& port) -> sdbusplus::async::task<void>
 {
     auto deviceId = std::format("{}_{}", address, portName);
+
+    if (checkAndClearDormant(deviceId))
+    {
+        debug("Device {ADDRESS} on port {PORT} is dormant, skipping", "ADDRESS",
+              address, "PORT", portName);
+        co_return;
+    }
 
     debug("Probing device at {ADDRESS} on port {PORT}", "ADDRESS", address,
           "PORT", portName);
@@ -359,6 +386,15 @@ auto Device::probeDevice(uint8_t address, const std::string& portName,
                 "ADDRESS", address, "PROBE_REGISTER", probeRegister);
             it->second->emit_removed();
             inventorySources.erase(it);
+        }
+        else
+        {
+            // Device is not in inventorySources, meaning it either failed
+            // on a previous probe or was never discovered. Mark it as
+            // dormant to avoid unnecessary bus traffic.
+            dormantDevices[deviceId] = std::chrono::steady_clock::now();
+            debug("Device {ADDRESS} on port {PORT} marked dormant", "ADDRESS",
+                  address, "PORT", portName);
         }
     }
 }

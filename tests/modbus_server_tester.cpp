@@ -111,6 +111,8 @@ void ServerTester::processMessage(MessageIntf& request, size_t requestSize,
 {
     EXPECT_EQ(request.address, testDeviceAddress) << "Invalid device address";
 
+    totalRequestCount++;
+
     switch (request.functionCode)
     {
         case readHoldingRegistersFunctionCode:
@@ -155,6 +157,10 @@ void ServerTester::processReadHoldingRegisters(
                  << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
         response.appendCRC();
     }
+    else if (registerOffset == testFlakyReadHoldingRegisterOffset)
+    {
+        processFlakyRegister(request, registerCount, response);
+    }
     else
     {
         auto expectedResponseIter =
@@ -181,6 +187,30 @@ void ServerTester::processReadHoldingRegisters(
         segmentedResponse =
             (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
     }
+}
+
+void ServerTester::processFlakyRegister(
+    MessageIntf& request, uint16_t registerCount, MessageIntf& response)
+{
+    flakyRegisterRequestCount++;
+    if (flakyRegisterRequestCount % 2 == 0)
+    {
+        // Even requests fail
+        response << request.raw[0]
+                 << (uint8_t)readHoldingRegistersErrorFunctionCode
+                 << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
+    }
+    else
+    {
+        // Odd requests succeed
+        response << request.raw[0] << request.raw[1]
+                 << uint8_t(2 * registerCount);
+        for (size_t i = 0; i < registerCount; i++)
+        {
+            response << uint16_t(0x0050);
+        }
+    }
+    response.appendCRC();
 }
 
 } // namespace phosphor::modbus::test
