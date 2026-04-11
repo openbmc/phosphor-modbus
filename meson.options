@@ -24,3 +24,10 @@ option(
     value: 1000000,
     description: 'This defines the timeout for the modbus RTU client. The default value is 1 second (1000000 microseconds).',
 )
+
+option(
+    'sensor-poll-interval-seconds',
+    type: 'integer',
+    value: 3,
+    description: 'Sensor poll interval in seconds.',
+)

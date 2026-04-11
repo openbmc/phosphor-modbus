@@ -4,6 +4,10 @@ conf.set(
     'MODBUS_RTU_TIMEOUT_MICROSECONDS',
     get_option('modbus-rtu-timeout-microseconds'),
 )
+conf.set(
+    'SENSOR_POLL_INTERVAL_SECONDS',
+    get_option('sensor-poll-interval-seconds'),
+)
 
 configure_file(
     input: 'modbus_rtu_config.hpp.in',

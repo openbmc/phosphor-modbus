@@ -1,5 +1,7 @@
 #include "base_device.hpp"
 
+#include "modbus_rtu_config.hpp"
+
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/State/Leak/Detector/aserver.hpp>
 
@@ -168,11 +170,9 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
 
         co_await readStatusRegisters();
 
-        constexpr auto pollInterval = 3;
-        co_await sdbusplus::async::sleep_for(
-            ctx, std::chrono::seconds(pollInterval));
+        co_await sdbusplus::async::sleep_for(ctx, sensorPollInterval);
         debug("Polling sensors for {NAME} in {INTERVAL} seconds", "NAME",
-              config.name, "INTERVAL", pollInterval);
+              config.name, "INTERVAL", sensorPollInterval.count());
     }
 
     co_return;
