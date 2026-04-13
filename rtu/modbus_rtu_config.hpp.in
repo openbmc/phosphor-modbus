@@ -18,8 +18,10 @@ inline constexpr auto inventoryProbeInterval =
 inline constexpr auto inventoryDormantProbeMultiplier =
     @INVENTORY_DORMANT_PROBE_MULTIPLIER@;
 
-inline constexpr uint16_t maxRegisterSpanLength = 120;
+inline constexpr uint16_t maxRegisterSpanLength =
+    @MAX_REGISTER_SPAN_LENGTH@;
 
-inline constexpr uint16_t maxRegisterSpanGap = 8;
+inline constexpr uint16_t maxRegisterSpanGap =
+    @MAX_REGISTER_SPAN_GAP@;
 
 } // namespace phosphor::modbus::rtu

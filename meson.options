@@ -45,3 +45,17 @@ option(
     value: 2,
     description: 'Multiplier applied to the inventory probe interval to determine the dormant period for undiscovered addresses.',
 )
+
+option(
+    'max-register-span-length',
+    type: 'integer',
+    value: 120,
+    description: 'Maximum number of registers in a single Modbus read span. Contiguous registers are merged into one read up to this limit.',
+)
+
+option(
+    'max-register-span-gap',
+    type: 'integer',
+    value: 8,
+    description: 'Maximum gap (in registers) between two registers that still allows merging into one read span. Small gaps are cheaper to read than making separate transactions.',
+)
