@@ -51,8 +51,8 @@ struct DeviceTestConfig
 class SensorsTest : public BaseTest
 {
   public:
-    static constexpr auto clientDevicePath = "/tmp/ttySensorsTestPort0";
-    static constexpr auto serverDevicePath = "/tmp/ttySensorsTestPort1";
+    static constexpr auto clientPathPrefix = "/tmp/ttySensorsTestPort0";
+    static constexpr auto serverPathPrefix = "/tmp/ttySensorsTestPort1";
     static constexpr auto portName = "TestPort0";
     static constexpr auto serviceName =
         "xyz.openbmc_project.TestModbusRTUSensors";
@@ -78,7 +78,7 @@ class SensorsTest : public BaseTest
             SensorValueIntf::namespace_path::temperature, fullSensorName);
     }
 
-    SensorsTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    SensorsTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
         portConfig.name = portName;
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
