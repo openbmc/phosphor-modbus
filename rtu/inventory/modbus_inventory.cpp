@@ -252,6 +252,15 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
             continue;
         }
     }
+
+    std::vector<RegisterInfo> regInfos;
+    regInfos.reserve(config.registers.size());
+    for (const auto& reg : config.registers)
+    {
+        regInfos.push_back({.offset = reg.offset, .size = reg.size});
+    }
+    registerSpans =
+        buildRegisterSpans(regInfos, maxRegisterSpanLength, maxRegisterSpanGap);
 }
 
 auto Device::probePorts() -> sdbusplus::async::task<void>
@@ -443,29 +452,40 @@ auto Device::addInventorySource(uint8_t address, const std::string& portName,
 {
     InventorySourceIntf::properties_t properties;
 
-    for (const auto& reg : config.registers)
+    for (const auto& span : registerSpans)
     {
-        auto registers = std::vector<uint16_t>(reg.size);
+        auto readBuffer = std::vector<uint16_t>(span.totalSize);
         auto ret = co_await port.readHoldingRegisters(
-            address, reg.offset, config.baudRate, config.parity, registers);
+            address, span.startOffset, config.baudRate, config.parity,
+            readBuffer);
         if (!ret)
         {
-            error(
-                "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                "NAME", reg.name, "DEVICE_ADDRESS", address);
+            for (auto idx : span.registerIndices)
+            {
+                error(
+                    "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
+                    "NAME", config.registers[idx].name, "DEVICE_ADDRESS",
+                    address);
+            }
             continue;
         }
 
-        std::string strValue = "";
-
-        // Reswap bytes in each register for string conversion
-        for (const auto& value : registers)
+        for (auto idx : span.registerIndices)
         {
-            strValue += static_cast<char>((value >> 8) & 0xFF);
-            strValue += static_cast<char>(value & 0xFF);
-        }
+            const auto& reg = config.registers[idx];
+            auto regStart = reg.offset - span.startOffset;
+            std::string strValue = "";
 
-        fillInventorySourceProperties(properties, reg.name, strValue);
+            // Reswap bytes in each register for string conversion
+            for (uint8_t i = 0; i < reg.size; i++)
+            {
+                auto value = readBuffer[regStart + i];
+                strValue += static_cast<char>((value >> 8) & 0xFF);
+                strValue += static_cast<char>(value & 0xFF);
+            }
+
+            fillInventorySourceProperties(properties, reg.name, strValue);
+        }
     }
 
     auto pathSuffix =

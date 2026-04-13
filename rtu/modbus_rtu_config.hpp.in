@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 
 namespace phosphor::modbus::rtu
 {
@@ -16,5 +17,9 @@ inline constexpr auto inventoryProbeInterval =
 
 inline constexpr auto inventoryDormantProbeMultiplier =
     @INVENTORY_DORMANT_PROBE_MULTIPLIER@;
+
+inline constexpr uint16_t maxRegisterSpanLength = 120;
+
+inline constexpr uint16_t maxRegisterSpanGap = 8;
 
 } // namespace phosphor::modbus::rtu

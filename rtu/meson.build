@@ -16,7 +16,6 @@ conf.set(
     'INVENTORY_DORMANT_PROBE_MULTIPLIER',
     get_option('inventory-dormant-probe-multiplier'),
 )
-
 configure_file(
     input: 'modbus_rtu_config.hpp.in',
     output: 'modbus_rtu_config.hpp',
