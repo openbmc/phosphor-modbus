@@ -238,9 +238,10 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
                serial_port_map_t& serialPorts,
                std::chrono::seconds dormantPeriod) :
     config(config), ctx(ctx), serialPorts(serialPorts),
-    dormantPeriod(dormantPeriod > std::chrono::seconds(0)
-                      ? dormantPeriod
-                      : 2 * inventoryProbeInterval)
+    dormantPeriod(
+        dormantPeriod > std::chrono::seconds(0)
+            ? dormantPeriod
+            : inventoryDormantProbeMultiplier * inventoryProbeInterval)
 {
     for (const auto& [serialPort, _] : config.addressMap)
     {
