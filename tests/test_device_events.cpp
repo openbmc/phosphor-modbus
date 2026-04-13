@@ -112,9 +112,9 @@ class DeviceEventsTest : public BaseTest
 {
   public:
     PortConfigIntf::Config portConfig;
-    static constexpr const char* clientDevicePath =
+    static constexpr const char* clientPathPrefix =
         "/tmp/ttyDeviceEventsTestPort0";
-    static constexpr const char* serverDevicePath =
+    static constexpr const char* serverPathPrefix =
         "/tmp/ttyDeviceEventsTestPort1";
     static constexpr auto portName = "TestPort0";
     std::string deviceName;
@@ -127,7 +127,7 @@ class DeviceEventsTest : public BaseTest
     sdbusplus::server::manager_t manager;
 
     DeviceEventsTest() :
-        BaseTest(clientDevicePath, serverDevicePath, serviceName),
+        BaseTest(clientPathPrefix, serverPathPrefix, serviceName),
         eventServer(ctx, loggingObjectPath), manager(ctx, loggingObjectPath)
     {
         portConfig.name = portName;
