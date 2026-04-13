@@ -82,3 +82,14 @@ TEST_F(ModbusTest, TestReadHoldingRegisterFailure)
 
     ctx.run();
 }
+
+TEST_F(ModbusTest, TestReadHoldingRegisterIllegalDataAddress)
+{
+    ctx.spawn(
+        TestHoldingRegisters(TestIntf::testIllegalDataAddressRegister, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}

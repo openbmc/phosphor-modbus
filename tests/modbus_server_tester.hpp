@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modbus/modbus_exception.hpp"
 #include "modbus/modbus_message.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -22,6 +23,7 @@ constexpr uint16_t testSuccessReadHoldingRegisterSegmentedOffset = 0x0103;
 const std::vector<uint16_t> testSuccessReadHoldingRegisterResponse = {
     0x1234, 0x5678};
 constexpr uint16_t testFailureReadHoldingRegister = 0x0105;
+constexpr uint16_t testIllegalDataAddressRegister = 0x0108;
 constexpr uint16_t testFlakyReadHoldingRegisterOffset = 0x0106;
 constexpr uint16_t testFlakyReadHoldingRegisterCount = 0x1;
 
@@ -40,6 +42,18 @@ const std::vector<uint16_t> testReadHoldingRegisterTempUnsigned = {
 constexpr uint16_t testReadHoldingRegisterTempSignedOffset = 0x0114;
 const std::vector<uint16_t> testReadHoldingRegisterTempSigned = {
     0xFFB0}; // -80.0
+
+// Contiguous sensor registers for span merge testing (0x0120..0x0121)
+constexpr uint16_t testReadHoldingRegisterSpanSensor1Offset = 0x0120;
+constexpr uint16_t testReadHoldingRegisterSpanSensor2Offset = 0x0121;
+constexpr uint16_t testReadHoldingRegisterSpanMergedCount = 0x2;
+const std::vector<uint16_t> testReadHoldingRegisterSpanMerged = {
+    0x0050, 0x00C8};
+
+// Distant sensor register for testing separate spans
+constexpr uint16_t testReadHoldingRegisterDistantOffset = 0x0200;
+constexpr uint16_t testReadHoldingRegisterDistantCount = 0x1;
+const std::vector<uint16_t> testReadHoldingRegisterDistant = {0x00C8}; // 200
 
 // Device Firmware Testing Constants
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionOffset = 0x0115;
@@ -69,6 +83,11 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
           testReadHoldingRegisterTempUnsigned}},
         {testReadHoldingRegisterTempSignedOffset,
          {testReadHoldingRegisterTempCount, testReadHoldingRegisterTempSigned}},
+        {testReadHoldingRegisterSpanSensor1Offset,
+         {testReadHoldingRegisterSpanMergedCount,
+          testReadHoldingRegisterSpanMerged}},
+        {testReadHoldingRegisterDistantOffset,
+         {testReadHoldingRegisterDistantCount, testReadHoldingRegisterDistant}},
         {testReadHoldingRegisterFirmwareVersionOffset,
          {testReadHoldingRegisterFirmwareVersionCount,
           testReadHoldingRegisterFirmwareVersion}},
@@ -96,6 +115,14 @@ class ServerTester
 
     auto processFlakyRegister(MessageIntf& request, uint16_t registerCount,
                               MessageIntf& response) -> void;
+
+    auto buildErrorResponse(MessageIntf& request, MessageIntf& response,
+                            phosphor::modbus::rtu::ModbusExceptionCode code)
+        -> void;
+
+    auto processSuccessfulRead(MessageIntf& request, uint16_t registerOffset,
+                               uint16_t registerCount, MessageIntf& response,
+                               bool& segmentedResponse) -> void;
 
     int fd;
     sdbusplus::async::fdio fdioInstance;

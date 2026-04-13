@@ -4,6 +4,8 @@
 
 #include <xyz/openbmc_project/Sensor/Value/client.hpp>
 
+#include <chrono>
+
 namespace phosphor::modbus::rtu::device
 {
 
@@ -34,6 +36,7 @@ struct SensorRegister
     double shift = 0.0;
     bool isSigned = false;
     SensorFormat format = SensorFormat::unknown;
+    std::chrono::seconds pollInterval = std::chrono::seconds(0);
 };
 
 enum class StatusType

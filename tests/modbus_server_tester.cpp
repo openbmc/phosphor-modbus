@@ -131,6 +131,15 @@ static inline void checkRequestSize(size_t requestSize, size_t expectedSize)
     EXPECT_EQ(requestSize, expectedSize) << "Invalid request size";
 }
 
+void ServerTester::buildErrorResponse(MessageIntf& request,
+                                      MessageIntf& response,
+                                      RTUIntf::ModbusExceptionCode code)
+{
+    response << request.raw[0] << (uint8_t)readHoldingRegistersErrorFunctionCode
+             << uint8_t(code);
+    response.appendCRC();
+}
+
 void ServerTester::processReadHoldingRegisters(
     MessageIntf& request, size_t requestSize, MessageIntf& response,
     bool& segmentedResponse)
@@ -152,10 +161,15 @@ void ServerTester::processReadHoldingRegisters(
 
     if (registerOffset == testFailureReadHoldingRegister)
     {
-        response << request.raw[0]
-                 << (uint8_t)readHoldingRegistersErrorFunctionCode
-                 << uint8_t(RTUIntf::ModbusExceptionCode::illegalFunctionCode);
-        response.appendCRC();
+        buildErrorResponse(request, response,
+                           RTUIntf::ModbusExceptionCode::illegalFunctionCode);
+    }
+    else if (registerOffset + registerCount > testIllegalDataAddressRegister &&
+             registerOffset <= testIllegalDataAddressRegister)
+    {
+        // The requested register range overlaps the illegal data address
+        buildErrorResponse(request, response,
+                           RTUIntf::ModbusExceptionCode::illegalDataAddress);
     }
     else if (registerOffset == testFlakyReadHoldingRegisterOffset)
     {
@@ -163,30 +177,35 @@ void ServerTester::processReadHoldingRegisters(
     }
     else
     {
-        auto expectedResponseIter =
-            testReadHoldingRegisterMap.find(registerOffset);
-        if (expectedResponseIter == testReadHoldingRegisterMap.end())
-        {
-            FAIL() << "Invalid register offset:" << registerOffset;
-            return;
-        }
-
-        checkRequestSize(registerCount,
-                         std::get<0>(expectedResponseIter->second));
-
-        auto& expectedResponse = std::get<1>(expectedResponseIter->second);
-
-        response << request.raw[0] << request.raw[1]
-                 << uint8_t(2 * registerCount);
-        for (size_t i = 0; i < registerCount; i++)
-        {
-            response << uint16_t(expectedResponse[i]);
-        }
-        response.appendCRC();
-
-        segmentedResponse =
-            (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
+        processSuccessfulRead(request, registerOffset, registerCount, response,
+                              segmentedResponse);
     }
+}
+
+void ServerTester::processSuccessfulRead(
+    MessageIntf& request, uint16_t registerOffset, uint16_t registerCount,
+    MessageIntf& response, bool& segmentedResponse)
+{
+    auto expectedResponseIter = testReadHoldingRegisterMap.find(registerOffset);
+    if (expectedResponseIter == testReadHoldingRegisterMap.end())
+    {
+        FAIL() << "Invalid register offset:" << registerOffset;
+        return;
+    }
+
+    checkRequestSize(registerCount, std::get<0>(expectedResponseIter->second));
+
+    auto& expectedResponse = std::get<1>(expectedResponseIter->second);
+
+    response << request.raw[0] << request.raw[1] << uint8_t(2 * registerCount);
+    for (size_t i = 0; i < registerCount; i++)
+    {
+        response << uint16_t(expectedResponse[i]);
+    }
+    response.appendCRC();
+
+    segmentedResponse =
+        (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
 }
 
 void ServerTester::processFlakyRegister(
