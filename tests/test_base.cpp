@@ -2,9 +2,13 @@
 
 #include <unistd.h>
 
-BaseTest::BaseTest(const char* clientDevicePath, const char* serverDevicePath,
+BaseTest::BaseTest(const char* clientPathPrefix, const char* serverPathPrefix,
                    const char* serviceName)
 {
+    auto testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
+    clientDevicePath = std::format("{}_{}", clientPathPrefix, testInfo->name());
+    serverDevicePath = std::format("{}_{}", serverPathPrefix, testInfo->name());
+
     std::string socatCmd = std::format(
         "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",
         serverDevicePath, strBaudeRate, clientDevicePath, strBaudeRate);
@@ -20,19 +24,19 @@ BaseTest::BaseTest(const char* clientDevicePath, const char* serverDevicePath,
     constexpr auto retryIntervalUs = 50000; // 50ms
     for (int i = 0; i < maxRetries; i++)
     {
-        if (access(clientDevicePath, F_OK) == 0 &&
-            access(serverDevicePath, F_OK) == 0)
+        if (access(clientDevicePath.c_str(), F_OK) == 0 &&
+            access(serverDevicePath.c_str(), F_OK) == 0)
         {
             break;
         }
         usleep(retryIntervalUs);
     }
 
-    fdClient = open(clientDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    fdClient = open(clientDevicePath.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     EXPECT_NE(fdClient, -1) << "Failed to open serial port " << clientDevicePath
                             << " with error: " << strerror(errno);
 
-    fdServer = open(serverDevicePath, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    fdServer = open(serverDevicePath.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     EXPECT_NE(fdServer, -1) << "Failed to open serial port " << serverDevicePath
                             << " with error: " << strerror(errno);
 
