@@ -18,8 +18,10 @@ inline constexpr auto inventoryProbeInterval =
 inline constexpr auto inventoryDormantProbeInterval =
     std::chrono::seconds(@INVENTORY_DORMANT_PROBE_INTERVAL_SECONDS@);
 
-inline constexpr uint16_t maxRegisterSpanLength = 120;
+inline constexpr uint16_t maxRegisterSpanLength =
+    @MAX_REGISTER_SPAN_LENGTH@;
 
-inline constexpr uint16_t maxRegisterSpanGap = 8;
+inline constexpr uint16_t maxRegisterSpanGap =
+    @MAX_REGISTER_SPAN_GAP@;
 
 } // namespace phosphor::modbus::rtu
