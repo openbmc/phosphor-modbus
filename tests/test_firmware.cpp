@@ -45,8 +45,8 @@ class TestFirmware : public DeviceIntf::DeviceFirmware
 class FirmwareTest : public BaseTest
 {
   public:
-    static constexpr auto clientDevicePath = "/tmp/ttyFirmwareTestPort0";
-    static constexpr auto serverDevicePath = "/tmp/ttyFirmwareTestPort1";
+    static constexpr auto clientPathPrefix = "/tmp/ttyFirmwareTestPort0";
+    static constexpr auto serverPathPrefix = "/tmp/ttyFirmwareTestPort1";
     static constexpr auto portName = "TestPort0";
     static constexpr auto serviceName =
         "xyz.openbmc_project.TestModbusRTUFirmware";
@@ -56,7 +56,7 @@ class FirmwareTest : public BaseTest
     std::string objectPath;
     std::unique_ptr<MockPort> mockPort;
 
-    FirmwareTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    FirmwareTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
         portConfig.name = portName;
         portConfig.portMode = PortConfigIntf::PortMode::rs485;

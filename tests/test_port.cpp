@@ -40,12 +40,12 @@ class PortTest : public BaseTest
 {
   public:
     static constexpr properties_t properties = {"TestPort", "RS485", 115200, 1};
-    static constexpr auto clientDevicePath = "/tmp/ttyPortV0";
-    static constexpr auto serverDevicePath = "/tmp/ttyPortV1";
+    static constexpr auto clientPathPrefix = "/tmp/ttyPortV0";
+    static constexpr auto serverPathPrefix = "/tmp/ttyPortV1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusPort";
     bool getPortConfigPassed = false;
 
-    PortTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName) {}
+    PortTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName) {}
 
     void SetUp() override
     {

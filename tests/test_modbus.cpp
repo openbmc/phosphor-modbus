@@ -12,12 +12,12 @@ using ModbusIntf = RTUIntf::Modbus;
 class ModbusTest : public BaseTest
 {
   public:
-    static constexpr auto clientDevicePath = "/tmp/ttyV0";
-    static constexpr auto serverDevicePath = "/tmp/ttyV1";
+    static constexpr auto clientPathPrefix = "/tmp/ttyV0";
+    static constexpr auto serverPathPrefix = "/tmp/ttyV1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbus";
     std::unique_ptr<ModbusIntf> modbus;
 
-    ModbusTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    ModbusTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
         modbus = std::make_unique<ModbusIntf>(ctx, fdClient, 115200, 0);
     }
