@@ -41,6 +41,18 @@ constexpr uint16_t testReadHoldingRegisterTempSignedOffset = 0x0114;
 const std::vector<uint16_t> testReadHoldingRegisterTempSigned = {
     0xFFB0}; // -80.0
 
+// Contiguous sensor registers for span merge testing (0x0120..0x0121)
+constexpr uint16_t testReadHoldingRegisterSpanSensor1Offset = 0x0120;
+constexpr uint16_t testReadHoldingRegisterSpanSensor2Offset = 0x0121;
+constexpr uint16_t testReadHoldingRegisterSpanMergedCount = 0x2;
+const std::vector<uint16_t> testReadHoldingRegisterSpanMerged = {
+    0x0050, 0x00C8};
+
+// Distant sensor register for testing separate spans
+constexpr uint16_t testReadHoldingRegisterDistantOffset = 0x0200;
+constexpr uint16_t testReadHoldingRegisterDistantCount = 0x1;
+const std::vector<uint16_t> testReadHoldingRegisterDistant = {0x00C8}; // 200
+
 // Device Firmware Testing Constants
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionOffset = 0x0115;
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionCount = 0x2;
@@ -69,6 +81,11 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
           testReadHoldingRegisterTempUnsigned}},
         {testReadHoldingRegisterTempSignedOffset,
          {testReadHoldingRegisterTempCount, testReadHoldingRegisterTempSigned}},
+        {testReadHoldingRegisterSpanSensor1Offset,
+         {testReadHoldingRegisterSpanMergedCount,
+          testReadHoldingRegisterSpanMerged}},
+        {testReadHoldingRegisterDistantOffset,
+         {testReadHoldingRegisterDistantCount, testReadHoldingRegisterDistant}},
         {testReadHoldingRegisterFirmwareVersionOffset,
          {testReadHoldingRegisterFirmwareVersionCount,
           testReadHoldingRegisterFirmwareVersion}},
