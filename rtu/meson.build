@@ -12,6 +12,10 @@ conf.set(
     'INVENTORY_PROBE_INTERVAL_SECONDS',
     get_option('inventory-probe-interval-seconds'),
 )
+conf.set(
+    'INVENTORY_DORMANT_PROBE_INTERVAL_SECONDS',
+    get_option('inventory-dormant-probe-interval-seconds'),
+)
 
 configure_file(
     input: 'modbus_rtu_config.hpp.in',
