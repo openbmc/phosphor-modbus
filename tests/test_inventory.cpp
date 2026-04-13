@@ -30,16 +30,16 @@ class MockPort : public PortIntf::BasePort
 class InventoryTest : public BaseTest
 {
   public:
-    static constexpr const char* clientDevicePath =
+    static constexpr const char* clientPathPrefix =
         "/tmp/ttyInventoryTestPort0";
-    static constexpr const char* serverDevicePath =
+    static constexpr const char* serverPathPrefix =
         "/tmp/ttyInventoryTestPort1";
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
     PortConfigIntf::Config portConfig;
     InventoryIntf::Device::serial_port_map_t ports;
 
-    InventoryTest() : BaseTest(clientDevicePath, serverDevicePath, serviceName)
+    InventoryTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
         portConfig.name = "TestPort1";
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
