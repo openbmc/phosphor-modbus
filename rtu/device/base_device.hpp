@@ -2,6 +2,7 @@
 
 #include "base_config.hpp"
 #include "common/events.hpp"
+#include "common/register_span.hpp"
 #include "firmware/device_firmware.hpp"
 #include "port/base_port.hpp"
 
@@ -43,15 +44,6 @@ class BaseDevice
     auto readSensorRegisters() -> sdbusplus::async::task<void>;
 
   private:
-    auto createSensors() -> void;
-
-    auto readStatusRegisters() -> sdbusplus::async::task<void>;
-
-    auto generateEvent(const config::StatusBit& statusBit,
-                       const sdbusplus::object_path& objectPath,
-                       double sensorValue, SensorIntf::Unit sensorUnit,
-                       bool statusAsserted) -> sdbusplus::async::task<void>;
-
     // Pre-computed pairing of register config and its corresponding sensor,
     // built at construction to avoid map lookups on every poll cycle.
     struct SensorEntry
@@ -59,6 +51,26 @@ class BaseDevice
         const config::SensorRegister& reg;
         SensorIntf& sensor;
     };
+
+    struct SensorBucket
+    {
+        std::chrono::seconds pollInterval;
+        std::vector<RegisterSpan> spans;
+        std::chrono::steady_clock::time_point nextPollTime;
+    };
+
+    auto createSensors() -> void;
+
+    auto buildSensorBuckets() -> void;
+
+    auto pollSensorBucket(SensorBucket& bucket) -> sdbusplus::async::task<void>;
+
+    auto readStatusRegisters() -> sdbusplus::async::task<void>;
+
+    auto generateEvent(const config::StatusBit& statusBit,
+                       const sdbusplus::object_path& objectPath,
+                       double sensorValue, SensorIntf::Unit sensorUnit,
+                       bool statusAsserted) -> sdbusplus::async::task<void>;
 
     using sensors_map_t =
         std::unordered_map<std::string, std::unique_ptr<SensorIntf>>;
@@ -69,6 +81,8 @@ class BaseDevice
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
     std::vector<SensorEntry> sensorEntries;
+    std::vector<SensorBucket> sensorBuckets;
+    std::vector<uint16_t> readBuffer;
 };
 
 } // namespace phosphor::modbus::rtu::device

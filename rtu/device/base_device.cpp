@@ -5,6 +5,7 @@
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/State/Leak/Detector/aserver.hpp>
 
+#include <algorithm>
 #include <numeric>
 
 namespace phosphor::modbus::rtu::device
@@ -18,6 +19,7 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     ctx(ctx), config(config), serialPort(serialPort), events(events)
 {
     createSensors();
+    buildSensorBuckets();
 
     if (!config.firmwareRegisters.empty())
     {
@@ -85,6 +87,66 @@ auto BaseDevice::createSensors() -> void
     }
 }
 
+auto BaseDevice::buildSensorBuckets() -> void
+{
+    // Group sensor entries by poll interval into buckets. Each bucket
+    // tracks the sensorEntries indices that share the same interval.
+    std::vector<std::pair<std::chrono::seconds, std::vector<size_t>>>
+        bucketIndices;
+
+    for (size_t i = 0; i < sensorEntries.size(); i++)
+    {
+        auto interval = sensorEntries[i].reg.pollInterval;
+        auto it = std::find_if(
+            bucketIndices.begin(), bucketIndices.end(),
+            [&](const auto& entry) { return entry.first == interval; });
+        if (it != bucketIndices.end())
+        {
+            it->second.push_back(i);
+        }
+        else
+        {
+            bucketIndices.emplace_back(interval, std::vector<size_t>{i});
+        }
+    }
+
+    for (auto& [interval, indices] : bucketIndices)
+    {
+        std::vector<RegisterInfo> regInfos;
+        regInfos.reserve(indices.size());
+        for (auto idx : indices)
+        {
+            const auto& reg = sensorEntries[idx].reg;
+            regInfos.push_back({.offset = reg.offset, .size = reg.size});
+        }
+
+        auto spans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
+
+        // Remap span indices from local regInfos back to sensorEntries indices.
+        for (auto& span : spans)
+        {
+            for (auto& localIdx : span.registerIndices)
+            {
+                localIdx = indices[localIdx];
+            }
+        }
+
+        sensorBuckets.push_back({.pollInterval = interval,
+                                 .spans = std::move(spans),
+                                 .nextPollTime = {}});
+    }
+
+    uint16_t maxSpanSize = 0;
+    for (const auto& bucket : sensorBuckets)
+    {
+        for (const auto& span : bucket.spans)
+        {
+            maxSpanSize = std::max(maxSpanSize, span.totalSize);
+        }
+    }
+    readBuffer.resize(maxSpanSize);
+}
+
 static auto getRawIntegerFromRegister(const std::vector<uint16_t>& reg,
                                       bool sign) -> int64_t
 {
@@ -135,29 +197,40 @@ static auto getRawIntegerFromRegister(const std::vector<uint16_t>& reg,
     return result;
 }
 
-auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
+auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
+    -> sdbusplus::async::task<void>
 {
-    while (!ctx.stop_requested())
+    for (const auto& span : bucket.spans)
     {
-        for (auto& [sensorRegister, sensor] : sensorEntries)
+        std::fill(readBuffer.begin(), readBuffer.end(), 0);
+        auto ret = co_await serialPort.readHoldingRegisters(
+            config.address, span.startOffset, config.baudRate, config.parity,
+            readBuffer);
+        if (!ret)
         {
-            auto readBuffer = std::vector<uint16_t>(sensorRegister.size);
-            auto ret = co_await serialPort.readHoldingRegisters(
-                config.address, sensorRegister.offset, config.baudRate,
-                config.parity, readBuffer);
-            if (!ret)
+            for (auto idx : span.registerIndices)
             {
+                auto& [sensorRegister, sensor] = sensorEntries[idx];
                 error(
                     "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
                     "NAME", sensorRegister.name, "DEVICE_ADDRESS",
                     config.address);
                 sensor.value(std::numeric_limits<double>::quiet_NaN());
                 sensor.functional(false);
-                continue;
             }
+            continue;
+        }
+
+        for (auto idx : span.registerIndices)
+        {
+            auto& [sensorRegister, sensor] = sensorEntries[idx];
+            auto regStart = sensorRegister.offset - span.startOffset;
+            auto regSlice = std::vector<uint16_t>(
+                readBuffer.begin() + regStart,
+                readBuffer.begin() + regStart + sensorRegister.size);
 
             double regVal = static_cast<double>(
-                getRawIntegerFromRegister(readBuffer, sensorRegister.isSigned));
+                getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
             if (sensorRegister.format == config::SensorFormat::floatingPoint)
             {
                 regVal = sensorRegister.shift +
@@ -167,12 +240,58 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
 
             sensor.value(regVal);
         }
+    }
+}
+
+// Sensor polling loop with per-bucket scheduling.
+//
+// Sensors are grouped into buckets by poll interval (e.g. 2s, 5s).
+// Each bucket tracks its own nextPollTime. On every iteration:
+//  1. Poll each bucket whose nextPollTime has passed, then advance its
+//     timer. Skip buckets that aren't due yet.
+//  2. Track the earliest nextPollTime across all buckets while iterating.
+//  3. Sleep until that earliest time, then repeat.
+//
+// Example with 2s and 5s buckets:
+//   t=0: poll both  -> sleep 2s
+//   t=2: poll 2s    -> sleep 2s
+//   t=4: poll 2s    -> sleep 1s  (5s bucket due at t=5)
+//   t=5: poll 5s    -> sleep 1s  (2s bucket due at t=6)
+auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
+{
+    while (!ctx.stop_requested())
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
+
+        for (auto& bucket : sensorBuckets)
+        {
+            if (now < bucket.nextPollTime)
+            {
+                earliestNextPoll =
+                    std::min(earliestNextPoll, bucket.nextPollTime);
+                continue;
+            }
+            co_await pollSensorBucket(bucket);
+            bucket.nextPollTime = now + bucket.pollInterval;
+            earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
+        }
 
         co_await readStatusRegisters();
 
-        co_await sdbusplus::async::sleep_for(ctx, sensorPollInterval);
-        debug("Polling sensors for {NAME} in {INTERVAL} seconds", "NAME",
-              config.name, "INTERVAL", sensorPollInterval.count());
+        auto sleepDuration = std::chrono::duration_cast<std::chrono::seconds>(
+            earliestNextPoll - std::chrono::steady_clock::now());
+        if (sleepDuration > std::chrono::seconds(0))
+        {
+            co_await sdbusplus::async::sleep_for(ctx, sleepDuration);
+        }
+        else
+        {
+            warning(
+                "No idle time between poll cycles for {NAME}, check poll interval configuration",
+                "NAME", config.name);
+        }
+        debug("Polling sensors for {NAME}", "NAME", config.name);
     }
 
     co_return;
