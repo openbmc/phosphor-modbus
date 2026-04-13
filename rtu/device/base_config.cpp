@@ -1,6 +1,7 @@
 #include "base_config.hpp"
 
 #include "common/entity_manager_interface.hpp"
+#include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
@@ -192,6 +193,12 @@ static auto processSensorRegistersInterface(
     sensorRegister.isSigned = getValue<bool>(configMap, "Signed", config.name);
 
     processRegisterFormat(sensorRegister, configMap);
+
+    auto pollIntervalIter = configMap.find("PollInterval");
+    sensorRegister.pollInterval =
+        (pollIntervalIter != configMap.end())
+            ? std::chrono::seconds(std::get<uint64_t>(pollIntervalIter->second))
+            : defaultSensorPollInterval;
 
     config.sensorRegisters.emplace_back(sensorRegister);
 }
