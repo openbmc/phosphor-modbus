@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "modbus_rtu_config.hpp"
 #include "port/base_port.hpp"
 #include "test_base.hpp"
 
@@ -78,6 +79,14 @@ class SensorsTest : public BaseTest
             SensorValueIntf::namespace_path::temperature, fullSensorName);
     }
 
+    auto getSensorObjectPath(const std::string& name,
+                             const std::string& pathSuffix) -> std::string
+    {
+        return std::format("{}/{}/{}_{}",
+                           SensorValueIntf::namespace_path::value, pathSuffix,
+                           deviceName, name);
+    }
+
     SensorsTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
         portConfig.name = portName;
@@ -98,10 +107,11 @@ class SensorsTest : public BaseTest
                   numOfInventoryAssociations);
     }
 
-    auto testSensorCreation(std::string objectPath,
-                            DeviceConfigIntf::SensorRegister sensorRegister,
-                            double expectedValue)
-        -> sdbusplus::async::task<void>
+    auto createDevice(
+        std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters,
+        EventIntf::Events& events)
+        -> std::pair<std::unique_ptr<MockPort>,
+                     std::unique_ptr<DeviceIntf::BaseDevice>>
     {
         DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
             {
@@ -112,17 +122,27 @@ class SensorsTest : public BaseTest
                 .portName = portConfig.name,
                 .inventoryPath =
                     sdbusplus::object_path(deviceTestConfig.inventoryPath),
-                .sensorRegisters = {sensorRegister},
+                .sensorRegisters = sensorRegisters,
                 .statusRegisters = {},
                 .firmwareRegisters = {},
             },
             deviceTestConfig.deviceType,
             deviceTestConfig.deviceModel,
         };
-        EventIntf::Events events{ctx};
-        MockPort mockPort(ctx, portConfig, clientDevicePath);
+        auto mockPort =
+            std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
         auto device = DeviceIntf::DeviceFactory::create(
-            ctx, deviceFactoryConfig, mockPort, events);
+            ctx, deviceFactoryConfig, *mockPort, events);
+        return {std::move(mockPort), std::move(device)};
+    }
+
+    auto testSensorCreation(std::string objectPath,
+                            DeviceConfigIntf::SensorRegister sensorRegister,
+                            double expectedValue)
+        -> sdbusplus::async::task<void>
+    {
+        EventIntf::Events events{ctx};
+        auto [mockPort, device] = createDevice({sensorRegister}, events);
 
         co_await device->readSensorRegisters();
 
@@ -282,4 +302,198 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
+}
+
+// Two contiguous registers (0x0120, 0x0121) should be merged into a single
+// span and read in one Modbus transaction.
+TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
+    const std::string sensor1Name = "Sensor1";
+    const std::string sensor2Name = "Sensor2";
+
+    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+        {.name = sensor1Name,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+        {.name = sensor2Name,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+
+    auto testSpan = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx};
+        auto [mockPort, device] = createDevice(sensorRegisters, events);
+        auto countBefore = serverTester->totalRequestCount.load();
+        co_await device->readSensorRegisters();
+
+        // Two contiguous registers should merge into 1 Modbus read.
+        EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 1)
+            << "Expected single merged read for contiguous registers";
+
+        auto path1 = getSensorObjectPath(
+            sensor1Name, SensorValueIntf::namespace_path::temperature);
+        auto props1 = co_await SensorValueIntf(ctx)
+                          .service(serviceName)
+                          .path(path1)
+                          .properties();
+        EXPECT_EQ(props1.value, TestIntf::testReadHoldingRegisterSpanMerged[0])
+            << "Sensor1 value mismatch";
+
+        auto path2 = getSensorObjectPath(
+            sensor2Name, SensorValueIntf::namespace_path::temperature);
+        auto props2 = co_await SensorValueIntf(ctx)
+                          .service(serviceName)
+                          .path(path2)
+                          .properties();
+        EXPECT_EQ(props2.value, TestIntf::testReadHoldingRegisterSpanMerged[1])
+            << "Sensor2 value mismatch";
+
+        co_return;
+    };
+
+    ctx.spawn(testSpan());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Two registers far apart (0x0113 and 0x0200) should NOT merge — each gets
+// its own span and a separate Modbus read transaction.
+TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
+    const std::string nearName = "NearSensor";
+    const std::string farName = "FarSensor";
+
+    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+        {.name = nearName,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+        {.name = farName,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterDistantOffset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+
+    auto testSpan = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx};
+        auto [mockPort, device] = createDevice(sensorRegisters, events);
+        auto countBefore = serverTester->totalRequestCount.load();
+        co_await device->readSensorRegisters();
+
+        // Two distant registers should produce 2 separate Modbus reads.
+        EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 2)
+            << "Expected two separate reads for distant registers";
+
+        auto nearPath = getSensorObjectPath(
+            nearName, SensorValueIntf::namespace_path::temperature);
+        auto nearProps = co_await SensorValueIntf(ctx)
+                             .service(serviceName)
+                             .path(nearPath)
+                             .properties();
+        EXPECT_EQ(nearProps.value,
+                  TestIntf::testReadHoldingRegisterTempUnsigned[0])
+            << "Near sensor value mismatch";
+
+        auto farPath = getSensorObjectPath(
+            farName, SensorValueIntf::namespace_path::temperature);
+        auto farProps = co_await SensorValueIntf(ctx)
+                            .service(serviceName)
+                            .path(farPath)
+                            .properties();
+        EXPECT_EQ(farProps.value, TestIntf::testReadHoldingRegisterDistant[0])
+            << "Far sensor value mismatch";
+
+        co_return;
+    };
+
+    ctx.spawn(testSpan());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Sensors with different poll intervals should be placed in separate buckets.
+// The faster bucket (1s) should poll more often than the slower one (10s)
+// within the test window.
+TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+    });
+
+    const std::string fastName = "FastSensor";
+    const std::string slowName = "SlowSensor";
+
+    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+        {.name = fastName,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = std::chrono::seconds(1)},
+        {.name = slowName,
+         .pathSuffix = SensorValueIntf::namespace_path::temperature,
+         .unit = SensorValueIntf::Unit::DegreesC,
+         .offset = TestIntf::testReadHoldingRegisterDistantOffset,
+         .size = 1,
+         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .pollInterval = std::chrono::seconds(10)}};
+
+    EventIntf::Events events{ctx};
+    auto [mockPort, device] = createDevice(sensorRegisters, events);
+    auto countBefore = serverTester->totalRequestCount.load();
+
+    // Spawn the poll loop and let it run for ~2.5s.
+    // Fast bucket (1s): polls at t=0, t=1, t=2 -> 3 requests
+    // Slow bucket (10s): polls at t=0 only     -> 1 request
+    // Total expected: 4
+    ctx.spawn(device->readSensorRegisters());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 2500ms) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+
+    auto totalRequests = serverTester->totalRequestCount.load() - countBefore;
+
+    // With a single bucket (same interval), we'd see equal polls for both.
+    // With two buckets, the fast sensor polls 3 times and the slow sensor
+    // polls once in 2.5s, giving 4 total requests.
+    EXPECT_EQ(totalRequests, 4)
+        << "Expected 4 requests (3 fast + 1 slow) in 2.5s window";
 }
