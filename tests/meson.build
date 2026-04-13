@@ -67,8 +67,19 @@ test(
         'test_inventory.cpp',
         'modbus_server_tester.cpp',
         inventory_src,
-        link_with: [test_base_lib],
+        link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
+
+test(
+    'test_register_span',
+    executable(
+        'test_register_span',
+        'test_register_span.cpp',
+        link_with: [modbus_common_lib],
+        dependencies: [gtest_dep, gmock_dep, default_deps],
         include_directories: ['.', common_include],
     ),
 )
