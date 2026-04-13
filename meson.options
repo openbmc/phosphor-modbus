@@ -38,3 +38,10 @@ option(
     value: 256,
     description: 'Inventory device discovery probe interval in seconds. This should balance bus traffic against timely detection of device insertion and removal (OIR).',
 )
+
+option(
+    'inventory-dormant-probe-interval-seconds',
+    type: 'integer',
+    value: 512,
+    description: 'Dormant probe interval in seconds for undiscovered addresses. Rounded up to the nearest multiple of the inventory probe interval.',
+)

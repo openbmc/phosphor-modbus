@@ -237,10 +237,19 @@ auto getConfig(sdbusplus::async::context& ctx,
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
                serial_port_map_t& serialPorts,
                std::chrono::seconds dormantPeriod) :
-    config(config), ctx(ctx), serialPorts(serialPorts),
-    dormantPeriod(dormantPeriod > std::chrono::seconds(0)
-                      ? dormantPeriod
-                      : 2 * inventoryProbeInterval)
+    config(config), ctx(ctx), serialPorts(serialPorts), dormantPeriod([&]() {
+        if (dormantPeriod > std::chrono::seconds(0))
+        {
+            return dormantPeriod;
+        }
+        // Ceiling division to round up to the nearest multiple of the
+        // probe interval. std::chrono::ceil only converts between duration
+        // types and cannot compute multiples of an arbitrary interval.
+        auto multiplier = (inventoryDormantProbeInterval +
+                           inventoryProbeInterval - std::chrono::seconds(1)) /
+                          inventoryProbeInterval;
+        return multiplier * inventoryProbeInterval;
+    }())
 {
     for (const auto& [serialPort, _] : config.addressMap)
     {
