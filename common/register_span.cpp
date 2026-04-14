@@ -7,7 +7,8 @@ namespace phosphor::modbus
 {
 
 auto buildRegisterSpans(const std::vector<RegisterInfo>& registers,
-                        uint16_t maxSpanLength) -> std::vector<RegisterSpan>
+                        uint16_t maxSpanLength, uint16_t maxGap)
+    -> std::vector<RegisterSpan>
 {
     if (registers.empty())
     {
@@ -39,7 +40,7 @@ auto buildRegisterSpans(const std::vector<RegisterInfo>& registers,
         uint16_t gap = (reg.offset > spanEnd) ? (reg.offset - spanEnd) : 0;
         uint16_t newSize = (reg.offset + reg.size) - current.startOffset;
 
-        if (gap == 0 && newSize <= maxSpanLength)
+        if (gap <= maxGap && newSize <= maxSpanLength)
         {
             current.totalSize = newSize;
             current.registerIndices.push_back(idx);
