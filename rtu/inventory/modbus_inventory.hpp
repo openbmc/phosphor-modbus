@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/register_span.hpp"
 #include "modbus/modbus.hpp"
 #include "port/base_port.hpp"
 
@@ -102,6 +103,7 @@ class Device
 
     std::chrono::seconds dormantPeriod;
     std::map<std::string, std::chrono::steady_clock::time_point> dormantDevices;
+    std::vector<RegisterSpan> registerSpans;
 };
 
 } // namespace phosphor::modbus::rtu::inventory
