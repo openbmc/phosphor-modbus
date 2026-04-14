@@ -120,7 +120,8 @@ auto BaseDevice::buildSensorBuckets() -> void
             regInfos.push_back({.offset = reg.offset, .size = reg.size});
         }
 
-        auto spans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
+        auto spans = buildRegisterSpans(regInfos, maxRegisterSpanLength,
+                                        maxRegisterSpanGap);
 
         // Remap span indices from local regInfos back to sensorEntries indices.
         for (auto& span : spans)

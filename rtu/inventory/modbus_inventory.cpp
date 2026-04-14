@@ -268,7 +268,7 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
         regInfos.push_back({.offset = reg.offset, .size = reg.size});
     }
     registerSpans =
-        buildRegisterSpans(regInfos, maxRegisterSpanLength);
+        buildRegisterSpans(regInfos, maxRegisterSpanLength, maxRegisterSpanGap);
 }
 
 auto Device::probePorts() -> sdbusplus::async::task<void>
