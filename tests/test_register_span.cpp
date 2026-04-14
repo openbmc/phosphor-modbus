@@ -8,7 +8,7 @@ using namespace phosphor::modbus;
 TEST(RegisterSpanTest, SingleRegister)
 {
     std::vector<RegisterInfo> regs = {{.offset = 100, .size = 4}};
-    auto spans = buildRegisterSpans(regs, 120);
+    auto spans = buildRegisterSpans(regs, 120, 8);
 
     ASSERT_EQ(spans.size(), 1);
     EXPECT_EQ(spans[0].startOffset, 100);
@@ -25,7 +25,7 @@ TEST(RegisterSpanTest, ContiguousRegistersMerge)
         {.offset = 104, .size = 3},
         {.offset = 107, .size = 2},
     };
-    auto spans = buildRegisterSpans(regs, 120);
+    auto spans = buildRegisterSpans(regs, 120, 8);
 
     ASSERT_EQ(spans.size(), 1);
     EXPECT_EQ(spans[0].startOffset, 100);
@@ -33,20 +33,23 @@ TEST(RegisterSpanTest, ContiguousRegistersMerge)
     EXPECT_EQ(spans[0].registerIndices.size(), 3);
 }
 
-// Non-contiguous registers produce separate spans.
-TEST(RegisterSpanTest, NonContiguousRegistersSplit)
+// A gap within maxGap is merged; a gap exceeding maxGap creates a new span.
+TEST(RegisterSpanTest, GapWithinThresholdMerges)
 {
     std::vector<RegisterInfo> regs = {
         {.offset = 100, .size = 4},
-        {.offset = 106, .size = 3}, // gap = 2
+        {.offset = 106, .size = 3}, // gap = 2 (within maxGap=8)
+        {.offset = 120, .size = 2}, // gap = 11 (exceeds maxGap=8)
     };
-    auto spans = buildRegisterSpans(regs, 120);
+    auto spans = buildRegisterSpans(regs, 120, 8);
 
     ASSERT_EQ(spans.size(), 2);
     EXPECT_EQ(spans[0].startOffset, 100);
-    EXPECT_EQ(spans[0].totalSize, 4);
-    EXPECT_EQ(spans[1].startOffset, 106);
-    EXPECT_EQ(spans[1].totalSize, 3);
+    EXPECT_EQ(spans[0].totalSize, 9); // 106 + 3 - 100
+    EXPECT_EQ(spans[0].registerIndices.size(), 2);
+    EXPECT_EQ(spans[1].startOffset, 120);
+    EXPECT_EQ(spans[1].totalSize, 2);
+    EXPECT_EQ(spans[1].registerIndices.size(), 1);
 }
 
 // Span is split when maxSpanLength would be exceeded.
@@ -56,7 +59,7 @@ TEST(RegisterSpanTest, MaxSpanLengthEnforced)
         {.offset = 100, .size = 8},
         {.offset = 108, .size = 8}, // contiguous, total=16 > maxSpanLength=12
     };
-    auto spans = buildRegisterSpans(regs, 12);
+    auto spans = buildRegisterSpans(regs, 12, 8);
 
     ASSERT_EQ(spans.size(), 2);
     EXPECT_EQ(spans[0].startOffset, 100);
@@ -73,7 +76,7 @@ TEST(RegisterSpanTest, UnsortedInputSorted)
         {.offset = 100, .size = 4},
         {.offset = 104, .size = 3},
     };
-    auto spans = buildRegisterSpans(regs, 120);
+    auto spans = buildRegisterSpans(regs, 120, 8);
 
     ASSERT_EQ(spans.size(), 1);
     EXPECT_EQ(spans[0].startOffset, 100);
@@ -88,6 +91,21 @@ TEST(RegisterSpanTest, UnsortedInputSorted)
 TEST(RegisterSpanTest, EmptyInput)
 {
     std::vector<RegisterInfo> regs = {};
-    auto spans = buildRegisterSpans(regs, 120);
+    auto spans = buildRegisterSpans(regs, 120, 8);
     EXPECT_TRUE(spans.empty());
+}
+
+// Zero maxGap means only truly contiguous registers merge.
+TEST(RegisterSpanTest, ZeroMaxGapOnlyContiguous)
+{
+    std::vector<RegisterInfo> regs = {
+        {.offset = 100, .size = 4},
+        {.offset = 104, .size = 3}, // contiguous
+        {.offset = 108, .size = 2}, // gap = 1
+    };
+    auto spans = buildRegisterSpans(regs, 120, 0);
+
+    ASSERT_EQ(spans.size(), 2);
+    EXPECT_EQ(spans[0].totalSize, 7); // 100-106
+    EXPECT_EQ(spans[1].totalSize, 2); // 108-109
 }
