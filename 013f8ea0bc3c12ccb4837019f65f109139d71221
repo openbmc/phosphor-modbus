@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "035d7cbe_b86099f1",
+        "filename": "common/register_span.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-15T23:07:43Z",
+      "side": 1,
+      "message": "You are making an assumption that its statically knowable if the registers in the gaps are always readable (and the only caviet is it returns garbage).\n\nThis is unfortunately not universally true. Modbus spec defines that if a register is not defined, the device should return error code 2\u003d\u003dILLEGAL DATA ADDRESS\nSo, if the span contains a read of an illegal data address, then by spec the device is expected to return the exception. Obviously some device implementations might not implement this behavior as an optimization... But we do run the risk.\n\nHow about, you have access to serialPort and config here. You could technically, do a serialPort-\u003ereadHoldingRegisters() of the gap to see if it returns something or throws an exception. If it returns something, you can include the gap else you start another span.",
+      "revId": "013f8ea0bc3c12ccb4837019f65f109139d71221",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
