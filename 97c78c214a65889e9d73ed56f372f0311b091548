@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c1f26b3_8beea948",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-15T23:10:22Z",
+      "side": 1,
+      "message": "[perf-nit] We could avoid this constant allocation/deallocation by throwing a:\nstd::vector\u003cuint16_t\u003e readBuffer; in the span structure.",
+      "revId": "97c78c214a65889e9d73ed56f372f0311b091548",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ac33037_60e4139c",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-15T23:10:22Z",
+      "side": 1,
+      "message": "probably throw a debug in the else. That would mean we have a misconfigured poll interval which has essentially turned our service into a busy-loop.",
+      "revId": "97c78c214a65889e9d73ed56f372f0311b091548",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
