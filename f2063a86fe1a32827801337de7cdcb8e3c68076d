@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b501f154_3fe503df",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-15T22:50:11Z",
+      "side": 1,
+      "message": "Here we don\u0027t know if the deviceConfig is for the device for which this port config is received. If this deviceConfig has multiple serialPorts we will miss some of it as the API is called per port.",
+      "revId": "f2063a86fe1a32827801337de7cdcb8e3c68076d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "238df50d_c837ecdb",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-15T22:50:11Z",
+      "side": 1,
+      "message": "You will end up getting config multiple times for same device per port.",
+      "revId": "f2063a86fe1a32827801337de7cdcb8e3c68076d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
