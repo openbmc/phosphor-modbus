@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9ecfaed_3adf42c4",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-16T18:29:55Z",
+      "side": 1,
+      "message": "Sure. I have moved the readBuffer into the BaseDevice itself (with size max of all spans) as the reads for the device are sequential. That way we only keep one global buffer instead of one buffer per span and span struct continues to hold only the span metadata.",
+      "parentUuid": "6c1f26b3_8beea948",
+      "revId": "97c78c214a65889e9d73ed56f372f0311b091548",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4ac33037_60e4139c",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-04-15T23:10:22Z",
       "side": 1,
       "message": "probably throw a debug in the else. That would mean we have a misconfigured poll interval which has essentially turned our service into a busy-loop.",
+      "revId": "97c78c214a65889e9d73ed56f372f0311b091548",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d6238fa_c965150a",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-16T18:29:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ac33037_60e4139c",
       "revId": "97c78c214a65889e9d73ed56f372f0311b091548",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
