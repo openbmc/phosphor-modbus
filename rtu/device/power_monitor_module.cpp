@@ -9,20 +9,20 @@ namespace phosphor::modbus::rtu::device
 
 PHOSPHOR_LOG2_USING;
 
-static constexpr auto ModbusPanasonicBJBPM102A0001PMMInterface =
-    "xyz.openbmc_project.Configuration.ModbusPanasonicBJBPM102A0001PMM";
-static constexpr auto ModbusArtesyn7000433970000PMMInterface =
-    "xyz.openbmc_project.Configuration.ModbusArtesyn7000433970000PMM";
-static constexpr auto ModbusDeltaECD70000020PMMInterface =
-    "xyz.openbmc_project.Configuration.ModbusDeltaECD70000020PMM";
+static constexpr auto PanasonicBJBPM102A0001PMMInterface =
+    "xyz.openbmc_project.Configuration.PanasonicBJBPM102A0001PMM";
+static constexpr auto Artesyn7000433970000PMMInterface =
+    "xyz.openbmc_project.Configuration.Artesyn7000433970000PMM";
+static constexpr auto DeltaECD70000020PMMInterface =
+    "xyz.openbmc_project.Configuration.DeltaECD70000020PMM";
 
 static const std::unordered_map<std::string_view, config::DeviceModel>
-    validDevices = {{ModbusPanasonicBJBPM102A0001PMMInterface,
-                     config::DeviceModel::PanasonicBJBPM102A0001},
-                    {ModbusArtesyn7000433970000PMMInterface,
-                     config::DeviceModel::Artesyn7000433970000},
-                    {ModbusDeltaECD70000020PMMInterface,
-                     config::DeviceModel::DeltaECD70000020}};
+    validDevices = {
+        {PanasonicBJBPM102A0001PMMInterface,
+         config::DeviceModel::PanasonicBJBPM102A0001},
+        {Artesyn7000433970000PMMInterface,
+         config::DeviceModel::Artesyn7000433970000},
+        {DeltaECD70000020PMMInterface, config::DeviceModel::DeltaECD70000020}};
 
 PowerMonitorModule::PowerMonitorModule(
     sdbusplus::async::context& ctx, const config::Config& config,
@@ -35,9 +35,8 @@ PowerMonitorModule::PowerMonitorModule(
 
 auto PowerMonitorModule::getInterfaces() -> std::unordered_set<std::string>
 {
-    return {ModbusPanasonicBJBPM102A0001PMMInterface,
-            ModbusArtesyn7000433970000PMMInterface,
-            ModbusDeltaECD70000020PMMInterface};
+    return {PanasonicBJBPM102A0001PMMInterface,
+            Artesyn7000433970000PMMInterface, DeltaECD70000020PMMInterface};
 }
 
 auto PowerMonitorModule::getConfig(sdbusplus::async::context& ctx,
