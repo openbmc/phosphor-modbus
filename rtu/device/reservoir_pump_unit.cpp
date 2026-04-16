@@ -9,11 +9,11 @@ namespace phosphor::modbus::rtu::device
 
 PHOSPHOR_LOG2_USING;
 
-static constexpr auto ModbusRDF040DSS5193E0ReservoirPumpUnitInterface =
-    "xyz.openbmc_project.Configuration.ModbusRDF040DSS5193E0ReservoirPumpUnit";
+static constexpr auto DeltaRDF040DSS5193E0ReservoirPumpUnitInterface =
+    "xyz.openbmc_project.Configuration.DeltaRDF040DSS5193E0ReservoirPumpUnit";
 
 static const std::unordered_map<std::string_view, config::DeviceModel>
-    validDevices = {{ModbusRDF040DSS5193E0ReservoirPumpUnitInterface,
+    validDevices = {{DeltaRDF040DSS5193E0ReservoirPumpUnitInterface,
                      config::DeviceModel::RDF040DSS5193E0}};
 
 ReservoirPumpUnit::ReservoirPumpUnit(
@@ -27,7 +27,7 @@ ReservoirPumpUnit::ReservoirPumpUnit(
 
 auto ReservoirPumpUnit::getInterfaces() -> std::unordered_set<std::string>
 {
-    return {ModbusRDF040DSS5193E0ReservoirPumpUnitInterface};
+    return {DeltaRDF040DSS5193E0ReservoirPumpUnitInterface};
 }
 
 auto ReservoirPumpUnit::getConfig(sdbusplus::async::context& ctx,
