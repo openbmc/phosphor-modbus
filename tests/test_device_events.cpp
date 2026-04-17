@@ -206,8 +206,7 @@ class DeviceEventsTest : public BaseTest
             {TestIntf::testReadHoldingRegisterEventOffset, {statusBit}}};
         DeviceConfigIntf::Config::sensor_registers_t sensorRegisters = {{
             .name = sensorName,
-            .pathSuffix = SensorValueIntf::namespace_path::temperature,
-            .unit = SensorValueIntf::Unit::DegreesC,
+            .type = DeviceConfigIntf::SensorType::temperature,
             .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
             .size = TestIntf::testReadHoldingRegisterTempCount,
             .format = DeviceConfigIntf::SensorFormat::floatingPoint,
@@ -254,7 +253,7 @@ class DeviceEventsTest : public BaseTest
                 .properties();
         verifyResult(properties, operationalProperties, availabilityProperties,
                      thresholdProperties, expectedValue,
-                     sensorRegisters[0].unit);
+                     DeviceIntf::getUnit(sensorRegisters[0].type));
         co_return;
     }
 };

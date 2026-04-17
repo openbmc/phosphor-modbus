@@ -93,44 +93,23 @@ static auto processDeviceInterface(Config& config,
     getValue<std::string>(configMap, "Type", config.name);
 }
 
-static const auto sensorTypes = std::unordered_map<
-    std::string_view, std::pair<std::string_view, SensorValueIntf::Unit>>{
-    {"FanTach",
-     {SensorValueIntf::namespace_path::fan_tach, SensorValueIntf::Unit::RPMS}},
-    {"LiquidFlow",
-     {SensorValueIntf::namespace_path::liquidflow, SensorValueIntf::Unit::LPM}},
-    {"Power",
-     {SensorValueIntf::namespace_path::power, SensorValueIntf::Unit::Watts}},
-    {"Pressure",
-     {SensorValueIntf::namespace_path::pressure,
-      SensorValueIntf::Unit::Pascals}},
-    {"Temperature",
-     {SensorValueIntf::namespace_path::temperature,
-      SensorValueIntf::Unit::DegreesC}},
-    {"Voltage",
-     {SensorValueIntf::namespace_path::voltage, SensorValueIntf::Unit::Volts}},
-    {"Current",
-     {SensorValueIntf::namespace_path::current,
-      SensorValueIntf::Unit::Amperes}},
-    {"Airflow",
-     {SensorValueIntf::namespace_path::airflow, SensorValueIntf::Unit::CFM}},
-    {"Altitude",
-     {SensorValueIntf::namespace_path::altitude,
-      SensorValueIntf::Unit::Meters}},
-    {"Energy",
-     {SensorValueIntf::namespace_path::energy, SensorValueIntf::Unit::Joules}},
-    {"Frequency",
-     {SensorValueIntf::namespace_path::frequency,
-      SensorValueIntf::Unit::Hertz}},
-    {"Humidity",
-     {SensorValueIntf::namespace_path::humidity,
-      SensorValueIntf::Unit::PercentRH}},
-    {"Utilization",
-     {SensorValueIntf::namespace_path::utilization,
-      SensorValueIntf::Unit::Percent}},
-    {"Valve",
-     {SensorValueIntf::namespace_path::valve, SensorValueIntf::Unit::Percent}},
-};
+static const auto sensorTypes =
+    std::unordered_map<std::string_view, SensorType>{
+        {"FanTach", SensorType::fanTach},
+        {"LiquidFlow", SensorType::liquidFlow},
+        {"Power", SensorType::power},
+        {"Pressure", SensorType::pressure},
+        {"Temperature", SensorType::temperature},
+        {"Voltage", SensorType::voltage},
+        {"Current", SensorType::current},
+        {"Airflow", SensorType::airflow},
+        {"Altitude", SensorType::altitude},
+        {"Energy", SensorType::energy},
+        {"Frequency", SensorType::frequency},
+        {"Humidity", SensorType::humidity},
+        {"Utilization", SensorType::utilization},
+        {"Valve", SensorType::valve},
+    };
 
 static const auto formatTypes =
     std::unordered_map<std::string_view, SensorFormat>{
@@ -149,8 +128,7 @@ static auto processRegisterType(SensorRegister& sensorRegister,
         throw std::runtime_error("Invalid RegisterType " + registerType +
                                  " for " + sensorRegister.name);
     }
-    sensorRegister.pathSuffix = type->second.first;
-    sensorRegister.unit = type->second.second;
+    sensorRegister.type = type->second;
 }
 
 static auto processRegisterFormat(SensorRegister& sensorRegister,
@@ -288,12 +266,11 @@ static auto printConfig(const Config& config) -> void
     for (const auto& sensorRegister : config.sensorRegisters)
     {
         info(
-            "Sensor Register {NAME} {ADDRESS} {SIZE} {PRECISION} {SCALE} {SIGNED} {FORMAT} {UNIT} {PATH_SUFFIX}",
+            "Sensor Register {NAME} {ADDRESS} {SIZE} {PRECISION} {SCALE} {SIGNED} {FORMAT} {TYPE}",
             "NAME", sensorRegister.name, "ADDRESS", sensorRegister.offset,
             "SIZE", sensorRegister.size, "PRECISION", sensorRegister.precision,
             "SCALE", sensorRegister.scale, "SIGNED", sensorRegister.isSigned,
-            "FORMAT", sensorRegister.format, "UNIT", sensorRegister.unit,
-            "PATH_SUFFIX", sensorRegister.pathSuffix);
+            "FORMAT", sensorRegister.format, "TYPE", sensorRegister.type);
     }
 
     for (const auto& [address, statusBits] : config.statusRegisters)

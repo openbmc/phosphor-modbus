@@ -23,11 +23,29 @@ enum class SensorFormat
     unknown
 };
 
+enum class SensorType
+{
+    fanTach,
+    liquidFlow,
+    power,
+    pressure,
+    temperature,
+    voltage,
+    current,
+    airflow,
+    altitude,
+    energy,
+    frequency,
+    humidity,
+    utilization,
+    valve,
+    unknown
+};
+
 struct SensorRegister
 {
     std::string name = "unknown";
-    std::string pathSuffix = "unknown";
-    SensorValueIntf::Unit unit;
+    SensorType type = SensorType::unknown;
     uint16_t offset = 0;
     uint8_t size = 0;
     uint8_t precision = 0;

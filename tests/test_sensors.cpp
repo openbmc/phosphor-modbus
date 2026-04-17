@@ -31,6 +31,8 @@ namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace DeviceConfigIntf = DeviceIntf::config;
 namespace EventIntf = phosphor::modbus::events;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
+using SensorTypeIntf = ProfileIntf::SensorType;
 
 class MockPort : public PortIntf::BasePort
 {
@@ -79,12 +81,12 @@ class SensorsTest : public BaseTest
             SensorValueIntf::namespace_path::temperature, fullSensorName);
     }
 
-    auto getSensorObjectPath(const std::string& name,
-                             const std::string& pathSuffix) -> std::string
+    auto getSensorObjectPath(const std::string& name, SensorTypeIntf sensorType)
+        -> std::string
     {
-        return std::format("{}/{}/{}_{}",
-                           SensorValueIntf::namespace_path::value, pathSuffix,
-                           deviceName, name);
+        return std::format(
+            "{}/{}/{}_{}", SensorValueIntf::namespace_path::value,
+            DeviceIntf::getPathSuffix(sensorType), deviceName, name);
     }
 
     SensorsTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
@@ -152,7 +154,7 @@ class SensorsTest : public BaseTest
                               .path(objectPath)
                               .properties();
         EXPECT_EQ(properties.value, expectedValue) << "Sensor value mismatch";
-        EXPECT_EQ(properties.unit, sensorRegister.unit)
+        EXPECT_EQ(properties.unit, DeviceIntf::getUnit(sensorRegister.type))
             << "Sensor unit mismatch";
         EXPECT_TRUE(std::isnan(properties.min_value)) << "Min value mismatch";
         EXPECT_TRUE(std::isnan(properties.max_value)) << "Max value mismatch";
@@ -190,8 +192,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
 
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
-        .pathSuffix = SensorValueIntf::namespace_path::temperature,
-        .unit = SensorValueIntf::Unit::DegreesC,
+        .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
@@ -218,8 +219,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
 
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
-        .pathSuffix = SensorValueIntf::namespace_path::temperature,
-        .unit = SensorValueIntf::Unit::DegreesC,
+        .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempSignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .isSigned = true,
@@ -255,8 +255,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
 
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
-        .pathSuffix = SensorValueIntf::namespace_path::temperature,
-        .unit = SensorValueIntf::Unit::DegreesC,
+        .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .precision = 2,
@@ -288,8 +287,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
 
     const DeviceConfigIntf::SensorRegister sensorRegister = {
         .name = sensorName,
-        .pathSuffix = SensorValueIntf::namespace_path::temperature,
-        .unit = SensorValueIntf::Unit::DegreesC,
+        .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
@@ -321,15 +319,13 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
 
     std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
         {.name = sensor1Name,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval},
         {.name = sensor2Name,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
@@ -346,8 +342,8 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
         EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 1)
             << "Expected single merged read for contiguous registers";
 
-        auto path1 = getSensorObjectPath(
-            sensor1Name, SensorValueIntf::namespace_path::temperature);
+        auto path1 =
+            getSensorObjectPath(sensor1Name, SensorTypeIntf::temperature);
         auto props1 = co_await SensorValueIntf(ctx)
                           .service(serviceName)
                           .path(path1)
@@ -355,8 +351,8 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
         EXPECT_EQ(props1.value, TestIntf::testReadHoldingRegisterSpanMerged[0])
             << "Sensor1 value mismatch";
 
-        auto path2 = getSensorObjectPath(
-            sensor2Name, SensorValueIntf::namespace_path::temperature);
+        auto path2 =
+            getSensorObjectPath(sensor2Name, SensorTypeIntf::temperature);
         auto props2 = co_await SensorValueIntf(ctx)
                           .service(serviceName)
                           .path(path2)
@@ -391,15 +387,13 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
 
     std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
         {.name = nearName,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval},
         {.name = farName,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
@@ -416,8 +410,8 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
         EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 2)
             << "Expected two separate reads for distant registers";
 
-        auto nearPath = getSensorObjectPath(
-            nearName, SensorValueIntf::namespace_path::temperature);
+        auto nearPath =
+            getSensorObjectPath(nearName, SensorTypeIntf::temperature);
         auto nearProps = co_await SensorValueIntf(ctx)
                              .service(serviceName)
                              .path(nearPath)
@@ -426,8 +420,8 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
                   TestIntf::testReadHoldingRegisterTempUnsigned[0])
             << "Near sensor value mismatch";
 
-        auto farPath = getSensorObjectPath(
-            farName, SensorValueIntf::namespace_path::temperature);
+        auto farPath =
+            getSensorObjectPath(farName, SensorTypeIntf::temperature);
         auto farProps = co_await SensorValueIntf(ctx)
                             .service(serviceName)
                             .path(farPath)
@@ -463,15 +457,13 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
 
     std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
         {.name = fastName,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
          .pollInterval = std::chrono::seconds(1)},
         {.name = slowName,
-         .pathSuffix = SensorValueIntf::namespace_path::temperature,
-         .unit = SensorValueIntf::Unit::DegreesC,
+         .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
          .format = DeviceConfigIntf::SensorFormat::floatingPoint,
