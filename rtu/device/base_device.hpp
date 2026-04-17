@@ -12,11 +12,24 @@
 #include <xyz/openbmc_project/Sensor/Threshold/Critical/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/Warning/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Value/aserver.hpp>
+#include <xyz/openbmc_project/Sensor/Value/client.hpp>
 #include <xyz/openbmc_project/State/Decorator/Availability/aserver.hpp>
 #include <xyz/openbmc_project/State/Decorator/OperationalStatus/aserver.hpp>
 
 namespace phosphor::modbus::rtu::device
 {
+
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
+using SensorValueIntf =
+    sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
+
+/** @brief Returns the D-Bus object path suffix for a sensor type.
+ *  @throws std::invalid_argument if type is unknown. */
+auto getPathSuffix(ProfileIntf::SensorType type) -> std::string_view;
+
+/** @brief Returns the sensor unit corresponding to a sensor type.
+ *  @throws std::invalid_argument if type is unknown. */
+auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit;
 
 class BaseDevice;
 

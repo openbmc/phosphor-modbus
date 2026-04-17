@@ -14,6 +14,82 @@ namespace phosphor::modbus::rtu::device
 
 PHOSPHOR_LOG2_USING;
 
+auto getPathSuffix(ProfileIntf::SensorType type) -> std::string_view
+{
+    switch (type)
+    {
+        case ProfileIntf::SensorType::fanTach:
+            return SensorValueIntf::namespace_path::fan_tach;
+        case ProfileIntf::SensorType::liquidFlow:
+            return SensorValueIntf::namespace_path::liquidflow;
+        case ProfileIntf::SensorType::power:
+            return SensorValueIntf::namespace_path::power;
+        case ProfileIntf::SensorType::pressure:
+            return SensorValueIntf::namespace_path::pressure;
+        case ProfileIntf::SensorType::temperature:
+            return SensorValueIntf::namespace_path::temperature;
+        case ProfileIntf::SensorType::voltage:
+            return SensorValueIntf::namespace_path::voltage;
+        case ProfileIntf::SensorType::current:
+            return SensorValueIntf::namespace_path::current;
+        case ProfileIntf::SensorType::airflow:
+            return SensorValueIntf::namespace_path::airflow;
+        case ProfileIntf::SensorType::altitude:
+            return SensorValueIntf::namespace_path::altitude;
+        case ProfileIntf::SensorType::energy:
+            return SensorValueIntf::namespace_path::energy;
+        case ProfileIntf::SensorType::frequency:
+            return SensorValueIntf::namespace_path::frequency;
+        case ProfileIntf::SensorType::humidity:
+            return SensorValueIntf::namespace_path::humidity;
+        case ProfileIntf::SensorType::utilization:
+            return SensorValueIntf::namespace_path::utilization;
+        case ProfileIntf::SensorType::valve:
+            return SensorValueIntf::namespace_path::valve;
+        case ProfileIntf::SensorType::unknown:
+            throw std::invalid_argument("Unknown sensor type");
+    }
+    throw std::invalid_argument("Unknown sensor type");
+}
+
+auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit
+{
+    switch (type)
+    {
+        case ProfileIntf::SensorType::fanTach:
+            return SensorValueIntf::Unit::RPMS;
+        case ProfileIntf::SensorType::liquidFlow:
+            return SensorValueIntf::Unit::LPM;
+        case ProfileIntf::SensorType::power:
+            return SensorValueIntf::Unit::Watts;
+        case ProfileIntf::SensorType::pressure:
+            return SensorValueIntf::Unit::Pascals;
+        case ProfileIntf::SensorType::temperature:
+            return SensorValueIntf::Unit::DegreesC;
+        case ProfileIntf::SensorType::voltage:
+            return SensorValueIntf::Unit::Volts;
+        case ProfileIntf::SensorType::current:
+            return SensorValueIntf::Unit::Amperes;
+        case ProfileIntf::SensorType::airflow:
+            return SensorValueIntf::Unit::CFM;
+        case ProfileIntf::SensorType::altitude:
+            return SensorValueIntf::Unit::Meters;
+        case ProfileIntf::SensorType::energy:
+            return SensorValueIntf::Unit::Joules;
+        case ProfileIntf::SensorType::frequency:
+            return SensorValueIntf::Unit::Hertz;
+        case ProfileIntf::SensorType::humidity:
+            return SensorValueIntf::Unit::PercentRH;
+        case ProfileIntf::SensorType::utilization:
+            return SensorValueIntf::Unit::Percent;
+        case ProfileIntf::SensorType::valve:
+            return SensorValueIntf::Unit::Percent;
+        case ProfileIntf::SensorType::unknown:
+            throw std::invalid_argument("Unknown sensor type");
+    }
+    throw std::invalid_argument("Unknown sensor type");
+}
+
 BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
                        const config::Config& config, PortIntf& serialPort,
                        EventIntf::Events& events) :
@@ -32,13 +108,13 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     info("Successfully created device {NAME}", "NAME", config.name);
 }
 
-static auto getObjectPath(const std::string& sensorType,
+static auto getObjectPath(std::string_view sensorType,
                           const std::string& sensorName)
     -> sdbusplus::object_path
 {
     return sdbusplus::object_path(
-        std::string(SensorIntf::namespace_path::value) + "/" + sensorType +
-        "/" + sensorName);
+        std::string(SensorIntf::namespace_path::value) + "/" +
+        std::string(sensorType) + "/" + sensorName);
 }
 
 auto BaseDevice::createSensors() -> void
@@ -66,10 +142,12 @@ auto BaseDevice::createSensors() -> void
         SensorIntf::Value::properties_t initValue = {
             std::numeric_limits<double>::quiet_NaN(),
             std::numeric_limits<double>::quiet_NaN(),
-            std::numeric_limits<double>::quiet_NaN(), sensorRegister.unit};
+            std::numeric_limits<double>::quiet_NaN(),
+            getUnit(sensorRegister.type)};
 
-        auto sensorPath = getObjectPath(
-            sensorRegister.pathSuffix, config.name + "_" + sensorRegister.name);
+        auto sensorPath =
+            getObjectPath(getPathSuffix(sensorRegister.type),
+                          config.name + "_" + sensorRegister.name);
 
         auto sensor = std::make_unique<SensorIntf>(
             ctx, sensorPath.str.c_str(), initValue, initAvailability,
@@ -221,7 +299,8 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
 
             double regVal = static_cast<double>(
                 getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
-            if (sensorRegister.format == config::SensorFormat::floatingPoint)
+            if (sensorRegister.format ==
+                ProfileIntf::SensorFormat::floatingPoint)
             {
                 regVal = sensorRegister.shift +
                          (sensorRegister.scale *

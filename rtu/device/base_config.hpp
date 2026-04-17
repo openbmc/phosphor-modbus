@@ -15,6 +15,7 @@ namespace config
 
 using SensorValueIntf = phosphor::modbus::rtu::profile::SensorValueIntf;
 using SensorFormat = phosphor::modbus::rtu::profile::SensorFormat;
+using SensorType = phosphor::modbus::rtu::profile::SensorType;
 using SensorRegister = phosphor::modbus::rtu::profile::SensorRegister;
 using StatusType = phosphor::modbus::rtu::profile::StatusType;
 using StatusBit = phosphor::modbus::rtu::profile::StatusBit;
