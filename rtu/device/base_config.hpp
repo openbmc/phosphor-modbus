@@ -1,8 +1,7 @@
 #pragma once
 
+#include "device_profile.hpp"
 #include "modbus/modbus.hpp"
-
-#include <xyz/openbmc_project/Sensor/Value/client.hpp>
 
 #include <chrono>
 
@@ -14,68 +13,14 @@ namespace ModbusIntf = phosphor::modbus::rtu;
 namespace config
 {
 
-using SensorValueIntf =
-    sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
-
-enum class SensorFormat
-{
-    floatingPoint,
-    integer,
-    unknown
-};
-
-struct SensorRegister
-{
-    std::string name = "unknown";
-    std::string pathSuffix = "unknown";
-    SensorValueIntf::Unit unit;
-    uint16_t offset = 0;
-    uint8_t size = 0;
-    uint8_t precision = 0;
-    double scale = 1.0;
-    double shift = 0.0;
-    bool isSigned = false;
-    SensorFormat format = SensorFormat::unknown;
-    std::chrono::seconds pollInterval = std::chrono::seconds(0);
-};
-
-enum class StatusType
-{
-    controllerFailure,
-    fanFailure,
-    filterFailure,
-    powerFault,
-    pumpFailure,
-    leakDetectedCritical,
-    leakDetectedWarning,
-    sensorFailure,
-    sensorReadingCritical,
-    sensorReadingWarning,
-    unknown
-};
-
-struct StatusBit
-{
-    std::string name = "unknown";
-    StatusType type = StatusType::unknown;
-    uint8_t bitPosition = 0;
-    bool value = false;
-};
-
-enum class FirmwareRegisterType
-{
-    version,
-    update,
-    unknown
-};
-
-struct FirmwareRegister
-{
-    std::string name = "unknown";
-    FirmwareRegisterType type = FirmwareRegisterType::unknown;
-    uint16_t offset = 0;
-    uint8_t size = 0;
-};
+using SensorValueIntf = phosphor::modbus::rtu::profile::SensorValueIntf;
+using SensorFormat = phosphor::modbus::rtu::profile::SensorFormat;
+using SensorRegister = phosphor::modbus::rtu::profile::SensorRegister;
+using StatusType = phosphor::modbus::rtu::profile::StatusType;
+using StatusBit = phosphor::modbus::rtu::profile::StatusBit;
+using FirmwareRegisterType =
+    phosphor::modbus::rtu::profile::FirmwareRegisterType;
+using FirmwareRegister = phosphor::modbus::rtu::profile::FirmwareRegister;
 
 struct Config
 {
