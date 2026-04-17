@@ -16,6 +16,25 @@ namespace phosphor::modbus::rtu::profile
 using SensorValueIntf =
     sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
 
+enum class InventoryDataType
+{
+    buildDate,
+    manufacturer,
+    model,
+    partNumber,
+    serialNumber,
+    sparePartNumber,
+    unknown
+};
+
+struct InventoryRegister
+{
+    std::string name = "unknown";
+    InventoryDataType type = InventoryDataType::unknown;
+    uint16_t offset = 0;
+    uint8_t size = 0;
+};
+
 enum class SensorFormat
 {
     floatingPoint,
@@ -94,13 +113,6 @@ struct FirmwareRegister
     uint8_t size = 0;
 };
 
-struct InventoryRegister
-{
-    std::string name;
-    uint16_t offset;
-    uint8_t size;
-};
-
 struct DeviceProfile
 {
     Parity parity;
@@ -110,5 +122,10 @@ struct DeviceProfile
     std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
     std::vector<FirmwareRegister> firmwareRegisters;
 };
+
+/** @brief Returns the device profile for a given device type.
+ *  @param type The device type string (e.g., "DeltaRDF040DSS5193E0RPU").
+ *  @throws std::out_of_range if type is not found. */
+auto getDeviceProfile(std::string_view type) -> const DeviceProfile&;
 
 } // namespace phosphor::modbus::rtu::profile
