@@ -125,6 +125,17 @@ test(
 )
 
 test(
+    'test_device_profile',
+    executable(
+        'test_device_profile',
+        'test_device_profile.cpp',
+        profile_src,
+        dependencies: [gtest_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
+
+test(
     'test_firmware',
     executable(
         'test_firmware',
