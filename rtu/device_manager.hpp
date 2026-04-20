@@ -3,6 +3,7 @@
 #include "common/entity_manager_interface.hpp"
 #include "common/events.hpp"
 #include "device/base_device.hpp"
+#include "device/device_factory.hpp"
 #include "inventory/modbus_inventory.hpp"
 #include "port/base_port.hpp"
 
@@ -51,8 +52,7 @@ class DeviceManager
                                const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
-    auto processDeviceAdded(const sdbusplus::object_path& objectPath,
-                            const std::string& interfaceName)
+    auto processDeviceAdded(const device::config::DeviceFactoryConfig& config)
         -> sdbusplus::async::task<>;
 
     auto processConfigRemoved(const sdbusplus::object_path& objectPath,
