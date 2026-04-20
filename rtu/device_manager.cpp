@@ -1,7 +1,6 @@
 #include "device_manager.hpp"
 
 #include "device/device_factory.hpp"
-#include "device_config.hpp"
 #include "port/port_factory.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -14,6 +13,8 @@ namespace phosphor::modbus::rtu
 {
 
 using DeviceFactoryIntf = phosphor::modbus::rtu::device::DeviceFactory;
+using DeviceFactoryConfigIntf =
+    phosphor::modbus::rtu::device::config::DeviceFactoryConfig;
 
 static entity_manager::interface_list_t getInterfaces()
 {
@@ -97,7 +98,8 @@ auto DeviceManager::processInventoryAdded(
     const sdbusplus::object_path& objectPath, const std::string& interfaceName)
     -> sdbusplus::async::task<>
 {
-    auto config = co_await getConfig(ctx, objectPath, interfaceName);
+    auto config =
+        co_await DeviceFactoryIntf::getConfig(ctx, objectPath, interfaceName);
     if (!config)
     {
         error("Failed to get config for {PATH}", "PATH", objectPath);
@@ -119,11 +121,11 @@ auto DeviceManager::processInventoryAdded(
         co_return;
     }
 
-    auto callback = [this, objectPath,
-                     interfaceName](bool success) -> sdbusplus::async::task<> {
+    auto callback =
+        [this, config = *config](bool success) -> sdbusplus::async::task<> {
         if (success)
         {
-            co_await processDeviceAdded(objectPath, interfaceName);
+            co_await processDeviceAdded(config);
         }
         else
         {
@@ -146,44 +148,34 @@ auto DeviceManager::processInventoryAdded(
     }
 }
 
-auto DeviceManager::processDeviceAdded(const sdbusplus::object_path& objectPath,
-                                       const std::string& interfaceName)
+auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
     -> sdbusplus::async::task<>
 {
-    auto res =
-        co_await DeviceFactoryIntf::getConfig(ctx, objectPath, interfaceName);
-    if (!res)
-    {
-        error("Failed to get Device config for {PATH}", "PATH", objectPath);
-        co_return;
-    }
-    auto config = res.value();
-
     if (devices.contains(config.name))
     {
         debug("Device {NAME} already exists, skipping", "NAME", config.name);
         co_return;
     }
 
+    auto portIter = ports.find(config.serialPort);
+    if (portIter == ports.end())
+    {
+        error("Serial port {PORT} not found for {NAME}", "PORT",
+              config.serialPort, "NAME", config.name);
+        co_return;
+    }
+
     try
     {
-        auto serialPort = ports.find(config.portName);
-        if (serialPort == ports.end())
-        {
-            error("Serial port {PORT} not found for {NAME}", "PORT",
-                  config.portName, "NAME", config.name);
-            co_return;
-        }
-
-        auto device = DeviceFactoryIntf::create(ctx, config,
-                                                *(serialPort->second), events);
+        auto device =
+            DeviceFactoryIntf::create(ctx, config, *(portIter->second), events);
         ctx.spawn(device->readSensorRegisters());
         devices[config.name] = std::move(device);
     }
     catch (const std::exception& e)
     {
-        error("Failed to create Device for {PATH} with {ERROR}", "PATH",
-              objectPath, "ERROR", e);
+        error("Failed to create Device for {NAME} with {ERROR}", "NAME",
+              config.name, "ERROR", e);
         co_return;
     }
 }

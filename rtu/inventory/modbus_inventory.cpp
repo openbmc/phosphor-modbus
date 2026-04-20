@@ -7,6 +7,7 @@
 namespace phosphor::modbus::rtu::inventory
 {
 PHOSPHOR_LOG2_USING;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
@@ -40,7 +41,7 @@ static auto fillInventorySourceProperties(
     }
 }
 
-Device::Device(sdbusplus::async::context& ctx, const Config& config,
+Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
                SerialPortIntf& port, ProbeCallback probeCallback,
                std::chrono::seconds dormantPeriod) :
     config(config), ctx(ctx), port(port),

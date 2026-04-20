@@ -1,7 +1,5 @@
 #include "device_firmware.hpp"
 
-#include "device/base_device.hpp"
-
 #include <phosphor-logging/lg2.hpp>
 
 namespace phosphor::modbus::rtu::device
@@ -18,12 +16,12 @@ static auto getRandomId() -> long int
     return random() % 10000;
 }
 
-static auto getObjectPath(const config_intf::Config& config)
+static auto getObjectPath(const config::Config& config)
     -> sdbusplus::object_path
 {
-    for (const auto& firmwareRegister : config.firmwareRegisters)
+    for (const auto& firmwareRegister : config.profile.firmwareRegisters)
     {
-        if (firmwareRegister.type == config_intf::FirmwareRegisterType::version)
+        if (firmwareRegister.type == ProfileIntf::FirmwareRegisterType::version)
         {
             if (firmwareRegister.name.empty())
             {
@@ -51,7 +49,7 @@ constexpr FirmwareIntf::Activation::properties_t initActivation{
 constexpr FirmwareIntf::Definitions::properties_t initAssociations{};
 
 DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
-                               const config_intf::Config& config,
+                               const config::Config& config,
                                PortIntf& serialPort) :
     objectPath(getObjectPath(config)),
     currentFirmware(
@@ -68,26 +66,27 @@ DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
 
 auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
 {
-    const auto it = std::find_if(
-        config.firmwareRegisters.begin(), config.firmwareRegisters.end(),
-        [](const config_intf::FirmwareRegister& firmwareRegister) {
-            return firmwareRegister.type ==
-                   config_intf::FirmwareRegisterType::version;
-        });
+    const auto it =
+        std::find_if(config.profile.firmwareRegisters.begin(),
+                     config.profile.firmwareRegisters.end(),
+                     [](const ProfileIntf::FirmwareRegister& firmwareRegister) {
+                         return firmwareRegister.type ==
+                                ProfileIntf::FirmwareRegisterType::version;
+                     });
 
-    if (it == config.firmwareRegisters.end())
+    if (it == config.profile.firmwareRegisters.end())
     {
         error("No firmware version register found for {NAME}", "NAME",
               config.name);
         co_return;
     }
 
-    const config_intf::FirmwareRegister& versionRegister = *it;
+    const ProfileIntf::FirmwareRegister& versionRegister = *it;
 
     auto registers = std::vector<uint16_t>(versionRegister.size);
     auto ret = co_await serialPort.readHoldingRegisters(
-        config.address, versionRegister.offset, config.baudRate, config.parity,
-        registers);
+        config.address, versionRegister.offset, config.profile.baudRate,
+        config.profile.parity, registers);
     if (!ret)
     {
         error("Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",

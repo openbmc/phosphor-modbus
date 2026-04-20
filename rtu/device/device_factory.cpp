@@ -3,11 +3,15 @@
 #include "power_monitor_module.hpp"
 #include "reservoir_pump_unit.hpp"
 
+#include <phosphor-logging/lg2.hpp>
+
 #include <string>
 #include <vector>
 
 namespace phosphor::modbus::rtu::device
 {
+
+PHOSPHOR_LOG2_USING;
 
 using PowerMonitorModuleIntf =
     phosphor::modbus::rtu::device::PowerMonitorModule;
@@ -33,20 +37,28 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
                               const std::string& interfaceName)
     -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>
 {
-    auto rpuInterfaces = ReservoirPumpUnitIntf::getInterfaces();
-    if (rpuInterfaces.find(interfaceName) != rpuInterfaces.end())
+    auto baseConfig =
+        co_await config::getConfig(ctx, objectPath, interfaceName);
+    if (!baseConfig)
     {
-        co_return co_await ReservoirPumpUnitIntf::getConfig(ctx, objectPath,
-                                                            interfaceName);
+        co_return std::nullopt;
+    }
+
+    auto rpuInterfaces = ReservoirPumpUnitIntf::getInterfaces();
+    if (rpuInterfaces.contains(interfaceName))
+    {
+        co_return config::DeviceFactoryConfig{
+            {std::move(*baseConfig)}, config::DeviceType::reservoirPumpUnit};
     }
 
     auto pmmInterfaces = PowerMonitorModuleIntf::getInterfaces();
-    if (pmmInterfaces.find(interfaceName) != pmmInterfaces.end())
+    if (pmmInterfaces.contains(interfaceName))
     {
-        co_return co_await PowerMonitorModuleIntf::getConfig(ctx, objectPath,
-                                                             interfaceName);
+        co_return config::DeviceFactoryConfig{
+            {std::move(*baseConfig)}, config::DeviceType::powerMonitorModule};
     }
 
+    error("Unknown device interface {INTF}", "INTF", interfaceName);
     co_return std::nullopt;
 }
 

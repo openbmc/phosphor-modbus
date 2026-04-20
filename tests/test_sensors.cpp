@@ -26,12 +26,12 @@ using AssociationIntf =
     sdbusplus::client::xyz::openbmc_project::association::Definitions<>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace DeviceConfigIntf = DeviceIntf::config;
 namespace EventIntf = phosphor::modbus::events;
-namespace ProfileIntf = phosphor::modbus::rtu::profile;
 using SensorTypeIntf = ProfileIntf::SensorType;
 
 class MockPort : public PortIntf::BasePort
@@ -109,24 +109,22 @@ class SensorsTest : public BaseTest
                   numOfInventoryAssociations);
     }
 
-    auto createDevice(
-        std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters,
-        EventIntf::Events& events)
+    auto createDevice(std::vector<ProfileIntf::SensorRegister> sensorRegisters,
+                      EventIntf::Events& events)
         -> std::pair<std::unique_ptr<MockPort>,
                      std::unique_ptr<DeviceIntf::BaseDevice>>
     {
+        testProfile.sensorRegisters = std::move(sensorRegisters);
+
         DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
             {
-                .address = TestIntf::testDeviceAddress,
-                .parity = ModbusIntf::Parity::none,
-                .baudRate = baudRate,
                 .name = deviceName,
-                .portName = portConfig.name,
+                .type = "TestDevice",
+                .address = TestIntf::testDeviceAddress,
+                .serialPort = portConfig.name,
                 .inventoryPath =
                     sdbusplus::object_path(deviceTestConfig.inventoryPath),
-                .sensorRegisters = sensorRegisters,
-                .statusRegisters = {},
-                .firmwareRegisters = {},
+                .profile = testProfile,
             },
             deviceTestConfig.deviceType,
             deviceTestConfig.deviceModel,
@@ -139,7 +137,7 @@ class SensorsTest : public BaseTest
     }
 
     auto testSensorCreation(std::string objectPath,
-                            DeviceConfigIntf::SensorRegister sensorRegister,
+                            ProfileIntf::SensorRegister sensorRegister,
                             double expectedValue)
         -> sdbusplus::async::task<void>
     {
@@ -179,6 +177,15 @@ class SensorsTest : public BaseTest
 
         co_return;
     }
+
+    ProfileIntf::DeviceProfile testProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = baudRate,
+        .inventoryRegisters = {},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
 };
 
 TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
@@ -190,12 +197,12 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
     });
 
-    const DeviceConfigIntf::SensorRegister sensorRegister = {
+    const ProfileIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
-        .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::floatingPoint,
     };
 
     ctx.spawn(
@@ -217,13 +224,13 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
         DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
     });
 
-    const DeviceConfigIntf::SensorRegister sensorRegister = {
+    const ProfileIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempSignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .isSigned = true,
-        .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::floatingPoint,
     };
 
     // Convert expected hex value to a signed 16-bit integer for comparison
@@ -253,7 +260,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
     });
 
-    const DeviceConfigIntf::SensorRegister sensorRegister = {
+    const ProfileIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
@@ -261,7 +268,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         .precision = 2,
         .scale = 0.1,
         .shift = 50,
-        .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::floatingPoint,
     };
 
     ctx.spawn(testSensorCreation(
@@ -285,12 +292,12 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         DeviceConfigIntf::DeviceModel::PanasonicBJBPM102A0001,
     });
 
-    const DeviceConfigIntf::SensorRegister sensorRegister = {
+    const ProfileIntf::SensorRegister sensorRegister = {
         .name = sensorName,
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
-        .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::floatingPoint,
     };
 
     ctx.spawn(
@@ -317,18 +324,18 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
     const std::string sensor1Name = "Sensor1";
     const std::string sensor2Name = "Sensor2";
 
-    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
         {.name = sensor1Name,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval},
         {.name = sensor2Name,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
@@ -385,18 +392,18 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
     const std::string nearName = "NearSensor";
     const std::string farName = "FarSensor";
 
-    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
         {.name = nearName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval},
         {.name = farName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = ModbusIntf::defaultSensorPollInterval}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
@@ -455,18 +462,18 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
     const std::string fastName = "FastSensor";
     const std::string slowName = "SlowSensor";
 
-    std::vector<DeviceConfigIntf::SensorRegister> sensorRegisters = {
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
         {.name = fastName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = std::chrono::seconds(1)},
         {.name = slowName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
-         .format = DeviceConfigIntf::SensorFormat::floatingPoint,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
          .pollInterval = std::chrono::seconds(10)}};
 
     EventIntf::Events events{ctx};

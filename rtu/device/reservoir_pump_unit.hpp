@@ -7,13 +7,6 @@
 namespace phosphor::modbus::rtu::device
 {
 
-namespace config
-{
-
-struct DeviceFactoryConfig;
-
-} // namespace config
-
 class ReservoirPumpUnit : public BaseDevice
 {
   public:
@@ -22,11 +15,6 @@ class ReservoirPumpUnit : public BaseDevice
                                PortIntf& serialPort, EventIntf::Events& events);
 
     static auto getInterfaces() -> std::unordered_set<std::string>;
-
-    static auto getConfig(sdbusplus::async::context& ctx,
-                          const sdbusplus::object_path& objectPath,
-                          const std::string& interfaceName)
-        -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>;
 };
 
 } // namespace phosphor::modbus::rtu::device
