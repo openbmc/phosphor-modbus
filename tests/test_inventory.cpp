@@ -47,16 +47,17 @@ class InventoryTest : public BaseTest
     }
 
     auto createDevice(
-        const ModbusIntf::DeviceProfile& profile,
+        const ProfileIntf::DeviceProfile& profile,
         std::chrono::seconds dormantPeriod = std::chrono::seconds(0))
         -> std::pair<std::unique_ptr<MockPort>,
                      std::unique_ptr<InventoryIntf::Device>>
     {
-        ModbusIntf::Config baseConfig = {
+        ModbusIntf::config::Config baseConfig = {
             .name = deviceName,
             .type = "TestDevice",
             .address = TestIntf::testDeviceAddress,
             .serialPort = portConfig.name,
+            .inventoryPath = sdbusplus::object_path("/"),
             .profile = profile,
         };
 
@@ -70,7 +71,7 @@ class InventoryTest : public BaseTest
     }
 
     // Profile with a valid register for successful probes
-    ModbusIntf::DeviceProfile testProfile = {
+    ProfileIntf::DeviceProfile testProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
         .inventoryRegisters =
@@ -84,7 +85,7 @@ class InventoryTest : public BaseTest
     };
 
     // Profile with a register that causes probe failure
-    ModbusIntf::DeviceProfile failProfile = {
+    ProfileIntf::DeviceProfile failProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
         .inventoryRegisters = {{.name = "Unknown",
@@ -98,7 +99,7 @@ class InventoryTest : public BaseTest
     };
 
     // Profile with a flaky register that alternates success/failure
-    ModbusIntf::DeviceProfile flakyProfile = {
+    ProfileIntf::DeviceProfile flakyProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
         .inventoryRegisters =

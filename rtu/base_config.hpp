@@ -7,11 +7,10 @@
 #include <optional>
 #include <string>
 
-namespace phosphor::modbus::rtu
+namespace phosphor::modbus::rtu::config
 {
 
-using profile::DeviceProfile;
-using profile::getDeviceProfile;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
 /** @brief Base configuration for all Modbus RTU devices.
  *  Holds the entity-manager identity fields and a reference to the
@@ -22,7 +21,8 @@ struct Config
     std::string type = "unknown";
     uint8_t address = 0;
     std::string serialPort;
-    const DeviceProfile& profile;
+    sdbusplus::object_path inventoryPath;
+    const ProfileIntf::DeviceProfile& profile;
 };
 
 /** @brief Reads entity-manager properties and looks up the device profile
@@ -38,4 +38,4 @@ auto getConfig(sdbusplus::async::context& ctx,
                const std::string& interfaceName)
     -> sdbusplus::async::task<std::optional<Config>>;
 
-} // namespace phosphor::modbus::rtu
+} // namespace phosphor::modbus::rtu::config

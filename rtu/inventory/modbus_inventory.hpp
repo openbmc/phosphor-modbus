@@ -1,7 +1,7 @@
 #pragma once
 
+#include "base_config.hpp"
 #include "common/register_span.hpp"
-#include "device_config.hpp"
 #include "port/base_port.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -33,7 +33,7 @@ class Device
     using ProbeCallback = std::function<sdbusplus::async::task<>(bool success)>;
 
     explicit Device(
-        sdbusplus::async::context& ctx, const Config& config,
+        sdbusplus::async::context& ctx, const config::Config& config,
         SerialPortIntf& port, ProbeCallback probeCallback = nullptr,
         std::chrono::seconds dormantPeriod = std::chrono::seconds(0));
 
@@ -55,7 +55,7 @@ class Device
         return dormant;
     }
 
-    const Config config;
+    const config::Config config;
 
   private:
     /** @brief Returns true if the device is still within its dormant period

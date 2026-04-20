@@ -61,7 +61,7 @@ class BaseDevice
     // built at construction to avoid map lookups on every poll cycle.
     struct SensorEntry
     {
-        const config::SensorRegister& reg;
+        const ProfileIntf::SensorRegister& reg;
         SensorIntf& sensor;
     };
 
@@ -80,7 +80,7 @@ class BaseDevice
 
     auto readStatusRegisters() -> sdbusplus::async::task<void>;
 
-    auto generateEvent(const config::StatusBit& statusBit,
+    auto generateEvent(const ProfileIntf::StatusBit& statusBit,
                        const sdbusplus::object_path& objectPath,
                        double sensorValue, SensorIntf::Unit sensorUnit,
                        bool statusAsserted) -> sdbusplus::async::task<void>;
