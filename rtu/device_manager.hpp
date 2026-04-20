@@ -47,7 +47,8 @@ class DeviceManager
                           const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
-    auto processInventoryAdded(const sdbusplus::object_path& objectPath)
+    auto processInventoryAdded(const sdbusplus::object_path& objectPath,
+                               const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
     auto processDeviceAdded(const sdbusplus::object_path& objectPath,
