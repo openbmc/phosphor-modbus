@@ -1,243 +1,50 @@
 #include "modbus_inventory.hpp"
 
-#include "common/entity_manager_interface.hpp"
 #include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
-#include <xyz/openbmc_project/Configuration/ModbusRTUDetect/client.hpp>
-#include <xyz/openbmc_project/Inventory/Item/client.hpp>
-
-#include <flat_map>
 
 namespace phosphor::modbus::rtu::inventory
 {
 PHOSPHOR_LOG2_USING;
 
-namespace config
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
+
+static auto fillInventorySourceProperties(
+    InventorySourceIntf::properties_t& properties,
+    ProfileIntf::InventoryDataType type, std::string& value) -> void
 {
-
-using BasicVariantType =
-    std::variant<std::vector<std::string>, std::vector<uint8_t>, std::string,
-                 int64_t, uint64_t, double, int32_t, uint32_t, int16_t,
-                 uint16_t, uint8_t, bool>;
-using InventoryBaseConfigMap = std::flat_map<std::string, BasicVariantType>;
-using InventoryData = std::flat_map<std::string, InventoryBaseConfigMap>;
-using ManagedObjectType = std::flat_map<sdbusplus::object_path, InventoryData>;
-
-static constexpr std::array<std::pair<std::string_view, Parity>, 3>
-    validParities = {
-        {{"Odd", Parity::odd}, {"Even", Parity::even}, {"None", Parity::none}}};
-
-// TODO: This API will be dropped once EM supports non-indexed interfaces for
-// array objects.
-static auto processModbusAddressInterface(
-    Config& config, const InventoryBaseConfigMap& configMap) -> bool
-{
-    debug("Processing ModbusAddress {NAME}", "NAME", config.name);
-
-    auto rangeStartIter = configMap.find("RangeStart");
-    if (rangeStartIter == configMap.end())
+    switch (type)
     {
-        error("Missing RangeStart for {NAME}", "NAME", config.name);
-        return false;
-    }
-    auto rangeStart = std::get<uint64_t>(rangeStartIter->second);
-
-    auto rangeEndIter = configMap.find("RangeEnd");
-    if (rangeEndIter == configMap.end())
-    {
-        error("Missing RangeEnd for {NAME}", "NAME", config.name);
-        return false;
-    }
-    auto rangeEnd = std::get<uint64_t>(rangeEndIter->second);
-
-    auto serialPortIter = configMap.find("SerialPort");
-    if (serialPortIter == configMap.end())
-    {
-        error("Missing SerialPort for {NAME}", "NAME", config.name);
-        return false;
-    }
-    auto serialPort = std::get<std::string>(serialPortIter->second);
-
-    config.addressMap[serialPort].push_back(AddressRange{
-        static_cast<uint8_t>(rangeStart), static_cast<uint8_t>(rangeEnd)});
-
-    debug("ModbusAddress {NAME} {PORT} {START} {END}", "NAME", config.name,
-          "PORT", serialPort, "START", rangeStart, "END", rangeEnd);
-
-    return true;
-}
-
-// TODO: This API will be dropped once EM supports non-indexed interfaces for
-// array objects.
-static auto processModbusRegistersInterface(
-    Config& config, const InventoryBaseConfigMap& configMap) -> bool
-{
-    debug("Processing ModbusRegisters {NAME}", "NAME", config.name);
-    Register registerConfig = {};
-
-    auto nameIter = configMap.find("Name");
-    if (nameIter == configMap.end())
-    {
-        error("Missing Name for {NAME}", "NAME", config.name);
-        return false;
-    }
-    registerConfig.name = std::get<std::string>(nameIter->second);
-
-    auto address = configMap.find("Address");
-    if (address == configMap.end())
-    {
-        error("Missing Address for {NAME}", "NAME", config.name);
-        return false;
-    }
-    registerConfig.offset = std::get<uint64_t>(address->second);
-
-    auto sizeIter = configMap.find("Size");
-    if (sizeIter == configMap.end())
-    {
-        error("Missing Size for {NAME}", "NAME", config.name);
-        return false;
-    }
-    registerConfig.size = std::get<uint64_t>(sizeIter->second);
-
-    config.registers.push_back(registerConfig);
-
-    debug("ModbusRegisters {NAME} {ADDRESS} {SIZE}", "NAME",
-          registerConfig.name, "ADDRESS", registerConfig.offset, "SIZE",
-          registerConfig.size);
-
-    return true;
-}
-
-static auto printConfig(const Config& config) -> void
-{
-    info("Inventory device config: {NAME} {BAUDRATE} {PARITY}", "NAME",
-         config.name, "BAUDRATE", config.baudRate, "PARITY", config.parity);
-
-    for (const auto& [port, addressRanges] : config.addressMap)
-    {
-        for (const auto& addressRange : addressRanges)
-        {
-            info(
-                "Inventory device config: {PORT} {ADDRESS_START} {ADDRESS_END}",
-                "PORT", port, "ADDRESS_START", addressRange.start,
-                "ADDRESS_END", addressRange.end);
-        }
-    }
-
-    for (const auto& registerConfig : config.registers)
-    {
-        info("Inventory device config: {NAME} {ADDRESS} {SIZE}", "NAME",
-             registerConfig.name, "ADDRESS", registerConfig.offset, "SIZE",
-             registerConfig.size);
-    }
-}
-
-auto getConfigSubInterfaces(sdbusplus::async::context& ctx,
-                            sdbusplus::object_path objectPath, Config& config)
-    -> sdbusplus::async::task<bool>
-{
-    constexpr auto modbusAddressInterface =
-        "xyz.openbmc_project.Configuration.ModbusRTUDetect.Address";
-    constexpr auto modbusRegistersInterface =
-        "xyz.openbmc_project.Configuration.ModbusRTUDetect.Registers";
-
-    using InventoryIntf =
-        sdbusplus::client::xyz::openbmc_project::inventory::Item<>;
-
-    constexpr auto entityManager =
-        sdbusplus::async::proxy()
-            .service(entity_manager::EntityManagerInterface::serviceName)
-            .path(InventoryIntf::namespace_path)
-            .interface("org.freedesktop.DBus.ObjectManager");
-
-    for (const auto& [path, deviceConfig] :
-         co_await entityManager.call<ManagedObjectType>(ctx,
-                                                        "GetManagedObjects"))
-    {
-        if (path.str != objectPath.str)
-        {
-            debug("Skipping device {PATH}", "PATH", path.str);
-            continue;
-        }
-        debug("Processing device {PATH}", "PATH", path.str);
-        for (const auto& [interfaceName, interfaceConfig] : deviceConfig)
-        {
-            if (interfaceName.starts_with(modbusAddressInterface))
-            {
-                if (!processModbusAddressInterface(config, interfaceConfig))
-                {
-                    error("Failed to process {INTERFACE} for {NAME}",
-                          "INTERFACE", modbusAddressInterface, "NAME",
-                          config.name);
-                    co_return false;
-                }
-            }
-            else if (interfaceName.starts_with(modbusRegistersInterface))
-            {
-                if (!processModbusRegistersInterface(config, interfaceConfig))
-                {
-                    error("Failed to process {INTERFACE} for {NAME}",
-                          "INTERFACE", modbusRegistersInterface, "NAME",
-                          config.name);
-                    co_return false;
-                }
-            }
-        }
-    }
-
-    co_return true;
-}
-
-auto getConfig(sdbusplus::async::context& ctx,
-               sdbusplus::object_path objectPath)
-    -> sdbusplus::async::task<std::optional<Config>>
-{
-    using ModbusRTUDetectIntf = sdbusplus::client::xyz::openbmc_project::
-        configuration::ModbusRTUDetect<>;
-
-    Config config = {};
-
-    auto properties =
-        co_await ModbusRTUDetectIntf(ctx)
-            .service(entity_manager::EntityManagerInterface::serviceName)
-            .path(objectPath.str)
-            .properties();
-
-    config.name = properties.name;
-    config.baudRate = properties.baud_rate;
-
-    for (const auto& [parityStr, parity] : config::validParities)
-    {
-        if (parityStr == properties.data_parity)
-        {
-            config.parity = parity;
+        case ProfileIntf::InventoryDataType::partNumber:
+            properties.part_number = value;
             break;
-        }
+        case ProfileIntf::InventoryDataType::sparePartNumber:
+            properties.spare_part_number = value;
+            break;
+        case ProfileIntf::InventoryDataType::serialNumber:
+            properties.serial_number = value;
+            break;
+        case ProfileIntf::InventoryDataType::buildDate:
+            properties.build_date = value;
+            break;
+        case ProfileIntf::InventoryDataType::model:
+            properties.model = value;
+            break;
+        case ProfileIntf::InventoryDataType::manufacturer:
+            properties.manufacturer = value;
+            break;
+        case ProfileIntf::InventoryDataType::unknown:
+            error("Unknown inventory data type");
+            break;
     }
-    if (config.parity == Parity::unknown)
-    {
-        error("Invalid parity {PARITY} for {NAME}", "PARITY",
-              properties.data_parity, "NAME", properties.name);
-        co_return std::nullopt;
-    }
-
-    if (!co_await getConfigSubInterfaces(ctx, objectPath, config))
-    {
-        co_return std::nullopt;
-    }
-
-    printConfig(config);
-
-    co_return config;
 }
 
-} // namespace config
-
-Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
-               serial_port_map_t& serialPorts,
+Device::Device(sdbusplus::async::context& ctx, const Config& config,
+               SerialPortIntf& port, ProbeCallback probeCallback,
                std::chrono::seconds dormantPeriod) :
-    config(config), ctx(ctx), serialPorts(serialPorts), dormantPeriod([&]() {
+    config(config), ctx(ctx), port(port),
+    probeCallback(std::move(probeCallback)), dormantPeriod([&]() {
         if (dormantPeriod > std::chrono::seconds(0))
         {
             return dormantPeriod;
@@ -251,49 +58,25 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
         return multiplier * inventoryProbeInterval;
     }())
 {
-    for (const auto& [serialPort, _] : config.addressMap)
-    {
-        if (serialPorts.find(serialPort) == serialPorts.end())
-        {
-            error("Serial port {PORT} not found for {NAME}", "PORT", serialPort,
-                  "NAME", config.name);
-            continue;
-        }
-    }
-
     std::vector<RegisterInfo> regInfos;
-    regInfos.reserve(config.registers.size());
-    for (const auto& reg : config.registers)
+    regInfos.reserve(config.profile.inventoryRegisters.size());
+    for (const auto& reg : config.profile.inventoryRegisters)
     {
         regInfos.push_back({.offset = reg.offset, .size = reg.size});
     }
     registerSpans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
 }
 
-auto Device::probePorts() -> sdbusplus::async::task<void>
+auto Device::startProbing() -> sdbusplus::async::task<void>
 {
-    debug("Probing ports for {NAME}", "NAME", config.name);
+    debug("Probing device {NAME} at address {ADDRESS} on port {PORT}", "NAME",
+          config.name, "ADDRESS", config.address, "PORT", config.serialPort);
     while (!ctx.stop_requested())
     {
-        for (const auto& [serialPort, _] : config.addressMap)
-        {
-            auto portIter = serialPorts.find(serialPort);
-            if (portIter == serialPorts.end())
-            {
-                continue;
-            }
-            if (portIter->second->probeInProgress)
-            {
-                warning(
-                    "Previous probe still in progress for port {PORT} after {INTERVAL} seconds",
-                    "PORT", serialPort, "INTERVAL",
-                    inventoryProbeInterval.count());
-                continue;
-            }
-            portIter->second->probeInProgress = true;
-            ctx.spawn(probePort(serialPort));
-        }
-        // Sleep in short increments to remain responsive to stop requests.
+        co_await probeDevice();
+
+        // Sleep in short intervals so we can respond to stop requests
+        // promptly instead of blocking for the full probe interval.
         constexpr auto stopCheckInterval = std::chrono::seconds(3);
         for (auto elapsed = std::chrono::seconds(0);
              elapsed < inventoryProbeInterval && !ctx.stop_requested();
@@ -301,161 +84,86 @@ auto Device::probePorts() -> sdbusplus::async::task<void>
         {
             co_await sdbusplus::async::sleep_for(ctx, stopCheckInterval);
         }
-        debug("Probing ports for {NAME} in {INTERVAL} seconds", "NAME",
-              config.name, "INTERVAL", inventoryProbeInterval.count());
     }
 }
 
-auto Device::probePort(std::string portName) -> sdbusplus::async::task<void>
+auto Device::checkAndClearDormant() -> bool
 {
-    debug("Probing port {PORT}", "PORT", portName);
-
-    auto port = serialPorts.find(portName);
-    if (port == serialPorts.end())
-    {
-        error("Serial port {PORT} not found for {NAME}", "PORT", portName,
-              "NAME", config.name);
-        co_return;
-    }
-
-    auto portConfig = config.addressMap.find(portName);
-    if (portConfig == config.addressMap.end())
-    {
-        error("Serial port {PORT} address map not found for {NAME}", "PORT",
-              portName, "NAME", config.name);
-        port->second->probeInProgress = false;
-        co_return;
-    }
-    auto addressRanges = portConfig->second;
-
-    for (const auto& addressRange : addressRanges)
-    {
-        for (auto address = addressRange.start; address <= addressRange.end;
-             address++)
-        {
-            co_await probeDevice(address, portName, *port->second);
-        }
-    }
-
-    port->second->probeInProgress = false;
-}
-
-auto Device::checkAndClearDormant(const std::string& deviceId) -> bool
-{
-    auto dormantIt = dormantDevices.find(deviceId);
-    if (dormantIt == dormantDevices.end())
+    if (!dormant)
     {
         return false;
     }
-    auto elapsed = std::chrono::steady_clock::now() - dormantIt->second;
+    auto elapsed = std::chrono::steady_clock::now() - dormantSince;
     if (elapsed < dormantPeriod)
     {
         return true;
     }
-    dormantDevices.erase(dormantIt);
+    dormant = false;
     return false;
 }
 
-auto Device::probeDevice(uint8_t address, const std::string& portName,
-                         SerialPortIntf& port) -> sdbusplus::async::task<void>
+auto Device::probeDevice() -> sdbusplus::async::task<void>
 {
-    auto deviceId = std::format("{}_{}", address, portName);
-
-    if (checkAndClearDormant(deviceId))
+    if (checkAndClearDormant())
     {
-        debug("Device {ADDRESS} on port {PORT} is dormant, skipping", "ADDRESS",
-              address, "PORT", portName);
+        debug("Device {NAME} at {ADDRESS} is dormant, skipping", "NAME",
+              config.name, "ADDRESS", config.address);
         co_return;
     }
 
-    debug("Probing device at {ADDRESS} on port {PORT}", "ADDRESS", address,
-          "PORT", portName);
+    debug("Probing device {NAME} at {ADDRESS}", "NAME", config.name, "ADDRESS",
+          config.address);
 
-    if (config.registers.empty())
+    if (config.profile.inventoryRegisters.empty())
     {
-        error("No registers configured for {NAME}", "NAME", config.name);
+        error("No inventory registers configured for {NAME}", "NAME",
+              config.name);
         co_return;
     }
-    auto probeRegister = config.registers[0].offset;
-    auto registers = std::vector<uint16_t>(config.registers[0].size);
+    auto probeRegister = config.profile.inventoryRegisters[0].offset;
+    auto registers =
+        std::vector<uint16_t>(config.profile.inventoryRegisters[0].size);
 
     auto ret = co_await port.readHoldingRegisters(
-        address, probeRegister, config.baudRate, config.parity, registers);
+        config.address, probeRegister, config.profile.baudRate,
+        config.profile.parity, registers);
     if (ret)
     {
-        if (inventorySources.find(deviceId) == inventorySources.end())
+        if (!inventorySource)
         {
-            debug("Device found at {ADDRESS}", "ADDRESS", address);
-            co_await addInventorySource(address, portName, port);
-        }
-        else
-        {
-            debug("Device already exists at {ADDRESS}", "ADDRESS", address);
+            debug("Device {NAME} found at {ADDRESS}", "NAME", config.name,
+                  "ADDRESS", config.address);
+            co_await addInventorySource();
+            if (probeCallback)
+            {
+                co_await probeCallback(true);
+            }
         }
     }
     else
     {
-        auto it = inventorySources.find(deviceId);
-        if (it != inventorySources.end())
+        if (inventorySource)
         {
-            warning(
-                "Device removed at {ADDRESS} due to probe failure for {PROBE_REGISTER}",
-                "ADDRESS", address, "PROBE_REGISTER", probeRegister);
-            it->second->emit_removed();
-            inventorySources.erase(it);
+            warning("Device {NAME} removed at {ADDRESS} due to probe failure",
+                    "NAME", config.name, "ADDRESS", config.address);
+            inventorySource->emit_removed();
+            inventorySource.reset();
+            if (probeCallback)
+            {
+                co_await probeCallback(false);
+            }
         }
         else
         {
-            // Device is not in inventorySources, meaning it either failed
-            // on a previous probe or was never discovered. Mark it as
-            // dormant to avoid unnecessary bus traffic.
-            dormantDevices[deviceId] = std::chrono::steady_clock::now();
-            debug("Device {ADDRESS} on port {PORT} marked dormant", "ADDRESS",
-                  address, "PORT", portName);
+            dormant = true;
+            dormantSince = std::chrono::steady_clock::now();
+            debug("Device {NAME} at {ADDRESS} marked dormant", "NAME",
+                  config.name, "ADDRESS", config.address);
         }
     }
 }
 
-static auto fillInventorySourceProperties(
-    InventorySourceIntf::properties_t& properties, const std::string& regName,
-    std::string& strValue) -> void
-{
-    constexpr auto partNumber = "PartNumber";
-    constexpr auto sparePartNumber = "SparePartNumber";
-    constexpr auto serialNumber = "SerialNumber";
-    constexpr auto buildDate = "BuildDate";
-    constexpr auto model = "Model";
-    constexpr auto manufacturer = "Manufacturer";
-
-    if (regName == partNumber)
-    {
-        properties.part_number = strValue;
-    }
-    else if (regName == sparePartNumber)
-    {
-        properties.spare_part_number = strValue;
-    }
-    else if (regName == serialNumber)
-    {
-        properties.serial_number = strValue;
-    }
-    else if (regName == buildDate)
-    {
-        properties.build_date = strValue;
-    }
-    else if (regName == model)
-    {
-        properties.model = strValue;
-    }
-    else if (regName == manufacturer)
-    {
-        properties.manufacturer = strValue;
-    }
-}
-
-auto Device::addInventorySource(uint8_t address, const std::string& portName,
-                                SerialPortIntf& port)
-    -> sdbusplus::async::task<void>
+auto Device::addInventorySource() -> sdbusplus::async::task<void>
 {
     InventorySourceIntf::properties_t properties;
 
@@ -463,23 +171,23 @@ auto Device::addInventorySource(uint8_t address, const std::string& portName,
     {
         auto readBuffer = std::vector<uint16_t>(span.totalSize);
         auto ret = co_await port.readHoldingRegisters(
-            address, span.startOffset, config.baudRate, config.parity,
-            readBuffer);
+            config.address, span.startOffset, config.profile.baudRate,
+            config.profile.parity, readBuffer);
         if (!ret)
         {
             for (auto idx : span.registerIndices)
             {
                 error(
                     "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                    "NAME", config.registers[idx].name, "DEVICE_ADDRESS",
-                    address);
+                    "NAME", config.profile.inventoryRegisters[idx].name,
+                    "DEVICE_ADDRESS", config.address);
             }
             continue;
         }
 
         for (auto idx : span.registerIndices)
         {
-            const auto& reg = config.registers[idx];
+            const auto& reg = config.profile.inventoryRegisters[idx];
             auto regStart = reg.offset - span.startOffset;
             std::string strValue = "";
 
@@ -491,26 +199,25 @@ auto Device::addInventorySource(uint8_t address, const std::string& portName,
                 strValue += static_cast<char>(value & 0xFF);
             }
 
-            fillInventorySourceProperties(properties, reg.name, strValue);
+            fillInventorySourceProperties(properties, reg.type, strValue);
         }
     }
 
-    auto pathSuffix =
-        config.name + " " + std::to_string(address) + " " + portName;
+    auto pathSuffix = config.name + " " + std::to_string(config.address) + " " +
+                      config.serialPort;
 
     properties.name = pathSuffix;
-    properties.address = address;
-    properties.link_tty = portName;
+    properties.address = config.address;
+    properties.link_tty = config.serialPort;
 
     std::replace(pathSuffix.begin(), pathSuffix.end(), ' ', '_');
 
     auto objectPath =
         std::string(InventorySourceIntf::namespace_path) + "/" + pathSuffix;
-    auto sourceId = std::to_string(address) + "_" + portName;
 
-    inventorySources[sourceId] = std::make_unique<InventorySourceIntf>(
+    inventorySource = std::make_unique<InventorySourceIntf>(
         ctx, objectPath.c_str(), properties);
-    inventorySources[sourceId]->emit_added();
+    inventorySource->emit_added();
 
     info("Added InventorySource at {PATH}", "PATH", objectPath);
 }

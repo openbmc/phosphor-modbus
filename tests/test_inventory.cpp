@@ -13,10 +13,10 @@ using InventorySourceIntf =
     sdbusplus::client::xyz::openbmc_project::inventory::source::modbus::FRU<>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace InventoryIntf = phosphor::modbus::rtu::inventory;
-namespace InventoryConfigIntf = InventoryIntf::config;
 
 class MockPort : public PortIntf::BasePort
 {
@@ -37,7 +37,6 @@ class InventoryTest : public BaseTest
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
     PortConfigIntf::Config portConfig;
-    InventoryIntf::Device::serial_port_map_t ports;
 
     InventoryTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
@@ -48,34 +47,77 @@ class InventoryTest : public BaseTest
     }
 
     auto createDevice(
-        const std::vector<InventoryConfigIntf::Register>& registers,
+        const ModbusIntf::DeviceProfile& profile,
         std::chrono::seconds dormantPeriod = std::chrono::seconds(0))
-        -> std::unique_ptr<InventoryIntf::Device>
+        -> std::pair<std::unique_ptr<MockPort>,
+                     std::unique_ptr<InventoryIntf::Device>>
     {
-        InventoryConfigIntf::Config::port_address_map_t addressMap;
-        addressMap[portConfig.name] = {{.start = TestIntf::testDeviceAddress,
-                                        .end = TestIntf::testDeviceAddress}};
-        InventoryConfigIntf::Config deviceConfig = {
+        ModbusIntf::Config baseConfig = {
             .name = deviceName,
-            .addressMap = addressMap,
-            .registers = registers,
-            .parity = ModbusIntf::Parity::none,
-            .baudRate = 115200};
-        ports[portConfig.name] =
+            .type = "TestDevice",
+            .address = TestIntf::testDeviceAddress,
+            .serialPort = portConfig.name,
+            .profile = profile,
+        };
+
+        auto mockPort =
             std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
 
-        return std::make_unique<InventoryIntf::Device>(ctx, deviceConfig, ports,
-                                                       dormantPeriod);
+        auto device = std::make_unique<InventoryIntf::Device>(
+            ctx, baseConfig, *mockPort, nullptr, dormantPeriod);
+
+        return {std::move(mockPort), std::move(device)};
     }
+
+    // Profile with a valid register for successful probes
+    ModbusIntf::DeviceProfile testProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = 115200,
+        .inventoryRegisters =
+            {{.name = "Model",
+              .type = ProfileIntf::InventoryDataType::model,
+              .offset = TestIntf::testReadHoldingRegisterModelOffset,
+              .size = TestIntf::testReadHoldingRegisterModelCount}},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
+
+    // Profile with a register that causes probe failure
+    ModbusIntf::DeviceProfile failProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = 115200,
+        .inventoryRegisters = {{.name = "Unknown",
+                                .type = ProfileIntf::InventoryDataType::unknown,
+                                .offset =
+                                    TestIntf::testFailureReadHoldingRegister,
+                                .size = 0x1}},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
+
+    // Profile with a flaky register that alternates success/failure
+    ModbusIntf::DeviceProfile flakyProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = 115200,
+        .inventoryRegisters =
+            {{.name = "Flaky",
+              .type = ProfileIntf::InventoryDataType::unknown,
+              .offset = TestIntf::testFlakyReadHoldingRegisterOffset,
+              .size = TestIntf::testFlakyReadHoldingRegisterCount}},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
 
     auto testInventorySourceCreation(std::string objPath)
         -> sdbusplus::async::task<void>
     {
-        auto inventoryDevice = createDevice(
-            {{"Model", TestIntf::testReadHoldingRegisterModelOffset,
-              TestIntf::testReadHoldingRegisterModelCount}});
+        auto devicePair = createDevice(testProfile);
+        auto& inventoryDevice = devicePair.second;
 
-        co_await inventoryDevice->probePorts();
+        co_await inventoryDevice->startProbing();
 
         // Create InventorySource client interface to read back D-Bus properties
         auto properties = co_await InventorySourceIntf(ctx)
@@ -104,25 +146,21 @@ class InventoryTest : public BaseTest
     {
         constexpr auto testDormantPeriod = std::chrono::seconds(2);
 
-        auto inventoryDevice = createDevice(
-            {{"Unknown", TestIntf::testFailureReadHoldingRegister, 0x1}},
-            testDormantPeriod);
-
-        auto deviceId =
-            std::format("{}_{}", TestIntf::testDeviceAddress, portConfig.name);
+        auto devicePair = createDevice(failProfile, testDormantPeriod);
+        auto& inventoryDevice = devicePair.second;
 
         // Device should not be dormant initially
-        EXPECT_FALSE(inventoryDevice->isDormant(deviceId));
+        EXPECT_FALSE(inventoryDevice->isDormant());
 
         // First probe fails, device should be marked dormant
-        co_await inventoryDevice->probePort(portConfig.name);
-        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+        co_await inventoryDevice->probeDevice();
+        EXPECT_TRUE(inventoryDevice->isDormant())
             << "Device should be dormant after failed probe";
 
         // Second probe should skip (device is dormant, no server request)
         auto countBeforeDormantProbe = serverTester->totalRequestCount.load();
-        co_await inventoryDevice->probePort(portConfig.name);
-        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+        co_await inventoryDevice->probeDevice();
+        EXPECT_TRUE(inventoryDevice->isDormant())
             << "Device should still be dormant";
         EXPECT_EQ(serverTester->totalRequestCount.load(),
                   countBeforeDormantProbe)
@@ -134,9 +172,9 @@ class InventoryTest : public BaseTest
 
         // Third probe should clear dormant state and re-probe
         auto countBeforeReprobe = serverTester->totalRequestCount.load();
-        co_await inventoryDevice->probePort(portConfig.name);
+        co_await inventoryDevice->probeDevice();
         // Device gets re-probed, fails again, so it's dormant again
-        EXPECT_TRUE(inventoryDevice->isDormant(deviceId))
+        EXPECT_TRUE(inventoryDevice->isDormant())
             << "Device should be dormant again after re-probe failure";
         EXPECT_GT(serverTester->totalRequestCount.load(), countBeforeReprobe)
             << "Server should receive a request after dormant period expires";
@@ -163,10 +201,10 @@ TEST_F(InventoryTest, TestAddInventorySource)
 TEST_F(InventoryTest, TestNonRespondingAddressNoInventorySource)
 {
     auto testProbe = [&]() -> sdbusplus::async::task<void> {
-        auto inventoryDevice = createDevice(
-            {{"Unknown", TestIntf::testFailureReadHoldingRegister, 0x1}});
+        auto devicePair = createDevice(failProfile);
+        auto& inventoryDevice = devicePair.second;
 
-        co_await inventoryDevice->probePorts();
+        co_await inventoryDevice->startProbing();
 
         auto objPath = std::format(
             "{}/{}_{}_{}", InventorySourceIntf::namespace_path, deviceName,
@@ -221,26 +259,22 @@ TEST_F(InventoryTest, TestDormantDeviceSkippedAndExpires)
 TEST_F(InventoryTest, TestDiscoveredDeviceNotMarkedDormant)
 {
     auto testProbe = [&]() -> sdbusplus::async::task<void> {
-        auto inventoryDevice = createDevice(
-            {{"Flaky", TestIntf::testFlakyReadHoldingRegisterOffset,
-              TestIntf::testFlakyReadHoldingRegisterCount}});
-
-        auto deviceId =
-            std::format("{}_{}", TestIntf::testDeviceAddress, portConfig.name);
+        auto devicePair = createDevice(flakyProfile);
+        auto& inventoryDevice = devicePair.second;
 
         // 1st probe succeeds - device discovered
-        co_await inventoryDevice->probePort(portConfig.name);
-        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+        co_await inventoryDevice->probeDevice();
+        EXPECT_FALSE(inventoryDevice->isDormant())
             << "Device should not be dormant after successful probe";
 
         // 2nd probe fails - device removed but NOT dormant
-        co_await inventoryDevice->probePort(portConfig.name);
-        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+        co_await inventoryDevice->probeDevice();
+        EXPECT_FALSE(inventoryDevice->isDormant())
             << "Previously discovered device should not be marked dormant";
 
         // 3rd probe succeeds - device re-discovered
-        co_await inventoryDevice->probePort(portConfig.name);
-        EXPECT_FALSE(inventoryDevice->isDormant(deviceId))
+        co_await inventoryDevice->probeDevice();
+        EXPECT_FALSE(inventoryDevice->isDormant())
             << "Device should not be dormant after re-discovery";
 
         co_return;
