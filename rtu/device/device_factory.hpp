@@ -22,7 +22,7 @@ enum class DeviceType
 
 enum class DeviceModel
 {
-    RDF040DSS5193E0,
+    DeltaRDF040DSS5193E0,
     PanasonicBJBPM102A0001,
     Artesyn7000433970000,
     DeltaECD70000020,
