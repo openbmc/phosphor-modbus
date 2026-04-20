@@ -1,20 +1,18 @@
 #include "device_manager.hpp"
 
 #include "device/device_factory.hpp"
+#include "device_config.hpp"
 #include "port/port_factory.hpp"
 
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/server/manager.hpp>
-#include <xyz/openbmc_project/Configuration/ModbusRTUDetect/client.hpp>
 
 PHOSPHOR_LOG2_USING;
 
 namespace phosphor::modbus::rtu
 {
 
-using ModbusRTUDetectIntf =
-    sdbusplus::client::xyz::openbmc_project::configuration::ModbusRTUDetect<>;
 using DeviceFactoryIntf = phosphor::modbus::rtu::device::DeviceFactory;
 
 static entity_manager::interface_list_t getInterfaces()
@@ -24,8 +22,6 @@ static entity_manager::interface_list_t getInterfaces()
     auto portInterfaces = PortIntf::PortFactory::getInterfaces();
     interfaces.insert(interfaces.end(), portInterfaces.begin(),
                       portInterfaces.end());
-
-    interfaces.emplace_back(ModbusRTUDetectIntf::interface);
 
     auto deviceInterfaces = DeviceFactoryIntf::getInterfaces();
     interfaces.insert(interfaces.end(), deviceInterfaces.begin(),
@@ -51,12 +47,6 @@ auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
 {
     debug("Config added for {PATH} with {INTF}", "PATH", objectPath, "INTF",
           interfaceName);
-    if (interfaceName == ModbusRTUDetectIntf::interface && ports.size() == 0)
-    {
-        warning(
-            "Skip processing ModbusRTUDetectIntf::interface as no serial ports detected yet");
-        co_return;
-    }
 
     auto portInterfaces = PortIntf::PortFactory::getInterfaces();
     if (std::find(portInterfaces.begin(), portInterfaces.end(),
@@ -65,16 +55,17 @@ auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
         co_return co_await processPortAdded(objectPath, interfaceName);
     }
 
-    if (interfaceName == ModbusRTUDetectIntf::interface)
-    {
-        co_return co_await processInventoryAdded(objectPath);
-    }
-
     auto deviceInterfaces = DeviceFactoryIntf::getInterfaces();
     if (std::find(deviceInterfaces.begin(), deviceInterfaces.end(),
                   interfaceName) != deviceInterfaces.end())
     {
-        co_return co_await processDeviceAdded(objectPath, interfaceName);
+        if (ports.empty())
+        {
+            warning("Skip processing {INTF} as no serial ports detected yet",
+                    "INTF", interfaceName);
+            co_return;
+        }
+        co_return co_await processInventoryAdded(objectPath, interfaceName);
     }
 }
 
@@ -103,30 +94,49 @@ auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
 }
 
 auto DeviceManager::processInventoryAdded(
-    const sdbusplus::object_path& objectPath) -> sdbusplus::async::task<>
+    const sdbusplus::object_path& objectPath, const std::string& interfaceName)
+    -> sdbusplus::async::task<>
 {
-    auto res = co_await InventoryIntf::config::getConfig(ctx, objectPath);
-    if (!res)
+    auto config = co_await getConfig(ctx, objectPath, interfaceName);
+    if (!config)
     {
-        error("Failed to get Inventory Device config for {PATH}", "PATH",
-              objectPath);
+        error("Failed to get config for {PATH}", "PATH", objectPath);
         co_return;
     }
-    auto config = res.value();
 
-    if (inventoryDevices.contains(config.name))
+    if (inventoryDevices.contains(config->name))
     {
         debug("Inventory device {NAME} already exists, skipping", "NAME",
-              config.name);
+              config->name);
         co_return;
     }
+
+    auto portIter = ports.find(config->serialPort);
+    if (portIter == ports.end())
+    {
+        error("Serial port {PORT} not found for {NAME}", "PORT",
+              config->serialPort, "NAME", config->name);
+        co_return;
+    }
+
+    auto callback = [this, objectPath,
+                     interfaceName](bool success) -> sdbusplus::async::task<> {
+        if (success)
+        {
+            co_await processDeviceAdded(objectPath, interfaceName);
+        }
+        else
+        {
+            // TODO: Remove sensor device on probe failure
+        }
+    };
 
     try
     {
-        auto inventoryDevice =
-            std::make_unique<InventoryIntf::Device>(ctx, config, ports);
-        ctx.spawn(inventoryDevice->probePorts());
-        inventoryDevices[config.name] = std::move(inventoryDevice);
+        auto inventoryDevice = std::make_unique<InventoryIntf::Device>(
+            ctx, *config, *(portIter->second), std::move(callback));
+        ctx.spawn(inventoryDevice->startProbing());
+        inventoryDevices[config->name] = std::move(inventoryDevice);
     }
     catch (const std::exception& e)
     {
@@ -160,8 +170,8 @@ auto DeviceManager::processDeviceAdded(const sdbusplus::object_path& objectPath,
         auto serialPort = ports.find(config.portName);
         if (serialPort == ports.end())
         {
-            error("Failed to get Inventory Device config for {PATH}", "PATH",
-                  objectPath);
+            error("Serial port {PORT} not found for {NAME}", "PORT",
+                  config.portName, "NAME", config.name);
             co_return;
         }
 
