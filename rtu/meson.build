@@ -51,6 +51,8 @@ modbus_rtu_dep = declare_dependency(
     dependencies: [default_deps],
 )
 
+device_config_src = files('device_config.cpp')
+
 inventory_src = files('inventory/modbus_inventory.cpp')
 
 profile_dir = get_option('prefix') / get_option('datadir') / 'phosphor-modbus' / 'profiles'
@@ -70,7 +72,14 @@ firmware_src = files('firmware/device_firmware.cpp')
 
 executable(
     'phosphor-modbus-rtu',
-    ['device_manager.cpp', inventory_src, profile_src, device_src, firmware_src],
+    [
+        'device_manager.cpp',
+        device_config_src,
+        inventory_src,
+        profile_src,
+        device_src,
+        firmware_src,
+    ],
     cpp_args: profile_cpp_args,
     include_directories: ['.', common_include],
     dependencies: [default_deps],
