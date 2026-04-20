@@ -13,6 +13,7 @@ using SoftwareIntf =
     sdbusplus::client::xyz::openbmc_project::software::Version<>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
@@ -31,7 +32,7 @@ class TestFirmware : public DeviceIntf::DeviceFirmware
 {
   public:
     TestFirmware(sdbusplus::async::context& ctx,
-                 const DeviceConfigIntf::Config& config,
+                 const ModbusIntf::config::Config& config,
                  PortIntf::BasePort& serialPort) :
         DeviceIntf::DeviceFirmware(ctx, config, serialPort)
     {}
@@ -72,30 +73,32 @@ class FirmwareTest : public BaseTest
             std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
     }
 
-    auto testFirmwareVersion(
-        std::string objectPath,
-        DeviceConfigIntf::FirmwareRegister firmwareRegister,
-        std::string expectedVersion) -> sdbusplus::async::task<void>
+    auto testFirmwareVersion(std::string objectPath,
+                             ProfileIntf::FirmwareRegister firmwareRegister,
+                             std::string expectedVersion)
+        -> sdbusplus::async::task<void>
     {
-        DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
-            {
-                .address = TestIntf::testDeviceAddress,
-                .parity = ModbusIntf::Parity::none,
-                .baudRate = baudRate,
-                .name = deviceName,
-                .portName = portConfig.name,
-                .inventoryPath = sdbusplus::object_path(
-                    "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
-                .sensorRegisters = {},
-                .statusRegisters = {},
-                .firmwareRegisters = {firmwareRegister},
-            },
-            DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-            DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
+        ProfileIntf::DeviceProfile testProfile = {
+            .parity = ModbusIntf::Parity::none,
+            .baudRate = baudRate,
+            .inventoryRegisters = {},
+            .sensorRegisters = {},
+            .statusRegisters = {},
+            .firmwareRegisters = {firmwareRegister},
+        };
+
+        ModbusIntf::config::Config baseConfig = {
+            .name = deviceName,
+            .type = "TestDevice",
+            .address = TestIntf::testDeviceAddress,
+            .serialPort = portConfig.name,
+            .inventoryPath = sdbusplus::object_path(
+                "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
+            .profile = testProfile,
         };
 
         auto deviceFirmware =
-            std::make_unique<TestFirmware>(ctx, deviceFactoryConfig, *mockPort);
+            std::make_unique<TestFirmware>(ctx, baseConfig, *mockPort);
 
         co_await deviceFirmware->readVersionRegister();
 
@@ -118,9 +121,9 @@ class FirmwareTest : public BaseTest
 
 TEST_F(FirmwareTest, TestFirmwareVersion)
 {
-    const DeviceConfigIntf::FirmwareRegister firmwareRegister = {
+    const ProfileIntf::FirmwareRegister firmwareRegister = {
         .name = "",
-        .type = DeviceConfigIntf::FirmwareRegisterType::version,
+        .type = ProfileIntf::FirmwareRegisterType::version,
         .offset = TestIntf::testReadHoldingRegisterFirmwareVersionOffset,
         .size = TestIntf::testReadHoldingRegisterFirmwareVersionCount};
 
