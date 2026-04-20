@@ -1,6 +1,6 @@
 #pragma once
 
-#include "device/base_config.hpp"
+#include "base_config.hpp"
 #include "port/base_port.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -12,14 +12,9 @@
 namespace phosphor::modbus::rtu::device
 {
 
-namespace config
-{
+namespace ConfigIntf = phosphor::modbus::rtu::config;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
-struct Config;
-
-} // namespace config
-
-namespace config_intf = phosphor::modbus::rtu::device::config;
 using PortIntf = phosphor::modbus::rtu::port::BasePort;
 
 class DeviceFirmware;
@@ -35,7 +30,7 @@ class DeviceFirmware
     DeviceFirmware() = delete;
 
     explicit DeviceFirmware(sdbusplus::async::context& ctx,
-                            const config_intf::Config& config,
+                            const ConfigIntf::Config& config,
                             PortIntf& serialPort);
 
     auto readVersionRegister() -> sdbusplus::async::task<void>;
@@ -48,7 +43,7 @@ class DeviceFirmware
 
   private:
     std::unique_ptr<FirmwareIntf> currentFirmware;
-    const config_intf::Config config;
+    const ConfigIntf::Config config;
     PortIntf& serialPort;
 };
 

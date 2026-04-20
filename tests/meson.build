@@ -84,6 +84,9 @@ test(
     ),
 )
 
+test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
+test_profile_cpp_args = ['-DPROFILE_DIR="' + test_profile_dir + '"']
+
 test(
     'test_sensors',
     executable(
@@ -91,7 +94,10 @@ test(
         'test_sensors.cpp',
         'modbus_server_tester.cpp',
         device_src,
+        base_config_src,
+        profile_src,
         firmware_src,
+        cpp_args: test_profile_cpp_args,
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
@@ -116,16 +122,16 @@ test(
         'test_device_events.cpp',
         'modbus_server_tester.cpp',
         device_src,
+        base_config_src,
+        profile_src,
         firmware_src,
+        cpp_args: test_profile_cpp_args,
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
     is_parallel: false,  # To avoid conflict with test_events, which also simulates xyz.openbmc_project.Logging service operations
 )
-
-test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
-test_profile_cpp_args = ['-DPROFILE_DIR="' + test_profile_dir + '"']
 
 test(
     'test_device_profile',
@@ -145,7 +151,10 @@ test(
         'test_firmware',
         'test_firmware.cpp',
         'modbus_server_tester.cpp',
+        base_config_src,
+        profile_src,
         firmware_src,
+        cpp_args: test_profile_cpp_args,
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],

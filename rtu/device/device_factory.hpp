@@ -8,6 +8,9 @@ namespace phosphor::modbus::rtu::device
 namespace config
 {
 
+using ConfigIntf::Config;
+using ConfigIntf::getConfig;
+
 enum class DeviceType
 {
     reservoirPumpUnit,
