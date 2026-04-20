@@ -36,6 +36,7 @@ using EventEntryIntf =
     sdbusplus::aserver::xyz::openbmc_project::logging::Entry<TestEventEntry>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
@@ -192,37 +193,45 @@ class DeviceEventsTest : public BaseTest
         EXPECT_TRUE(std::isnan(properties.max_value)) << "Max value mismatch";
     }
 
+    auto createTestProfile(ProfileIntf::StatusType statusType)
+        -> ProfileIntf::DeviceProfile
+    {
+        ProfileIntf::StatusBit statusBit = {.name = sensorName,
+                                            .type = statusType,
+                                            .bitPosition = 0,
+                                            .value = true};
+        return {
+            .parity = ModbusIntf::Parity::none,
+            .baudRate = baudRate,
+            .inventoryRegisters = {},
+            .sensorRegisters = {{
+                .name = sensorName,
+                .type = ProfileIntf::SensorType::temperature,
+                .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+                .size = TestIntf::testReadHoldingRegisterTempCount,
+                .format = ProfileIntf::SensorFormat::floatingPoint,
+            }},
+            .statusRegisters = {{TestIntf::testReadHoldingRegisterEventOffset,
+                                 {statusBit}}},
+            .firmwareRegisters = {},
+        };
+    }
+
     auto testSensorCreation(std::string objectPath,
-                            DeviceConfigIntf::StatusType statusType,
+                            ProfileIntf::StatusType statusType,
                             double expectedValue)
         -> sdbusplus::async::task<void>
     {
-        DeviceConfigIntf::StatusBit statusBit = {
-            .name = sensorName,
-            .type = statusType,
-            .bitPosition = 0,
-            .value = true};
-        DeviceConfigIntf::Config::status_registers_t statusRegisters = {
-            {TestIntf::testReadHoldingRegisterEventOffset, {statusBit}}};
-        DeviceConfigIntf::Config::sensor_registers_t sensorRegisters = {{
-            .name = sensorName,
-            .type = DeviceConfigIntf::SensorType::temperature,
-            .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
-            .size = TestIntf::testReadHoldingRegisterTempCount,
-            .format = DeviceConfigIntf::SensorFormat::floatingPoint,
-        }};
+        auto testProfile = createTestProfile(statusType);
         DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
             {
-                .address = TestIntf::testDeviceAddress,
-                .parity = ModbusIntf::Parity::none,
-                .baudRate = baudRate,
                 .name = deviceName,
-                .portName = portConfig.name,
+                .type = "TestDevice",
+                .address = TestIntf::testDeviceAddress,
+                .serialPort = portConfig.name,
                 .inventoryPath = sdbusplus::object_path(
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
-                .sensorRegisters = sensorRegisters,
-                .statusRegisters = statusRegisters,
-                .firmwareRegisters = {},
+                .profile = testProfile,
             },
             DeviceConfigIntf::DeviceType::reservoirPumpUnit,
             DeviceConfigIntf::DeviceModel::RDF040DSS5193E0,
@@ -253,7 +262,7 @@ class DeviceEventsTest : public BaseTest
                 .properties();
         verifyResult(properties, operationalProperties, availabilityProperties,
                      thresholdProperties, expectedValue,
-                     DeviceIntf::getUnit(sensorRegisters[0].type));
+                     DeviceIntf::getUnit(testProfile.sensorRegisters[0].type));
         co_return;
     }
 };
@@ -264,7 +273,7 @@ TEST_F(DeviceEventsTest, TestSensorReadingCritical)
         "xyz.openbmc_project.Sensor.Threshold.ReadingCritical";
 
     ctx.spawn(testSensorCreation(
-        objectPath, DeviceConfigIntf::StatusType::sensorReadingCritical,
+        objectPath, ProfileIntf::StatusType::sensorReadingCritical,
         TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
@@ -277,9 +286,9 @@ TEST_F(DeviceEventsTest, TestSensorFailure)
 {
     eventServer.expectedEvent = "xyz.openbmc_project.Sensor.SensorFailure";
 
-    ctx.spawn(testSensorCreation(objectPath,
-                                 DeviceConfigIntf::StatusType::sensorFailure,
-                                 std::numeric_limits<double>::quiet_NaN()));
+    ctx.spawn(
+        testSensorCreation(objectPath, ProfileIntf::StatusType::sensorFailure,
+                           std::numeric_limits<double>::quiet_NaN()));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));

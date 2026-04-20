@@ -97,7 +97,7 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     createSensors();
     buildSensorBuckets();
 
-    if (!config.firmwareRegisters.empty())
+    if (!config.profile.firmwareRegisters.empty())
     {
         currentFirmware =
             std::make_unique<DeviceFirmware>(ctx, config, serialPort);
@@ -129,7 +129,7 @@ auto BaseDevice::createSensors() -> void
          {"inventory", "all_sensors", config.inventoryPath}}};
 
     static constexpr auto maxRegisterSize = 4;
-    for (const auto& sensorRegister : config.sensorRegisters)
+    for (const auto& sensorRegister : config.profile.sensorRegisters)
     {
         if (sensorRegister.size > maxRegisterSize)
         {
@@ -282,8 +282,8 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
     {
         std::fill(readBuffer.begin(), readBuffer.end(), 0);
         auto ret = co_await serialPort.readHoldingRegisters(
-            config.address, span.startOffset, config.baudRate, config.parity,
-            readBuffer);
+            config.address, span.startOffset, config.profile.baudRate,
+            config.profile.parity, readBuffer);
         if (!ret)
         {
             for (auto idx : span.registerIndices)
@@ -376,39 +376,40 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
     co_return;
 }
 
-static auto getObjectPath(const config::Config& config, config::StatusType type,
-                          const std::string& name) -> sdbusplus::object_path
+static auto getObjectPath(const config::Config& config,
+                          ProfileIntf::StatusType type, const std::string& name)
+    -> sdbusplus::object_path
 {
     switch (type)
     {
-        case config::StatusType::sensorReadingCritical:
-        case config::StatusType::sensorReadingWarning:
-        case config::StatusType::sensorFailure:
+        case ProfileIntf::StatusType::sensorReadingCritical:
+        case ProfileIntf::StatusType::sensorReadingWarning:
+        case ProfileIntf::StatusType::sensorFailure:
             return sdbusplus::object_path(
                 std::string(SensorIntf::namespace_path::value) + "/" + name);
-        case config::StatusType::controllerFailure:
+        case ProfileIntf::StatusType::controllerFailure:
             return config.inventoryPath;
-        case config::StatusType::pumpFailure:
+        case ProfileIntf::StatusType::pumpFailure:
             return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/pump/" + name);
-        case config::StatusType::filterFailure:
+        case ProfileIntf::StatusType::filterFailure:
             return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/filter/" + name);
-        case config::StatusType::powerFault:
+        case ProfileIntf::StatusType::powerFault:
             return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/power_rail/" + name);
-        case config::StatusType::fanFailure:
+        case ProfileIntf::StatusType::fanFailure:
             return sdbusplus::object_path(
                 "/xyz/openbmc_project/state/fan/" + name);
-        case config::StatusType::leakDetectedCritical:
-        case config::StatusType::leakDetectedWarning:
+        case ProfileIntf::StatusType::leakDetectedCritical:
+        case ProfileIntf::StatusType::leakDetectedWarning:
             using DetectorIntf =
                 sdbusplus::aserver::xyz::openbmc_project::state::leak::Detector<
                     BaseDevice>;
             return sdbusplus::object_path(
                 std::string(DetectorIntf::namespace_path::value) + "/" +
                 DetectorIntf::namespace_path::detector + "/" + name);
-        case config::StatusType::unknown:
+        case ProfileIntf::StatusType::unknown:
             error("Unknown status type for {NAME}", "NAME", name);
     }
 
@@ -416,17 +417,17 @@ static auto getObjectPath(const config::Config& config, config::StatusType type,
 }
 
 static auto updateSensorOnStatusChange(
-    SensorIntf& sensor, config::StatusType statusType, bool statusAsserted)
+    SensorIntf& sensor, ProfileIntf::StatusType statusType, bool statusAsserted)
 {
-    if (statusType == config::StatusType::sensorReadingCritical)
+    if (statusType == ProfileIntf::StatusType::sensorReadingCritical)
     {
         sensor.critical_alarm_high(statusAsserted);
     }
-    else if (statusType == config::StatusType::sensorReadingWarning)
+    else if (statusType == ProfileIntf::StatusType::sensorReadingWarning)
     {
         sensor.warning_alarm_high(statusAsserted);
     }
-    else if (statusType == config::StatusType::sensorFailure)
+    else if (statusType == ProfileIntf::StatusType::sensorFailure)
     {
         if (statusAsserted)
         {
@@ -439,13 +440,14 @@ static auto updateSensorOnStatusChange(
 
 auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
 {
-    for (const auto& [address, statusBits] : config.statusRegisters)
+    for (const auto& [address, statusBits] : config.profile.statusRegisters)
     {
         static constexpr auto maxRegisterSize = 1;
         auto registers = std::vector<uint16_t>(maxRegisterSize);
 
         auto ret = co_await serialPort.readHoldingRegisters(
-            config.address, address, config.baudRate, config.parity, registers);
+            config.address, address, config.profile.baudRate,
+            config.profile.parity, registers);
         if (!ret)
         {
             error("Failed to read holding registers for {DEVICE_ADDRESS}",
@@ -488,7 +490,7 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
     co_return;
 }
 
-auto BaseDevice::generateEvent(const config::StatusBit& statusBit,
+auto BaseDevice::generateEvent(const ProfileIntf::StatusBit& statusBit,
                                const sdbusplus::object_path& objectPath,
                                double sensorValue, SensorIntf::Unit sensorUnit,
                                bool statusAsserted)
@@ -496,48 +498,48 @@ auto BaseDevice::generateEvent(const config::StatusBit& statusBit,
 {
     switch (statusBit.type)
     {
-        case config::StatusType::sensorReadingCritical:
+        case ProfileIntf::StatusType::sensorReadingCritical:
             co_await events.generateSensorReadingEvent(
                 objectPath, EventIntf::EventLevel::critical, sensorValue,
                 sensorUnit, statusAsserted);
             break;
-        case config::StatusType::sensorReadingWarning:
+        case ProfileIntf::StatusType::sensorReadingWarning:
             co_await events.generateSensorReadingEvent(
                 objectPath, EventIntf::EventLevel::warning, sensorValue,
                 sensorUnit, statusAsserted);
             break;
-        case config::StatusType::sensorFailure:
+        case ProfileIntf::StatusType::sensorFailure:
             co_await events.generateSensorFailureEvent(objectPath,
                                                        statusAsserted);
             break;
-        case config::StatusType::controllerFailure:
+        case ProfileIntf::StatusType::controllerFailure:
             co_await events.generateControllerFailureEvent(
                 objectPath, statusBit.name, statusAsserted);
             break;
-        case config::StatusType::powerFault:
+        case ProfileIntf::StatusType::powerFault:
             co_await events.generatePowerFaultEvent(objectPath, statusBit.name,
                                                     statusAsserted);
             break;
-        case config::StatusType::filterFailure:
+        case ProfileIntf::StatusType::filterFailure:
             co_await events.generateFilterFailureEvent(objectPath,
                                                        statusAsserted);
             break;
-        case config::StatusType::pumpFailure:
+        case ProfileIntf::StatusType::pumpFailure:
             co_await events.generatePumpFailureEvent(objectPath,
                                                      statusAsserted);
             break;
-        case config::StatusType::fanFailure:
+        case ProfileIntf::StatusType::fanFailure:
             co_await events.generateFanFailureEvent(objectPath, statusAsserted);
             break;
-        case config::StatusType::leakDetectedCritical:
+        case ProfileIntf::StatusType::leakDetectedCritical:
             co_await events.generateLeakDetectedEvent(
                 objectPath, EventIntf::EventLevel::critical, statusAsserted);
             break;
-        case config::StatusType::leakDetectedWarning:
+        case ProfileIntf::StatusType::leakDetectedWarning:
             co_await events.generateLeakDetectedEvent(
                 objectPath, EventIntf::EventLevel::warning, statusAsserted);
             break;
-        case config::StatusType::unknown:
+        case ProfileIntf::StatusType::unknown:
             error("Unknown status type for {NAME}", "NAME", statusBit.name);
             break;
     }

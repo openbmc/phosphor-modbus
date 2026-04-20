@@ -1,4 +1,4 @@
-#include "device_config.hpp"
+#include "base_config.hpp"
 
 #include "common/entity_manager_interface.hpp"
 #include "device_profile.hpp"
@@ -8,7 +8,7 @@
 
 #include <flat_map>
 
-namespace phosphor::modbus::rtu
+namespace phosphor::modbus::rtu::config
 {
 
 PHOSPHOR_LOG2_USING;
@@ -44,8 +44,10 @@ static auto getValue(const ConfigMap& configMap, const std::string& key,
 }
 
 static auto parseConfig(const ConfigMap& configMap,
+                        const sdbusplus::object_path& objectPath,
                         const std::string& interfaceName, std::string type,
-                        const DeviceProfile& profile) -> std::optional<Config>
+                        const ProfileIntf::DeviceProfile& profile)
+    -> std::optional<Config>
 {
     try
     {
@@ -61,6 +63,7 @@ static auto parseConfig(const ConfigMap& configMap,
             .type = std::move(type),
             .address = static_cast<uint8_t>(address),
             .serialPort = std::move(serialPort),
+            .inventoryPath = objectPath.parent_path(),
             .profile = profile,
         };
     }
@@ -79,10 +82,10 @@ auto getConfig(sdbusplus::async::context& ctx,
 {
     auto type = interfaceName.substr(interfaceName.rfind('.') + 1);
 
-    const DeviceProfile* profile = nullptr;
+    const ProfileIntf::DeviceProfile* profile = nullptr;
     try
     {
-        profile = &getDeviceProfile(type);
+        profile = &ProfileIntf::getDeviceProfile(type);
     }
     catch (const std::out_of_range& e)
     {
@@ -117,12 +120,12 @@ auto getConfig(sdbusplus::async::context& ctx,
             co_return std::nullopt;
         }
 
-        co_return parseConfig(ifaceIter->second, interfaceName, std::move(type),
-                              *profile);
+        co_return parseConfig(ifaceIter->second, objectPath, interfaceName,
+                              std::move(type), *profile);
     }
 
     error("Object path {PATH} not found in EntityManager", "PATH", objectPath);
     co_return std::nullopt;
 }
 
-} // namespace phosphor::modbus::rtu
+} // namespace phosphor::modbus::rtu::config
