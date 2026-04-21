@@ -101,6 +101,11 @@ class Device
     const config::Config config;
 
   private:
+    /** @brief Handles a failed probe read — removes the inventory object
+     *         for a previously discovered device, or marks an undiscovered
+     *         device as dormant. */
+    auto handleProbeFailed() -> sdbusplus::async::task<void>;
+
     /** @brief Returns true if the device is still within its dormant period
      *         and should be skipped. Returns false if the device is not dormant
      *         or its dormant period has expired, in which case the dormant
@@ -117,6 +122,8 @@ class Device
     bool dormant = false;
     /** @brief When dormant state began */
     std::chrono::steady_clock::time_point dormantSince;
+    /** @brief Whether the probe value mismatch warning has been logged */
+    bool mismatchLogged = false;
     std::vector<RegisterSpan> registerSpans;
 };
 
