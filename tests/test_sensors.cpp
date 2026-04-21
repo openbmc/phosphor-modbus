@@ -48,7 +48,7 @@ struct DeviceTestConfig
     std::string devicePrefix;
     std::string inventoryPath;
     DeviceConfigIntf::DeviceType deviceType;
-    DeviceConfigIntf::DeviceModel deviceModel;
+    ProfileIntf::DeviceModel deviceModel;
 };
 
 class SensorsTest : public BaseTest
@@ -194,7 +194,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const ProfileIntf::SensorRegister sensorRegister = {
@@ -221,7 +221,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const ProfileIntf::SensorRegister sensorRegister = {
@@ -257,7 +257,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const ProfileIntf::SensorRegister sensorRegister = {
@@ -289,7 +289,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         "PowerMonitorModule",
         "xyz/openbmc_project/Inventory/PowerMonitorModule",
         DeviceConfigIntf::DeviceType::powerMonitorModule,
-        DeviceConfigIntf::DeviceModel::PanasonicBJBPM102A0001,
+        ProfileIntf::DeviceModel::PanasonicBJBPM102A0001,
     });
 
     const ProfileIntf::SensorRegister sensorRegister = {
@@ -318,7 +318,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const std::string sensor1Name = "Sensor1";
@@ -386,7 +386,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const std::string nearName = "NearSensor";
@@ -456,7 +456,7 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
         DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-        DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
     const std::string fastName = "FastSensor";
