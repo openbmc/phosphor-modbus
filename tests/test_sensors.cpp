@@ -179,6 +179,7 @@ class SensorsTest : public BaseTest
     }
 
     ProfileIntf::DeviceProfile testProfile = {
+        .probeRegister = {},
         .parity = ModbusIntf::Parity::none,
         .baudRate = baudRate,
         .inventoryRegisters = {},

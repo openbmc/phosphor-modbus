@@ -201,6 +201,7 @@ class DeviceEventsTest : public BaseTest
                                             .bitPosition = 0,
                                             .value = true};
         return {
+            .probeRegister = {},
             .parity = ModbusIntf::Parity::none,
             .baudRate = baudRate,
             .inventoryRegisters = {},

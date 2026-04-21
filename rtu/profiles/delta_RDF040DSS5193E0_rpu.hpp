@@ -6,6 +6,9 @@ namespace phosphor::modbus::rtu::profile
 {
 
 inline const DeviceProfile deltaRdf040dss5193e0Rpu = {
+    .probeRegister = {.offset = 6604,
+                      .size = 8,
+                      .expectedValue = std::string("RDF040DSS5193E0")},
     .parity = Parity::none,
     .baudRate = 19200,
     .inventoryRegisters =

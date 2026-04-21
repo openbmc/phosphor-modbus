@@ -79,6 +79,7 @@ class FirmwareTest : public BaseTest
         -> sdbusplus::async::task<void>
     {
         ProfileIntf::DeviceProfile testProfile = {
+            .probeRegister = {},
             .parity = ModbusIntf::Parity::none,
             .baudRate = baudRate,
             .inventoryRegisters = {},
