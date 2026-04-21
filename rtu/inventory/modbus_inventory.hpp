@@ -5,7 +5,9 @@
 #include "port/base_port.hpp"
 
 #include <sdbusplus/async.hpp>
-#include <xyz/openbmc_project/Inventory/Source/Modbus/FRU/aserver.hpp>
+#include <xyz/openbmc_project/Association/Definitions/aserver.hpp>
+#include <xyz/openbmc_project/Inventory/Decorator/Asset/aserver.hpp>
+#include <xyz/openbmc_project/Inventory/Item/Chassis/aserver.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -17,13 +19,51 @@
 namespace phosphor::modbus::rtu::inventory
 {
 
-class Device;
-
 namespace ModbusIntf = phosphor::modbus::rtu;
 using SerialPortIntf = phosphor::modbus::rtu::port::BasePort;
-using InventorySourceIntf =
-    sdbusplus::aserver::xyz::openbmc_project::inventory::source::modbus::FRU<
-        Device>;
+
+// Forward declaration for InventoryServerType alias
+class InventoryServer;
+
+using InventoryServerType = sdbusplus::async::server_t<
+    InventoryServer,
+    sdbusplus::aserver::xyz::openbmc_project::inventory::item::details::Chassis,
+    sdbusplus::aserver::xyz::openbmc_project::inventory::decorator::details::
+        Asset,
+    sdbusplus::aserver::xyz::openbmc_project::association::details::
+        Definitions>;
+
+class InventoryServer : public InventoryServerType
+{
+  public:
+    using ChassisIntf = sdbusplus::aserver::xyz::openbmc_project::inventory::
+        item::details::Chassis<InventoryServer, InventoryServerType>;
+    using AssetIntf = sdbusplus::aserver::xyz::openbmc_project::inventory::
+        decorator::details::Asset<InventoryServer, InventoryServerType>;
+    using AssocIntf = sdbusplus::aserver::xyz::openbmc_project::association::
+        details::Definitions<InventoryServer, InventoryServerType>;
+
+    InventoryServer(sdbusplus::async::context& ctx, const char* path,
+                    ChassisIntf::properties_t chassisProps,
+                    AssetIntf::properties_t assetProps,
+                    AssocIntf::properties_t assocProps) :
+        InventoryServerType(ctx, path, chassisProps, assetProps, assocProps)
+    {}
+
+    void emit_added()
+    {
+        ChassisIntf::emit_added();
+        AssetIntf::emit_added();
+        AssocIntf::emit_added();
+    }
+
+    void emit_removed()
+    {
+        ChassisIntf::emit_removed();
+        AssetIntf::emit_removed();
+        AssocIntf::emit_removed();
+    }
+};
 
 class Device
 {
@@ -42,18 +82,21 @@ class Device
     auto startProbing() -> sdbusplus::async::task<void>;
 
     /** @brief Performs a single probe attempt. On first success, creates the
-     *         inventory source on D-Bus and invokes the probe callback.
+     *         inventory object on D-Bus and invokes the probe callback.
      *         On failure of a previously discovered device, removes the
-     *         inventory source and invokes the callback. Undiscovered devices
+     *         inventory object and invokes the callback. Undiscovered devices
      *         are marked dormant on failure. */
     auto probeDevice() -> sdbusplus::async::task<void>;
 
-    auto addInventorySource() -> sdbusplus::async::task<void>;
+    auto addInventoryServer() -> sdbusplus::async::task<void>;
 
     auto isDormant() const -> bool
     {
         return dormant;
     }
+
+    static constexpr auto inventoryServerPath =
+        "/xyz/openbmc_project/inventory/system/chassis";
 
     const config::Config config;
 
@@ -67,7 +110,7 @@ class Device
     sdbusplus::async::context& ctx;
     SerialPortIntf& port;
     ProbeCallback probeCallback;
-    std::unique_ptr<InventorySourceIntf> inventorySource;
+    std::unique_ptr<InventoryServer> inventoryServer;
     /** @brief Duration to skip probing after failure */
     std::chrono::seconds dormantPeriod;
     /** @brief Whether the device is currently dormant */
