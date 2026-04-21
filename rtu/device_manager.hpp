@@ -59,6 +59,11 @@ class DeviceManager
                               const std::string& interfaceName)
         -> sdbusplus::async::task<>;
 
+    /** @brief Periodically removes sensor devices whose polling coroutine
+     *         has finished after a stop request.
+     */
+    auto cleanupStoppedDevices() -> sdbusplus::async::task<>;
+
     sdbusplus::async::context& ctx;
     entity_manager::EntityManagerInterface entityManager;
     EventIntf::Events events;
