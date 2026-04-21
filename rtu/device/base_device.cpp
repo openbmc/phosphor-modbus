@@ -338,7 +338,7 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
 //   t=5: poll 5s    -> sleep 1s  (2s bucket due at t=6)
 auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
 {
-    while (!ctx.stop_requested())
+    while (!ctx.stop_requested() && !stopped)
     {
         auto now = std::chrono::steady_clock::now();
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
@@ -373,7 +373,7 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
         debug("Polling sensors for {NAME}", "NAME", config.name);
     }
 
-    co_return;
+    finished = true;
 }
 
 static auto getObjectPath(const config::Config& config,
