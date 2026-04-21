@@ -11,18 +11,9 @@ namespace config
 using ConfigIntf::Config;
 using ConfigIntf::getConfig;
 
-enum class DeviceType
-{
-    reservoirPumpUnit,
-    heatExchanger,
-    flowMeter,
-    powerMonitorModule,
-    unknown
-};
-
 struct DeviceFactoryConfig : public Config
 {
-    DeviceType deviceType = DeviceType::unknown;
+    ProfileIntf::DeviceType deviceType = ProfileIntf::DeviceType::unknown;
     ProfileIntf::DeviceModel deviceModel = ProfileIntf::DeviceModel::unknown;
 };
 
