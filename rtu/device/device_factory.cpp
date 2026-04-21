@@ -13,22 +13,19 @@ namespace phosphor::modbus::rtu::device
 
 PHOSPHOR_LOG2_USING;
 
-using PowerMonitorModuleIntf =
-    phosphor::modbus::rtu::device::PowerMonitorModule;
-using ReservoirPumpUnitIntf = phosphor::modbus::rtu::device::ReservoirPumpUnit;
+static constexpr auto configInterfacePrefix =
+    "xyz.openbmc_project.Configuration.";
 
 auto DeviceFactory::getInterfaces() -> std::vector<std::string>
 {
-    std::vector<std::string> interfaces{};
-
-    auto rpuInterfaces = ReservoirPumpUnitIntf::getInterfaces();
-    interfaces.insert(interfaces.end(), rpuInterfaces.begin(),
-                      rpuInterfaces.end());
-
-    auto pmmInterfaces = PowerMonitorModuleIntf::getInterfaces();
-    interfaces.insert(interfaces.end(), pmmInterfaces.begin(),
-                      pmmInterfaces.end());
-
+    auto names = ProfileIntf::getProfileNames();
+    std::vector<std::string> interfaces;
+    interfaces.reserve(names.size());
+    for (const auto& name : names)
+    {
+        interfaces.emplace_back(
+            std::string(configInterfacePrefix) + std::string(name));
+    }
     return interfaces;
 }
 
@@ -44,22 +41,13 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
         co_return std::nullopt;
     }
 
-    auto rpuInterfaces = ReservoirPumpUnitIntf::getInterfaces();
-    if (rpuInterfaces.contains(interfaceName))
-    {
-        co_return config::DeviceFactoryConfig{
-            {std::move(*baseConfig)}, config::DeviceType::reservoirPumpUnit};
-    }
+    auto profileName =
+        interfaceName.substr(std::string_view(configInterfacePrefix).size());
 
-    auto pmmInterfaces = PowerMonitorModuleIntf::getInterfaces();
-    if (pmmInterfaces.contains(interfaceName))
-    {
-        co_return config::DeviceFactoryConfig{
-            {std::move(*baseConfig)}, config::DeviceType::powerMonitorModule};
-    }
-
-    error("Unknown device interface {INTF}", "INTF", interfaceName);
-    co_return std::nullopt;
+    co_return config::DeviceFactoryConfig{
+        {std::move(*baseConfig)},
+        ProfileIntf::getDeviceType(profileName),
+        ProfileIntf::getDeviceModel(profileName)};
 }
 
 auto DeviceFactory::create(sdbusplus::async::context& ctx,
@@ -69,10 +57,10 @@ auto DeviceFactory::create(sdbusplus::async::context& ctx,
 {
     switch (config.deviceType)
     {
-        case config::DeviceType::reservoirPumpUnit:
+        case ProfileIntf::DeviceType::reservoirPumpUnit:
             return std::make_unique<ReservoirPumpUnit>(ctx, config, serialPort,
                                                        events);
-        case config::DeviceType::powerMonitorModule:
+        case ProfileIntf::DeviceType::powerMonitorModule:
             return std::make_unique<PowerMonitorModule>(ctx, config, serialPort,
                                                         events);
         default:
