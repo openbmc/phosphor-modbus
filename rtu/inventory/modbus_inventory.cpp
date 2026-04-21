@@ -4,6 +4,9 @@
 
 #include <phosphor-logging/lg2.hpp>
 
+#include <type_traits>
+#include <variant>
+
 namespace phosphor::modbus::rtu::inventory
 {
 PHOSPHOR_LOG2_USING;
@@ -37,6 +40,37 @@ static auto fillAssetProperties(
             error("Unknown inventory data type");
             break;
     }
+}
+
+static auto matchesProbeValue(const std::vector<uint16_t>& readBuffer,
+                              const ProfileIntf::ProbeRegister& probe) -> bool
+{
+    return std::visit(
+        [&readBuffer](const auto& expected) -> bool {
+            using T = std::decay_t<decltype(expected)>;
+            if constexpr (std::is_same_v<T, uint64_t>)
+            {
+                uint64_t value = 0;
+                for (const auto& reg : readBuffer)
+                {
+                    value = (value << 16) | reg;
+                }
+                return value == expected;
+            }
+            else // std::string
+            {
+                std::string value;
+                for (const auto& reg : readBuffer)
+                {
+                    value += static_cast<char>((reg >> 8) & 0xFF);
+                    value += static_cast<char>(reg & 0xFF);
+                }
+                // Remove null characters
+                std::erase(value, '\0');
+                return value == expected;
+            }
+        },
+        probe.expectedValue);
 }
 
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
@@ -101,6 +135,28 @@ auto Device::checkAndClearDormant() -> bool
     return false;
 }
 
+auto Device::handleProbeFailed() -> sdbusplus::async::task<void>
+{
+    if (inventoryServer)
+    {
+        warning("Device {NAME} removed at {ADDRESS} due to probe failure",
+                "NAME", config.name, "ADDRESS", config.address);
+        inventoryServer->emit_removed();
+        inventoryServer.reset();
+        if (probeCallback)
+        {
+            co_await probeCallback(false);
+        }
+    }
+    else
+    {
+        dormant = true;
+        dormantSince = std::chrono::steady_clock::now();
+        debug("Device {NAME} at {ADDRESS} marked dormant", "NAME", config.name,
+              "ADDRESS", config.address);
+    }
+}
+
 auto Device::probeDevice() -> sdbusplus::async::task<void>
 {
     if (checkAndClearDormant())
@@ -113,51 +169,41 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     debug("Probing device {NAME} at {ADDRESS}", "NAME", config.name, "ADDRESS",
           config.address);
 
-    if (config.profile.inventoryRegisters.empty())
-    {
-        error("No inventory registers configured for {NAME}", "NAME",
-              config.name);
-        co_return;
-    }
-    auto probeRegister = config.profile.inventoryRegisters[0].offset;
-    auto registers =
-        std::vector<uint16_t>(config.profile.inventoryRegisters[0].size);
+    const auto& probe = config.profile.probeRegister;
+    auto registers = std::vector<uint16_t>(probe.size);
 
     auto ret = co_await port.readHoldingRegisters(
-        config.address, probeRegister, config.profile.baudRate,
+        config.address, probe.offset, config.profile.baudRate,
         config.profile.parity, registers);
-    if (ret)
+    if (!ret)
     {
-        if (!inventoryServer)
-        {
-            debug("Device {NAME} found at {ADDRESS}", "NAME", config.name,
-                  "ADDRESS", config.address);
-            co_await addInventoryServer();
-            if (probeCallback)
-            {
-                co_await probeCallback(true);
-            }
-        }
+        co_await handleProbeFailed();
+        co_return;
     }
-    else
+
+    if (!matchesProbeValue(registers, probe))
     {
-        if (inventoryServer)
+        if (!mismatchLogged)
         {
-            warning("Device {NAME} removed at {ADDRESS} due to probe failure",
+            warning("Device {NAME} at {ADDRESS} probe value mismatch, "
+                    "expected device not present",
                     "NAME", config.name, "ADDRESS", config.address);
-            inventoryServer->emit_removed();
-            inventoryServer.reset();
-            if (probeCallback)
-            {
-                co_await probeCallback(false);
-            }
+            mismatchLogged = true;
         }
-        else
+        dormant = true;
+        dormantSince = std::chrono::steady_clock::now();
+        co_return;
+    }
+
+    if (!inventoryServer)
+    {
+        debug("Device {NAME} found at {ADDRESS}", "NAME", config.name,
+              "ADDRESS", config.address);
+        mismatchLogged = false;
+        co_await addInventoryServer();
+        if (probeCallback)
         {
-            dormant = true;
-            dormantSince = std::chrono::steady_clock::now();
-            debug("Device {NAME} at {ADDRESS} marked dormant", "NAME",
-                  config.name, "ADDRESS", config.address);
+            co_await probeCallback(true);
         }
     }
 }

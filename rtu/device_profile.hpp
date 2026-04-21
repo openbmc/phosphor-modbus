@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace phosphor::modbus::rtu::profile
@@ -131,8 +132,16 @@ enum class DeviceModel
     unknown
 };
 
+struct ProbeRegister
+{
+    uint16_t offset = 0;
+    uint8_t size = 0;
+    std::variant<uint64_t, std::string> expectedValue;
+};
+
 struct DeviceProfile
 {
+    ProbeRegister probeRegister;
     Parity parity;
     uint32_t baudRate;
     std::vector<InventoryRegister> inventoryRegisters;
