@@ -77,6 +77,10 @@ class InventoryTest : public BaseTest
     ProfileIntf::DeviceProfile testProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
+        .probeRegister = {.offset =
+                              TestIntf::testReadHoldingRegisterModelOffset,
+                          .size = TestIntf::testReadHoldingRegisterModelCount,
+                          .expectedValue = std::string("RDF040DSS5190")},
         .inventoryRegisters =
             {{.name = "Model",
               .type = ProfileIntf::InventoryDataType::model,
@@ -91,6 +95,9 @@ class InventoryTest : public BaseTest
     ProfileIntf::DeviceProfile failProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
+        .probeRegister = {.offset = TestIntf::testFailureReadHoldingRegister,
+                          .size = 0x1,
+                          .expectedValue = uint64_t(0)},
         .inventoryRegisters = {{.name = "Unknown",
                                 .type = ProfileIntf::InventoryDataType::unknown,
                                 .offset =
@@ -105,11 +112,43 @@ class InventoryTest : public BaseTest
     ProfileIntf::DeviceProfile flakyProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = 115200,
+        .probeRegister = {.offset =
+                              TestIntf::testFlakyReadHoldingRegisterOffset,
+                          .size = TestIntf::testFlakyReadHoldingRegisterCount,
+                          .expectedValue = uint64_t(0x0050)},
         .inventoryRegisters =
             {{.name = "Flaky",
               .type = ProfileIntf::InventoryDataType::unknown,
               .offset = TestIntf::testFlakyReadHoldingRegisterOffset,
               .size = TestIntf::testFlakyReadHoldingRegisterCount}},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
+
+    // Profile with a null-padded string probe value: "AB" with trailing nulls
+    ProfileIntf::DeviceProfile nullPaddedProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = 115200,
+        .probeRegister =
+            {.offset = TestIntf::testReadHoldingRegisterNullPaddedOffset,
+             .size = TestIntf::testReadHoldingRegisterNullPaddedCount,
+             .expectedValue = std::string("AB")},
+        .inventoryRegisters = {},
+        .sensorRegisters = {},
+        .statusRegisters = {},
+        .firmwareRegisters = {},
+    };
+
+    // Profile where the read succeeds but value doesn't match
+    ProfileIntf::DeviceProfile mismatchProfile = {
+        .parity = ModbusIntf::Parity::none,
+        .baudRate = 115200,
+        .probeRegister = {.offset =
+                              TestIntf::testReadHoldingRegisterModelOffset,
+                          .size = TestIntf::testReadHoldingRegisterModelCount,
+                          .expectedValue = std::string("XXXXXX")},
+        .inventoryRegisters = {},
         .sensorRegisters = {},
         .statusRegisters = {},
         .firmwareRegisters = {},
@@ -148,7 +187,7 @@ class InventoryTest : public BaseTest
 
     auto testDormantSkippedAndExpires() -> sdbusplus::async::task<void>
     {
-        constexpr auto testDormantPeriod = std::chrono::seconds(2);
+        constexpr auto testDormantPeriod = std::chrono::seconds(1);
 
         auto devicePair = createDevice(failProfile, testDormantPeriod);
         auto& inventoryDevice = devicePair.second;
@@ -250,7 +289,7 @@ TEST_F(InventoryTest, TestDormantDeviceSkippedAndExpires)
 {
     ctx.spawn(testDormantSkippedAndExpires());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 6s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -280,6 +319,74 @@ TEST_F(InventoryTest, TestDiscoveredDeviceNotMarkedDormant)
         co_await inventoryDevice->probeDevice();
         EXPECT_FALSE(inventoryDevice->isDormant())
             << "Device should not be dormant after re-discovery";
+
+        co_return;
+    };
+
+    ctx.spawn(testProbe());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that a successful register read with a mismatched probe value
+// does not create an inventory object.
+TEST_F(InventoryTest, TestProbeValueMismatchNoInventoryObject)
+{
+    auto testProbe = [&]() -> sdbusplus::async::task<void> {
+        auto devicePair = createDevice(mismatchProfile);
+        auto& inventoryDevice = devicePair.second;
+
+        co_await inventoryDevice->probeDevice();
+
+        auto objPath = std::format(
+            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
+            deviceName, TestIntf::testDeviceAddress, portConfig.name);
+
+        bool exists = false;
+        try
+        {
+            co_await AssetClientIntf(ctx)
+                .service(serviceName)
+                .path(objPath)
+                .properties();
+            exists = true;
+        }
+        catch (...)
+        {
+            exists = false;
+        }
+
+        EXPECT_FALSE(exists)
+            << "Inventory object should not exist when probe value mismatches";
+
+        co_return;
+    };
+
+    ctx.spawn(testProbe());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that probe matching correctly strips multiple trailing null bytes
+// from register data when comparing against the expected string value.
+TEST_F(InventoryTest, TestProbeNullPaddedStringMatch)
+{
+    auto testProbe = [&]() -> sdbusplus::async::task<void> {
+        auto devicePair = createDevice(nullPaddedProfile);
+        auto& inventoryDevice = devicePair.second;
+
+        co_await inventoryDevice->probeDevice();
+
+        // Device should not be dormant — probe value "AB" should match
+        // after stripping nulls from {0x4142, 0x0000, 0x0000, 0x0000}
+        EXPECT_FALSE(inventoryDevice->isDormant())
+            << "Null-padded probe should match after stripping nulls";
 
         co_return;
     };

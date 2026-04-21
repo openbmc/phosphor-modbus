@@ -87,7 +87,7 @@ auto getConfig(sdbusplus::async::context& ctx,
     {
         profile = &ProfileIntf::getDeviceProfile(type);
     }
-    catch (const std::out_of_range& e)
+    catch (const std::exception& e)
     {
         error("No device profile for type {TYPE}: {ERROR}", "TYPE", type,
               "ERROR", e);

@@ -203,6 +203,7 @@ class DeviceEventsTest : public BaseTest
         return {
             .parity = ModbusIntf::Parity::none,
             .baudRate = baudRate,
+            .probeRegister = {},
             .inventoryRegisters = {},
             .sensorRegisters = {{
                 .name = sensorName,

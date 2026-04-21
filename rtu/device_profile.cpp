@@ -227,6 +227,21 @@ static auto parseProfileEntry(const std::filesystem::path& path)
     entry.deviceModel = lookupEnum(
         deviceModelMap, j.at("DeviceModel").get<std::string>(), "DeviceModel");
 
+    const auto& probe = j.at("ProbeRegister");
+    entry.profile.probeRegister.offset = probe.at("Offset").get<uint16_t>();
+    entry.profile.probeRegister.size = probe.at("Size").get<uint8_t>();
+    const auto& expectedValue = probe.at("ExpectedValue");
+    if (expectedValue.is_string())
+    {
+        entry.profile.probeRegister.expectedValue =
+            expectedValue.get<std::string>();
+    }
+    else
+    {
+        entry.profile.probeRegister.expectedValue =
+            expectedValue.get<uint64_t>();
+    }
+
     entry.profile.parity =
         lookupEnum(parityMap, j.at("Parity").get<std::string>(), "Parity");
     entry.profile.baudRate = j.at("BaudRate").get<uint32_t>();
