@@ -72,6 +72,20 @@ static const std::unordered_map<std::string, FirmwareRegisterType>
         {"Update", FirmwareRegisterType::update},
 };
 
+static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
+    {"FlowMeter", DeviceType::flowMeter},
+    {"HeatExchanger", DeviceType::heatExchanger},
+    {"PowerMonitorModule", DeviceType::powerMonitorModule},
+    {"ReservoirPumpUnit", DeviceType::reservoirPumpUnit},
+};
+
+static const std::unordered_map<std::string, DeviceModel> deviceModelMap = {
+    {"Artesyn7000433970000", DeviceModel::Artesyn7000433970000},
+    {"DeltaECD70000020", DeviceModel::DeltaECD70000020},
+    {"DeltaRDF040DSS5193E0", DeviceModel::DeltaRDF040DSS5193E0},
+    {"PanasonicBJBPM102A0001", DeviceModel::PanasonicBJBPM102A0001},
+};
+
 template <typename EnumType>
 static auto lookupEnum(const std::unordered_map<std::string, EnumType>& map,
                        const std::string& value, const std::string& fieldName)
@@ -189,7 +203,15 @@ static auto parseFirmwareRegisters(const json& j)
     return registers;
 }
 
-static auto parseProfile(const std::filesystem::path& path) -> DeviceProfile
+struct DeviceProfileEntry
+{
+    DeviceType deviceType;
+    DeviceModel deviceModel;
+    DeviceProfile profile;
+};
+
+static auto parseProfileEntry(const std::filesystem::path& path)
+    -> DeviceProfileEntry
 {
     std::ifstream file(path);
     if (!file.is_open())
@@ -199,36 +221,43 @@ static auto parseProfile(const std::filesystem::path& path) -> DeviceProfile
 
     auto j = json::parse(file);
 
-    DeviceProfile profile;
-    profile.parity =
+    DeviceProfileEntry entry;
+    entry.deviceType = lookupEnum(
+        deviceTypeMap, j.at("DeviceType").get<std::string>(), "DeviceType");
+    entry.deviceModel = lookupEnum(
+        deviceModelMap, j.at("DeviceModel").get<std::string>(), "DeviceModel");
+
+    entry.profile.parity =
         lookupEnum(parityMap, j.at("Parity").get<std::string>(), "Parity");
-    profile.baudRate = j.at("BaudRate").get<uint32_t>();
+    entry.profile.baudRate = j.at("BaudRate").get<uint32_t>();
 
     if (j.contains("InventoryRegisters"))
     {
-        profile.inventoryRegisters =
+        entry.profile.inventoryRegisters =
             parseInventoryRegisters(j["InventoryRegisters"]);
     }
     if (j.contains("SensorRegisters"))
     {
-        profile.sensorRegisters = parseSensorRegisters(j["SensorRegisters"]);
+        entry.profile.sensorRegisters =
+            parseSensorRegisters(j["SensorRegisters"]);
     }
     if (j.contains("StatusRegisters"))
     {
-        profile.statusRegisters = parseStatusRegisters(j["StatusRegisters"]);
+        entry.profile.statusRegisters =
+            parseStatusRegisters(j["StatusRegisters"]);
     }
     if (j.contains("FirmwareRegisters"))
     {
-        profile.firmwareRegisters =
+        entry.profile.firmwareRegisters =
             parseFirmwareRegisters(j["FirmwareRegisters"]);
     }
 
-    return profile;
+    return entry;
 }
 
-static std::unordered_map<std::string, DeviceProfile> deviceProfiles;
+static std::unordered_map<std::string, DeviceProfileEntry> deviceProfiles;
 
-auto getDeviceProfile(std::string_view type) -> const DeviceProfile&
+static auto findEntry(std::string_view type) -> const DeviceProfileEntry&
 {
     auto key = std::string(type);
     auto it = deviceProfiles.find(key);
@@ -238,12 +267,41 @@ auto getDeviceProfile(std::string_view type) -> const DeviceProfile&
     }
 
     auto path = std::filesystem::path(profileDir) / (key + ".json");
-    auto [inserted, success] = deviceProfiles.emplace(key, parseProfile(path));
+    auto [inserted,
+          success] = deviceProfiles.emplace(key, parseProfileEntry(path));
     if (!success)
     {
         throw std::runtime_error("Failed to cache profile: " + key);
     }
     return inserted->second;
+}
+
+auto getDeviceProfile(std::string_view type) -> const DeviceProfile&
+{
+    return findEntry(type).profile;
+}
+
+auto getDeviceType(std::string_view type) -> DeviceType
+{
+    return findEntry(type).deviceType;
+}
+
+auto getDeviceModel(std::string_view type) -> DeviceModel
+{
+    return findEntry(type).deviceModel;
+}
+
+auto getProfileNames() -> std::vector<std::string>
+{
+    std::vector<std::string> names;
+    for (const auto& entry : std::filesystem::directory_iterator(profileDir))
+    {
+        if (entry.path().extension() == ".json")
+        {
+            names.emplace_back(entry.path().stem().string());
+        }
+    }
+    return names;
 }
 
 } // namespace phosphor::modbus::rtu::profile
