@@ -9,10 +9,8 @@ namespace phosphor::modbus::rtu::inventory
 PHOSPHOR_LOG2_USING;
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
-namespace ProfileIntf = phosphor::modbus::rtu::profile;
-
-static auto fillInventorySourceProperties(
-    InventorySourceIntf::properties_t& properties,
+static auto fillAssetProperties(
+    InventoryServer::AssetIntf::properties_t& properties,
     ProfileIntf::InventoryDataType type, std::string& value) -> void
 {
     switch (type)
@@ -130,11 +128,11 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
         config.profile.parity, registers);
     if (ret)
     {
-        if (!inventorySource)
+        if (!inventoryServer)
         {
             debug("Device {NAME} found at {ADDRESS}", "NAME", config.name,
                   "ADDRESS", config.address);
-            co_await addInventorySource();
+            co_await addInventoryServer();
             if (probeCallback)
             {
                 co_await probeCallback(true);
@@ -143,12 +141,12 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     }
     else
     {
-        if (inventorySource)
+        if (inventoryServer)
         {
             warning("Device {NAME} removed at {ADDRESS} due to probe failure",
                     "NAME", config.name, "ADDRESS", config.address);
-            inventorySource->emit_removed();
-            inventorySource.reset();
+            inventoryServer->emit_removed();
+            inventoryServer.reset();
             if (probeCallback)
             {
                 co_await probeCallback(false);
@@ -164,9 +162,9 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     }
 }
 
-auto Device::addInventorySource() -> sdbusplus::async::task<void>
+auto Device::addInventoryServer() -> sdbusplus::async::task<void>
 {
-    InventorySourceIntf::properties_t properties;
+    InventoryServer::AssetIntf::properties_t assetProps;
 
     for (const auto& span : registerSpans)
     {
@@ -200,27 +198,25 @@ auto Device::addInventorySource() -> sdbusplus::async::task<void>
                 strValue += static_cast<char>(value & 0xFF);
             }
 
-            fillInventorySourceProperties(properties, reg.type, strValue);
+            fillAssetProperties(assetProps, reg.type, strValue);
         }
     }
 
-    auto pathSuffix = config.name + " " + std::to_string(config.address) + " " +
+    InventoryServer::ChassisIntf::properties_t chassisProps{
+        .type = InventoryServer::ChassisIntf::ChassisType::Module};
+
+    InventoryServer::AssocIntf::properties_t assocProps{};
+
+    auto pathSuffix = config.name + "_" + std::to_string(config.address) + "_" +
                       config.serialPort;
 
-    properties.name = pathSuffix;
-    properties.address = config.address;
-    properties.link_tty = config.serialPort;
+    auto objectPath = std::string(inventoryServerPath) + "/" + pathSuffix;
 
-    std::replace(pathSuffix.begin(), pathSuffix.end(), ' ', '_');
+    inventoryServer = std::make_unique<InventoryServer>(
+        ctx, objectPath.c_str(), chassisProps, assetProps, assocProps);
+    inventoryServer->emit_added();
 
-    auto objectPath =
-        std::string(InventorySourceIntf::namespace_path) + "/" + pathSuffix;
-
-    inventorySource = std::make_unique<InventorySourceIntf>(
-        ctx, objectPath.c_str(), properties);
-    inventorySource->emit_added();
-
-    info("Added InventorySource at {PATH}", "PATH", objectPath);
+    info("Added inventory object at {PATH}", "PATH", objectPath);
 }
 
 } // namespace phosphor::modbus::rtu::inventory
