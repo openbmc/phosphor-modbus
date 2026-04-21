@@ -113,6 +113,15 @@ struct FirmwareRegister
     uint8_t size = 0;
 };
 
+enum class DeviceType
+{
+    flowMeter,
+    heatExchanger,
+    powerMonitorModule,
+    reservoirPumpUnit,
+    unknown
+};
+
 enum class DeviceModel
 {
     Artesyn7000433970000,
@@ -136,5 +145,16 @@ struct DeviceProfile
  *  @param type The device type string (e.g., "DeltaRDF040DSS5193E0RPU").
  *  @throws std::out_of_range if type is not found. */
 auto getDeviceProfile(std::string_view type) -> const DeviceProfile&;
+
+/** @brief Returns the DeviceType for a given interface name.
+ *  @throws std::out_of_range if type is not found. */
+auto getDeviceType(std::string_view type) -> DeviceType;
+
+/** @brief Returns the DeviceModel for a given interface name.
+ *  @throws std::out_of_range if type is not found. */
+auto getDeviceModel(std::string_view type) -> DeviceModel;
+
+/** @brief Returns all device profile names. */
+auto getProfileNames() -> std::vector<std::string>;
 
 } // namespace phosphor::modbus::rtu::profile

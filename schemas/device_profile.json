@@ -2,9 +2,27 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ModbusRTUDeviceProfile",
     "type": "object",
-    "required": ["Parity", "BaudRate"],
+    "required": ["DeviceType", "DeviceModel", "Parity", "BaudRate"],
     "additionalProperties": false,
     "properties": {
+        "DeviceType": {
+            "type": "string",
+            "enum": [
+                "FlowMeter",
+                "HeatExchanger",
+                "PowerMonitorModule",
+                "ReservoirPumpUnit"
+            ]
+        },
+        "DeviceModel": {
+            "type": "string",
+            "enum": [
+                "Artesyn7000433970000",
+                "DeltaECD70000020",
+                "DeltaRDF040DSS5193E0",
+                "PanasonicBJBPM102A0001"
+            ]
+        },
         "Parity": {
             "type": "string",
             "enum": ["None", "Even", "Odd"]
