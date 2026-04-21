@@ -56,6 +56,26 @@ class BaseDevice
 
     auto readSensorRegisters() -> sdbusplus::async::task<void>;
 
+    /** @brief Request the sensor polling coroutine to stop. */
+    auto stop() -> void
+    {
+        stopped = true;
+    }
+
+    /** @brief Returns true after the sensor polling coroutine has exited. */
+    auto isFinished() const -> bool
+    {
+        return finished;
+    }
+
+    /** @brief Reset stop/finished flags so the polling loop can be
+     *         restarted. */
+    auto restart() -> void
+    {
+        stopped = false;
+        finished = false;
+    }
+
   private:
     // Pre-computed pairing of register config and its corresponding sensor,
     // built at construction to avoid map lookups on every poll cycle.
@@ -95,6 +115,8 @@ class BaseDevice
     sensors_map_t sensors;
     std::vector<SensorEntry> sensorEntries;
     std::vector<SensorBucket> sensorBuckets;
+    bool stopped = false;
+    bool finished = false;
 };
 
 } // namespace phosphor::modbus::rtu::device
