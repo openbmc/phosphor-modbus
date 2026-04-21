@@ -47,7 +47,7 @@ struct DeviceTestConfig
 {
     std::string devicePrefix;
     std::string inventoryPath;
-    DeviceConfigIntf::DeviceType deviceType;
+    ProfileIntf::DeviceType deviceType;
     ProfileIntf::DeviceModel deviceModel;
 };
 
@@ -193,7 +193,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
@@ -220,7 +220,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
@@ -256,7 +256,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
@@ -288,7 +288,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
     setupDevice({
         "PowerMonitorModule",
         "xyz/openbmc_project/Inventory/PowerMonitorModule",
-        DeviceConfigIntf::DeviceType::powerMonitorModule,
+        ProfileIntf::DeviceType::powerMonitorModule,
         ProfileIntf::DeviceModel::PanasonicBJBPM102A0001,
     });
 
@@ -317,7 +317,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
@@ -385,7 +385,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
@@ -455,7 +455,7 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
     setupDevice({
         "ResorviorPumpUnit",
         "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceType::reservoirPumpUnit,
         ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
     });
 
