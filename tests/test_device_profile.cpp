@@ -10,6 +10,8 @@ using namespace phosphor::modbus::rtu::profile;
 
 static constexpr auto testProfileName = "TestProfile";
 static constexpr auto testProfileJson = R"({
+    "DeviceType": "ReservoirPumpUnit",
+    "DeviceModel": "DeltaRDF040DSS5193E0",
     "Parity": "Even",
     "BaudRate": 9600,
     "InventoryRegisters": [
@@ -183,4 +185,35 @@ TEST_F(DeviceProfileTest, LoadsRPUProfile)
 TEST_F(DeviceProfileTest, UnknownTypeThrows)
 {
     EXPECT_THROW(getDeviceProfile("NonExistentDevice"), std::runtime_error);
+}
+
+TEST_F(DeviceProfileTest, GetDeviceTypeReturnsCorrectType)
+{
+    EXPECT_EQ(getDeviceType("DeltaRDF040DSS5193E0ReservoirPumpUnit"),
+              DeviceType::reservoirPumpUnit);
+}
+
+TEST_F(DeviceProfileTest, GetDeviceTypeUnknownThrows)
+{
+    EXPECT_THROW(getDeviceType("NonExistentDevice"), std::runtime_error);
+}
+
+TEST_F(DeviceProfileTest, GetDeviceModelReturnsCorrectModel)
+{
+    EXPECT_EQ(getDeviceModel("DeltaRDF040DSS5193E0ReservoirPumpUnit"),
+              DeviceModel::DeltaRDF040DSS5193E0);
+}
+
+TEST_F(DeviceProfileTest, GetDeviceModelUnknownThrows)
+{
+    EXPECT_THROW(getDeviceModel("NonExistentDevice"), std::runtime_error);
+}
+
+TEST_F(DeviceProfileTest, GetProfileNamesScansDirectory)
+{
+    auto names = getProfileNames();
+    EXPECT_FALSE(names.empty());
+    EXPECT_NE(std::find(names.begin(), names.end(),
+                        "DeltaRDF040DSS5193E0ReservoirPumpUnit"),
+              names.end());
 }

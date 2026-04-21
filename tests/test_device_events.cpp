@@ -233,7 +233,7 @@ class DeviceEventsTest : public BaseTest
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
                 .profile = testProfile,
             },
-            DeviceConfigIntf::DeviceType::reservoirPumpUnit,
+            ProfileIntf::DeviceType::reservoirPumpUnit,
             ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
         };
         EventIntf::Events events{ctx};
