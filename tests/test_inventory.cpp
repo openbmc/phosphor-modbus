@@ -3,14 +3,17 @@
 #include "port/base_port.hpp"
 #include "test_base.hpp"
 
-#include <xyz/openbmc_project/Inventory/Source/Modbus/FRU/client.hpp>
+#include <xyz/openbmc_project/Inventory/Decorator/Asset/client.hpp>
+#include <xyz/openbmc_project/Inventory/Item/Chassis/client.hpp>
 
 #include <gtest/gtest.h>
 
 using namespace std::literals;
 using namespace testing;
-using InventorySourceIntf =
-    sdbusplus::client::xyz::openbmc_project::inventory::source::modbus::FRU<>;
+using AssetClientIntf =
+    sdbusplus::client::xyz::openbmc_project::inventory::decorator::Asset<>;
+using ChassisClientIntf =
+    sdbusplus::client::xyz::openbmc_project::inventory::item::Chassis<>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
@@ -112,7 +115,7 @@ class InventoryTest : public BaseTest
         .firmwareRegisters = {},
     };
 
-    auto testInventorySourceCreation(std::string objPath)
+    auto testInventoryObjectCreation(std::string objPath)
         -> sdbusplus::async::task<void>
     {
         auto devicePair = createDevice(testProfile);
@@ -120,25 +123,25 @@ class InventoryTest : public BaseTest
 
         co_await inventoryDevice->startProbing();
 
-        // Create InventorySource client interface to read back D-Bus properties
-        auto properties = co_await InventorySourceIntf(ctx)
+        // Read back Asset properties from D-Bus
+        auto assetProps = co_await AssetClientIntf(ctx)
                               .service(serviceName)
                               .path(objPath)
                               .properties();
 
-        constexpr auto defaultInventoryValue = "Unknown";
-
-        EXPECT_EQ(properties.name,
-                  std::format("{} {} {}", deviceName,
-                              TestIntf::testDeviceAddress, portConfig.name))
-            << "Name mismatch";
-        EXPECT_EQ(properties.address, TestIntf::testDeviceAddress)
-            << "Address mismatch";
-        EXPECT_EQ(properties.link_tty, portConfig.name) << "Link TTY mismatch";
-        EXPECT_EQ(properties.model, TestIntf::testReadHoldingRegisterModelStr)
+        EXPECT_EQ(assetProps.model, TestIntf::testReadHoldingRegisterModelStr)
             << "Model mismatch";
-        EXPECT_EQ(properties.serial_number, defaultInventoryValue)
-            << "Part Number mismatch";
+        EXPECT_EQ(assetProps.serial_number, "") << "Serial number mismatch";
+
+        // Read back Chassis properties from D-Bus
+        auto chassisProps = co_await ChassisClientIntf(ctx)
+                                .service(serviceName)
+                                .path(objPath)
+                                .properties();
+
+        using ChassisType = ChassisClientIntf::ChassisType;
+        EXPECT_EQ(chassisProps.type, ChassisType::Module)
+            << "Chassis type mismatch";
 
         co_return;
     }
@@ -184,13 +187,13 @@ class InventoryTest : public BaseTest
     }
 };
 
-TEST_F(InventoryTest, TestAddInventorySource)
+TEST_F(InventoryTest, TestAddInventoryObject)
 {
     auto objPath =
-        std::format("{}/{}_{}_{}", InventorySourceIntf::namespace_path,
+        std::format("{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
                     deviceName, TestIntf::testDeviceAddress, portConfig.name);
 
-    ctx.spawn(testInventorySourceCreation(objPath));
+    ctx.spawn(testInventoryObjectCreation(objPath));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
@@ -198,8 +201,8 @@ TEST_F(InventoryTest, TestAddInventorySource)
     ctx.run();
 }
 
-// Verify that a failed probe does not create an inventory source on D-Bus.
-TEST_F(InventoryTest, TestNonRespondingAddressNoInventorySource)
+// Verify that a failed probe does not create an inventory object on D-Bus.
+TEST_F(InventoryTest, TestNonRespondingAddressNoInventoryObject)
 {
     auto testProbe = [&]() -> sdbusplus::async::task<void> {
         auto devicePair = createDevice(failProfile);
@@ -208,13 +211,13 @@ TEST_F(InventoryTest, TestNonRespondingAddressNoInventorySource)
         co_await inventoryDevice->startProbing();
 
         auto objPath = std::format(
-            "{}/{}_{}_{}", InventorySourceIntf::namespace_path, deviceName,
-            TestIntf::testDeviceAddress, portConfig.name);
+            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
+            deviceName, TestIntf::testDeviceAddress, portConfig.name);
 
         bool exists = false;
         try
         {
-            co_await InventorySourceIntf(ctx)
+            co_await AssetClientIntf(ctx)
                 .service(serviceName)
                 .path(objPath)
                 .properties();
@@ -226,7 +229,7 @@ TEST_F(InventoryTest, TestNonRespondingAddressNoInventorySource)
         }
 
         EXPECT_FALSE(exists)
-            << "Inventory source should not exist for failed probe";
+            << "Inventory object should not exist for failed probe";
 
         co_return;
     };
