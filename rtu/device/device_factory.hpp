@@ -20,19 +20,10 @@ enum class DeviceType
     unknown
 };
 
-enum class DeviceModel
-{
-    DeltaRDF040DSS5193E0,
-    PanasonicBJBPM102A0001,
-    Artesyn7000433970000,
-    DeltaECD70000020,
-    unknown
-};
-
 struct DeviceFactoryConfig : public Config
 {
     DeviceType deviceType = DeviceType::unknown;
-    DeviceModel deviceModel = DeviceModel::unknown;
+    ProfileIntf::DeviceModel deviceModel = ProfileIntf::DeviceModel::unknown;
 };
 
 } // namespace config
