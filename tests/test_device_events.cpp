@@ -234,7 +234,7 @@ class DeviceEventsTest : public BaseTest
                 .profile = testProfile,
             },
             DeviceConfigIntf::DeviceType::reservoirPumpUnit,
-            DeviceConfigIntf::DeviceModel::DeltaRDF040DSS5193E0,
+            ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
         };
         EventIntf::Events events{ctx};
         MockPort mockPort(ctx, portConfig, clientDevicePath);
