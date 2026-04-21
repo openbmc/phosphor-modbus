@@ -39,6 +39,7 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
     events(ctx)
 {
     ctx.spawn(entityManager.handleInventoryGet());
+    ctx.spawn(cleanupStoppedDevices());
     info("DeviceManager created successfully");
 }
 
@@ -129,7 +130,13 @@ auto DeviceManager::processInventoryAdded(
         }
         else
         {
-            // TODO: Remove sensor device on probe failure
+            auto iter = devices.find(config.name);
+            if (iter != devices.end())
+            {
+                iter->second->stop();
+                debug("Requested sensor device {NAME} to stop", "NAME",
+                      config.name);
+            }
         }
     };
 
@@ -151,9 +158,20 @@ auto DeviceManager::processInventoryAdded(
 auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
     -> sdbusplus::async::task<>
 {
-    if (devices.contains(config.name))
+    auto iter = devices.find(config.name);
+    if (iter != devices.end())
     {
-        debug("Device {NAME} already exists, skipping", "NAME", config.name);
+        if (iter->second->isFinished())
+        {
+            info("Restarting sensor device {NAME}", "NAME", config.name);
+            iter->second->restart();
+            ctx.spawn(iter->second->readSensorRegisters());
+        }
+        else
+        {
+            debug("Device {NAME} already exists, skipping", "NAME",
+                  config.name);
+        }
         co_return;
     }
 
@@ -177,6 +195,25 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
         error("Failed to create Device for {NAME} with {ERROR}", "NAME",
               config.name, "ERROR", e);
         co_return;
+    }
+}
+
+auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
+{
+    constexpr auto cleanupInterval = std::chrono::seconds(3);
+    while (!ctx.stop_requested())
+    {
+        co_await sdbusplus::async::sleep_for(ctx, cleanupInterval);
+
+        std::erase_if(devices, [](const auto& entry) {
+            if (entry.second->isFinished())
+            {
+                lg2::info("Removing finished sensor device {NAME}", "NAME",
+                          entry.first);
+                return true;
+            }
+            return false;
+        });
     }
 }
 
