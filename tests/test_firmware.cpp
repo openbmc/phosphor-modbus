@@ -81,6 +81,7 @@ class FirmwareTest : public BaseTest
         ProfileIntf::DeviceProfile testProfile = {
             .parity = ModbusIntf::Parity::none,
             .baudRate = baudRate,
+            .probeRegister = {},
             .inventoryRegisters = {},
             .sensorRegisters = {},
             .statusRegisters = {},

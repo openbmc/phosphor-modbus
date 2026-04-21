@@ -55,6 +55,12 @@ constexpr uint16_t testReadHoldingRegisterDistantOffset = 0x0200;
 constexpr uint16_t testReadHoldingRegisterDistantCount = 0x1;
 const std::vector<uint16_t> testReadHoldingRegisterDistant = {0x00C8}; // 200
 
+// Null-padded string register for probe testing: "AB" followed by nulls
+constexpr uint16_t testReadHoldingRegisterNullPaddedOffset = 0x0300;
+constexpr uint16_t testReadHoldingRegisterNullPaddedCount = 0x4;
+const std::vector<uint16_t> testReadHoldingRegisterNullPadded = {
+    0x4142, 0x0000, 0x0000, 0x0000}; // "AB" + 6 null bytes
+
 // Device Firmware Testing Constants
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionOffset = 0x0115;
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionCount = 0x2;
@@ -92,7 +98,10 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
          {testReadHoldingRegisterFirmwareVersionCount,
           testReadHoldingRegisterFirmwareVersion}},
         {testReadHoldingRegisterEventOffset,
-         {testReadHoldingRegisterEventCount, testReadHoldingRegisterEvent}}};
+         {testReadHoldingRegisterEventCount, testReadHoldingRegisterEvent}},
+        {testReadHoldingRegisterNullPaddedOffset,
+         {testReadHoldingRegisterNullPaddedCount,
+          testReadHoldingRegisterNullPadded}}};
 
 class ServerTester
 {
