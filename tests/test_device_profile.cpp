@@ -14,6 +14,11 @@ static constexpr auto testProfileJson = R"({
     "DeviceModel": "DeltaRDF040DSS5193E0",
     "Parity": "Even",
     "BaudRate": 9600,
+    "ProbeRegister": {
+        "Offset": 50,
+        "Size": 2,
+        "ExpectedValue": "TestDevice"
+    },
     "InventoryRegisters": [
         {
             "Name": "TestModel",

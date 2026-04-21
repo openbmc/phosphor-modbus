@@ -2,7 +2,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ModbusRTUDeviceProfile",
     "type": "object",
-    "required": ["DeviceType", "DeviceModel", "Parity", "BaudRate"],
+    "required": [
+        "DeviceType",
+        "DeviceModel",
+        "Parity",
+        "BaudRate",
+        "ProbeRegister"
+    ],
     "additionalProperties": false,
     "properties": {
         "DeviceType": {
@@ -29,6 +35,18 @@
         },
         "BaudRate": {
             "type": "integer"
+        },
+        "ProbeRegister": {
+            "type": "object",
+            "required": ["Offset", "Size", "ExpectedValue"],
+            "additionalProperties": false,
+            "properties": {
+                "Offset": { "type": "integer" },
+                "Size": { "type": "integer" },
+                "ExpectedValue": {
+                    "oneOf": [{ "type": "integer" }, { "type": "string" }]
+                }
+            }
         },
         "InventoryRegisters": {
             "type": "array",

@@ -165,6 +165,21 @@ static auto parseStatusRegisters(const json& j)
     return statusRegisters;
 }
 
+static void from_json(const json& j, ProbeRegister& r)
+{
+    r.offset = j.at("Offset").get<uint16_t>();
+    r.size = j.at("Size").get<uint8_t>();
+    const auto& expectedValue = j.at("ExpectedValue");
+    if (expectedValue.is_string())
+    {
+        r.expectedValue = expectedValue.get<std::string>();
+    }
+    else
+    {
+        r.expectedValue = expectedValue.get<uint64_t>();
+    }
+}
+
 static void from_json(const json& j, FirmwareRegister& r)
 {
     r.name = j.at("Name").get<std::string>();
@@ -199,6 +214,8 @@ static auto parseProfileEntry(const std::filesystem::path& path)
         deviceTypeMap, j.at("DeviceType").get<std::string>(), "DeviceType");
     entry.deviceModel = lookupEnum(
         deviceModelMap, j.at("DeviceModel").get<std::string>(), "DeviceModel");
+
+    entry.profile.probeRegister = j.at("ProbeRegister").get<ProbeRegister>();
 
     entry.profile.parity =
         lookupEnum(parityMap, j.at("Parity").get<std::string>(), "Parity");
