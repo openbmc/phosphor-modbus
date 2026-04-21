@@ -113,6 +113,15 @@ struct FirmwareRegister
     uint8_t size = 0;
 };
 
+enum class DeviceModel
+{
+    Artesyn7000433970000,
+    DeltaECD70000020,
+    DeltaRDF040DSS5193E0,
+    PanasonicBJBPM102A0001,
+    unknown
+};
+
 struct DeviceProfile
 {
     Parity parity;
