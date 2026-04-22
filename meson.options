@@ -53,3 +53,10 @@ option(
     description: 'Maximum number of registers in a single Modbus read span. Contiguous registers are merged into one read up to this limit.',
 )
 
+option(
+    'device-cleanup-interval-seconds',
+    type: 'integer',
+    value: 3,
+    description: 'Interval in seconds for the periodic cleanup loop that removes finished devices.',
+)
+
