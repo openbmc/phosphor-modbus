@@ -20,6 +20,10 @@ conf.set(
     'MAX_REGISTER_SPAN_LENGTH',
     get_option('max-register-span-length'),
 )
+conf.set(
+    'DEVICE_CLEANUP_INTERVAL_SECONDS',
+    get_option('device-cleanup-interval-seconds'),
+)
 configure_file(
     input: 'modbus_rtu_config.hpp.in',
     output: 'modbus_rtu_config.hpp',
