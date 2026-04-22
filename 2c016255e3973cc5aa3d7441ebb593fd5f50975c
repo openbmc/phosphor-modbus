@@ -34,6 +34,41 @@
       "parentUuid": "53966328_0e0208cd",
       "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9ef1e7f_0ca5d35f",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-22T22:29:38Z",
+      "side": 1,
+      "message": "It might really help if you convert readHoldingRegisters() to take in a std::span\u003cuint16_t\u003e instead of a std::vector\u003cuint16_t\u003e.",
+      "parentUuid": "65005799_37d2c7f2",
+      "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bf189829_61ca9e2f",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-22T22:29:38Z",
+      "side": 1,
+      "message": "[perf-nit] this will end up allocating. Can we use std::span(begin(), end()) instead? That would avoid the allocation. Buut then getRawIntegerFromRegister needs to be modified to take in a span. I suspect we can auto-convert from vector -\u003e span but not the other way around.",
+      "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
