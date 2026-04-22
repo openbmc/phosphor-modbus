@@ -51,8 +51,7 @@ static auto parseConfig(const ConfigMap& configMap,
 {
     try
     {
-        auto name = getValue<std::string>(configMap, "Name", interfaceName);
-        std::replace(name.begin(), name.end(), ' ', '_');
+        auto name = std::string(objectPath.filename());
 
         auto address = getValue<uint64_t>(configMap, "Address", name);
 
