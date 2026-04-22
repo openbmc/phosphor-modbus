@@ -95,6 +95,18 @@ class Device
         return dormant;
     }
 
+    /** @brief Request the probing coroutine to stop. */
+    auto stop() -> void
+    {
+        stopped = true;
+    }
+
+    /** @brief Returns true after the probing coroutine has exited. */
+    auto isFinished() const -> bool
+    {
+        return finished;
+    }
+
     static constexpr auto inventoryServerPath =
         "/xyz/openbmc_project/inventory/system/chassis";
 
@@ -105,6 +117,8 @@ class Device
      *         for a previously discovered device, or marks an undiscovered
      *         device as dormant. */
     auto handleProbeFailed() -> sdbusplus::async::task<void>;
+
+    auto isRunning() const -> bool;
 
     /** @brief Returns true if the device is still within its dormant period
      *         and should be skipped. Returns false if the device is not dormant
@@ -124,6 +138,8 @@ class Device
     std::chrono::steady_clock::time_point dormantSince;
     /** @brief Whether the probe value mismatch warning has been logged */
     bool mismatchLogged = false;
+    bool stopped = false;
+    bool finished = false;
     std::vector<RegisterSpan> registerSpans;
 };
 

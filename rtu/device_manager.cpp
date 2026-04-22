@@ -107,7 +107,9 @@ auto DeviceManager::processInventoryAdded(
         co_return;
     }
 
-    if (inventoryDevices.contains(config->name))
+    auto inventoryIter = inventoryDevices.find(config->name);
+    if (inventoryIter != inventoryDevices.end() &&
+        !inventoryIter->second->isFinished())
     {
         debug("Inventory device {NAME} already exists, skipping", "NAME",
               config->name);
@@ -208,8 +210,18 @@ auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
         std::erase_if(devices, [](const auto& entry) {
             if (entry.second->isFinished())
             {
-                lg2::info("Removing finished sensor device {NAME}", "NAME",
-                          entry.first);
+                info("Removing finished sensor device {NAME}", "NAME",
+                     entry.first);
+                return true;
+            }
+            return false;
+        });
+
+        std::erase_if(inventoryDevices, [](const auto& entry) {
+            if (entry.second->isFinished())
+            {
+                info("Removing finished inventory device {NAME}", "NAME",
+                     entry.first);
                 return true;
             }
             return false;
@@ -218,10 +230,20 @@ auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
 }
 
 auto DeviceManager::processConfigRemoved(
-    const sdbusplus::object_path& /*unused*/, const std::string& /*unused*/)
-    -> sdbusplus::async::task<>
+    const sdbusplus::object_path& objectPath,
+    const std::string& /*interfaceName*/) -> sdbusplus::async::task<>
 {
-    // TODO: Implement this
+    auto name = objectPath.filename();
+    info("Config removed for device {NAME}", "NAME", name);
+
+    // Stop inventory device — its probing coroutine will clean up the
+    // inventory D-Bus object and stop the sensor device via the probe
+    // callback. Both are cleaned up by the regular cleanup loop.
+    auto inventoryIter = inventoryDevices.find(name);
+    if (inventoryIter != inventoryDevices.end())
+    {
+        inventoryIter->second->stop();
+    }
     co_return;
 }
 
