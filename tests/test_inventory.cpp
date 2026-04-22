@@ -154,13 +154,34 @@ class InventoryTest : public BaseTest
         .firmwareRegisters = {},
     };
 
+    auto checkInventoryObjectExists(const std::string& objPath)
+        -> sdbusplus::async::task<bool>
+    {
+        try
+        {
+            co_await AssetClientIntf(ctx)
+                .service(serviceName)
+                .path(objPath)
+                .properties();
+            co_return true;
+        }
+        catch (...)
+        {
+            co_return false;
+        }
+    }
+
     auto testInventoryObjectCreation(std::string objPath)
         -> sdbusplus::async::task<void>
     {
         auto devicePair = createDevice(testProfile);
         auto& inventoryDevice = devicePair.second;
 
-        co_await inventoryDevice->startProbing();
+        // Start probing in a concurrent coroutine
+        ctx.spawn(inventoryDevice->startProbing());
+
+        // Wait for the first probe to complete and create the D-Bus object
+        co_await sdbusplus::async::sleep_for(ctx, 1s);
 
         // Read back Asset properties from D-Bus
         auto assetProps = co_await AssetClientIntf(ctx)
@@ -181,6 +202,14 @@ class InventoryTest : public BaseTest
         using ChassisType = ChassisClientIntf::ChassisType;
         EXPECT_EQ(chassisProps.type, ChassisType::Module)
             << "Chassis type mismatch";
+
+        // Stop probing and wait for the coroutine to finish before the
+        // device is destroyed
+        inventoryDevice->stop();
+        while (!inventoryDevice->isFinished())
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 1s);
+        }
 
         co_return;
     }
@@ -234,7 +263,7 @@ TEST_F(InventoryTest, TestAddInventoryObject)
 
     ctx.spawn(testInventoryObjectCreation(objPath));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -253,21 +282,7 @@ TEST_F(InventoryTest, TestNonRespondingAddressNoInventoryObject)
             "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
             deviceName, TestIntf::testDeviceAddress, portConfig.name);
 
-        bool exists = false;
-        try
-        {
-            co_await AssetClientIntf(ctx)
-                .service(serviceName)
-                .path(objPath)
-                .properties();
-            exists = true;
-        }
-        catch (...)
-        {
-            exists = false;
-        }
-
-        EXPECT_FALSE(exists)
+        EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist for failed probe";
 
         co_return;
@@ -345,21 +360,7 @@ TEST_F(InventoryTest, TestProbeValueMismatchNoInventoryObject)
             "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
             deviceName, TestIntf::testDeviceAddress, portConfig.name);
 
-        bool exists = false;
-        try
-        {
-            co_await AssetClientIntf(ctx)
-                .service(serviceName)
-                .path(objPath)
-                .properties();
-            exists = true;
-        }
-        catch (...)
-        {
-            exists = false;
-        }
-
-        EXPECT_FALSE(exists)
+        EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist when probe value mismatches";
 
         co_return;
@@ -394,6 +395,53 @@ TEST_F(InventoryTest, TestProbeNullPaddedStringMatch)
     ctx.spawn(testProbe());
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that calling stop() causes the probing coroutine to exit,
+// sets isFinished() to true, and cleans up the inventory D-Bus object.
+TEST_F(InventoryTest, TestStopDeviceExitsAndCleansUp)
+{
+    auto testStop = [&]() -> sdbusplus::async::task<void> {
+        auto devicePair = createDevice(testProfile);
+        auto& inventoryDevice = devicePair.second;
+
+        EXPECT_FALSE(inventoryDevice->isFinished())
+            << "Device should not be finished yet";
+
+        // Probe once to create the inventory D-Bus object
+        co_await inventoryDevice->probeDevice();
+
+        auto objPath = std::format(
+            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
+            deviceName, TestIntf::testDeviceAddress, portConfig.name);
+
+        // Verify inventory object exists on D-Bus
+        EXPECT_TRUE(co_await checkInventoryObjectExists(objPath))
+            << "Inventory object should exist after probe";
+
+        // Start probing loop and then stop it
+        ctx.spawn(inventoryDevice->startProbing());
+        inventoryDevice->stop();
+
+        // Wait for coroutine to exit
+        while (!inventoryDevice->isFinished())
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 100ms);
+        }
+
+        // Verify inventory D-Bus object was cleaned up
+        EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
+            << "Inventory object should be removed after stop";
+
+        co_return;
+    };
+
+    ctx.spawn(testStop());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
