@@ -1,6 +1,7 @@
 #include "device_manager.hpp"
 
 #include "device/device_factory.hpp"
+#include "modbus_rtu_config.hpp"
 #include "port/port_factory.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -202,10 +203,9 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
 
 auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
 {
-    constexpr auto cleanupInterval = std::chrono::seconds(3);
     while (!ctx.stop_requested())
     {
-        co_await sdbusplus::async::sleep_for(ctx, cleanupInterval);
+        co_await sdbusplus::async::sleep_for(ctx, deviceCleanupInterval);
 
         std::erase_if(devices, [](const auto& entry) {
             if (entry.second->isFinished())
