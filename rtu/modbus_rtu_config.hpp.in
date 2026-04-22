@@ -21,4 +21,7 @@ inline constexpr auto inventoryDormantProbeInterval =
 inline constexpr uint16_t maxRegisterSpanLength =
     @MAX_REGISTER_SPAN_LENGTH@;
 
+inline constexpr auto deviceCleanupInterval =
+    std::chrono::seconds(@DEVICE_CLEANUP_INTERVAL_SECONDS@);
+
 } // namespace phosphor::modbus::rtu
