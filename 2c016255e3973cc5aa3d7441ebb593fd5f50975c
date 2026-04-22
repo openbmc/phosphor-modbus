@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53966328_0e0208cd",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-22T22:20:31Z",
+      "side": 1,
+      "message": "This will end up reading maxSpanSize number of registers unconditionally right? Since no where do we change the size of readBuffer. Since readHoldingRegisters does not take in a size argument.",
+      "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
