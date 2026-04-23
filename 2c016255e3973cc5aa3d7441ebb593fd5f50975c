@@ -72,6 +72,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fd22dcd_29a65b50",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-23T00:59:16Z",
+      "side": 1,
+      "message": "Thanks for catching this. The ideal solution for this would be to use span for readHoldingRegister and other APIs, but that will be a larger change so will handle that as a followup patch. For now i have reverted this to use local readBuffer as before.\n\nWith this change reverted, currently all the registers that we are reading are valid one\u0027s so ideally we shouldn\u0027t hit this, but i have added a modbus test in this patch which tries to read an illegal data address and verifies it works as expected along with a related sensor tests as separate patch in https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/89539.",
+      "parentUuid": "51854850_7af187f8",
+      "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bf189829_61ca9e2f",
@@ -85,6 +103,24 @@
       "writtenOn": "2026-04-22T22:29:38Z",
       "side": 1,
       "message": "[perf-nit] this will end up allocating. Can we use std::span(begin(), end()) instead? That would avoid the allocation. Buut then getRawIntegerFromRegister needs to be modified to take in a span. I suspect we can auto-convert from vector -\u003e span but not the other way around.",
+      "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "097bbdbe_b5efb46e",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-23T00:59:16Z",
+      "side": 1,
+      "message": "Done, i have changed getRawIntegerFromRegister to use span.",
+      "parentUuid": "bf189829_61ca9e2f",
       "revId": "2c016255e3973cc5aa3d7441ebb593fd5f50975c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
