@@ -557,3 +557,73 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
 
     ctx.run();
 }
+
+// Two contiguous sensors are merged into one span. The second sensor's offset
+// falls on an illegal data address, causing the server to respond with
+// Illegal Data Address (0x02). The entire span should fail — both sensors
+// should be NaN and non-functional.
+TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        ProfileIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+    });
+
+    const std::string validSensorName = "ValidSensor";
+    const std::string badSensorName = "BadAddressSensor";
+    constexpr uint16_t validOffset =
+        TestIntf::testIllegalDataAddressRegister - 1;
+
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
+        {.name = validSensorName,
+         .type = SensorTypeIntf::temperature,
+         .offset = validOffset,
+         .size = 1,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+        {.name = badSensorName,
+         .type = SensorTypeIntf::temperature,
+         .offset = TestIntf::testIllegalDataAddressRegister,
+         .size = 1,
+         .format = ProfileIntf::SensorFormat::floatingPoint,
+         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+
+    auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx};
+        auto devPair = createDevice(sensorRegisters, events);
+        auto& device = devPair.second;
+        co_await device->readSensorRegisters();
+
+        // Both sensors in the span should be NaN and non-functional
+        for (const auto& name : {validSensorName, badSensorName})
+        {
+            auto sensorPath =
+                getSensorObjectPath(name, SensorTypeIntf::temperature);
+            auto sensorProps = co_await SensorValueIntf(ctx)
+                                   .service(serviceName)
+                                   .path(sensorPath)
+                                   .properties();
+            EXPECT_TRUE(std::isnan(sensorProps.value))
+                << name << " should be NaN after illegal data address";
+
+            auto opProps = co_await OperationalStatusIntf(ctx)
+                               .service(serviceName)
+                               .path(sensorPath)
+                               .properties();
+            EXPECT_FALSE(opProps.functional)
+                << name
+                << " should be non-functional after illegal data address";
+        }
+
+        co_return;
+    };
+
+    ctx.spawn(testIllegalAddr());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
