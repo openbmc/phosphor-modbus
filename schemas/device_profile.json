@@ -1,0 +1,142 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ModbusRTUDeviceProfile",
+    "type": "object",
+    "required": ["Parity", "BaudRate"],
+    "additionalProperties": false,
+    "properties": {
+        "Parity": {
+            "type": "string",
+            "enum": ["None", "Even", "Odd"]
+        },
+        "BaudRate": {
+            "type": "integer"
+        },
+        "InventoryRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Name", "Type", "Offset", "Size"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Type": {
+                        "type": "string",
+                        "enum": [
+                            "BuildDate",
+                            "Manufacturer",
+                            "Model",
+                            "PartNumber",
+                            "SerialNumber",
+                            "SparePartNumber"
+                        ]
+                    },
+                    "Offset": { "type": "integer" },
+                    "Size": { "type": "integer" }
+                }
+            }
+        },
+        "SensorRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Name", "Type", "Offset", "Size", "Format"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Type": {
+                        "type": "string",
+                        "enum": [
+                            "FanTach",
+                            "LiquidFlow",
+                            "Power",
+                            "Pressure",
+                            "Temperature",
+                            "Voltage",
+                            "Current",
+                            "Airflow",
+                            "Altitude",
+                            "Energy",
+                            "Frequency",
+                            "Humidity",
+                            "Utilization",
+                            "Valve"
+                        ]
+                    },
+                    "Offset": { "type": "integer" },
+                    "Size": { "type": "integer" },
+                    "Precision": { "type": "integer", "default": 0 },
+                    "Scale": { "type": "number", "default": 1.0 },
+                    "Shift": { "type": "number", "default": 0.0 },
+                    "IsSigned": { "type": "boolean", "default": false },
+                    "Format": {
+                        "type": "string",
+                        "enum": ["FloatingPoint", "Integer"]
+                    }
+                }
+            }
+        },
+        "StatusRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Offset", "Bits"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Offset": { "type": "integer" },
+                    "Bits": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "Name",
+                                "Type",
+                                "BitPosition",
+                                "Value"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "Name": { "type": "string" },
+                                "Type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ControllerFailure",
+                                        "FanFailure",
+                                        "FilterFailure",
+                                        "PowerFault",
+                                        "PumpFailure",
+                                        "LeakDetectedCritical",
+                                        "LeakDetectedWarning",
+                                        "SensorFailure",
+                                        "SensorReadingCritical",
+                                        "SensorReadingWarning"
+                                    ]
+                                },
+                                "BitPosition": { "type": "integer" },
+                                "Value": { "type": "boolean" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "FirmwareRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Name", "Type", "Offset", "Size"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Type": {
+                        "type": "string",
+                        "enum": ["Version", "Update"]
+                    },
+                    "Offset": { "type": "integer" },
+                    "Size": { "type": "integer" }
+                }
+            }
+        }
+    }
+}

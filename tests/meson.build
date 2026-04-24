@@ -124,6 +124,21 @@ test(
     is_parallel: false,  # To avoid conflict with test_events, which also simulates xyz.openbmc_project.Logging service operations
 )
 
+test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
+test_profile_cpp_args = ['-DPROFILE_DIR="' + test_profile_dir + '"']
+
+test(
+    'test_device_profile',
+    executable(
+        'test_device_profile',
+        'test_device_profile.cpp',
+        profile_src,
+        cpp_args: test_profile_cpp_args,
+        dependencies: [gtest_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
+
 test(
     'test_firmware',
     executable(

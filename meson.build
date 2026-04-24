@@ -34,3 +34,24 @@ endif
 if get_option('tests').allowed()
     subdir('tests')
 endif
+
+profile_json_files = files(
+    'rtu/profiles/DeltaRDF040DSS5193E0ReservoirPumpUnit.json',
+)
+
+install_data(
+    profile_json_files,
+    install_dir: get_option('datadir') / 'phosphor-modbus' / 'profiles',
+)
+
+custom_target(
+    'validate_profiles',
+    command: [
+        find_program('python3'),
+        files('scripts/validate_profiles.py'),
+        files('schemas/device_profile.json'),
+        profile_json_files,
+    ],
+    build_by_default: true,
+    output: 'validate_profiles.log',
+)
