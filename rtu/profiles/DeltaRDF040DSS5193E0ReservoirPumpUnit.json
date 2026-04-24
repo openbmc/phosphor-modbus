@@ -1,0 +1,98 @@
+{
+    "Parity": "None",
+    "BaudRate": 19200,
+    "InventoryRegisters": [
+        {
+            "Name": "Model",
+            "Type": "Model",
+            "Offset": 6604,
+            "Size": 8
+        },
+        {
+            "Name": "BuildDate",
+            "Type": "BuildDate",
+            "Offset": 6612,
+            "Size": 4
+        },
+        {
+            "Name": "SerialNumber",
+            "Type": "SerialNumber",
+            "Offset": 6616,
+            "Size": 8
+        },
+        {
+            "Name": "SparePartNumber",
+            "Type": "SparePartNumber",
+            "Offset": 6652,
+            "Size": 4
+        }
+    ],
+    "SensorRegisters": [
+        {
+            "Name": "RPU_Coolant_Inlet_Temp_C",
+            "Type": "Temperature",
+            "Offset": 36866,
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "RPU_Coolant_Outlet_Temp_C",
+            "Type": "Temperature",
+            "Offset": 36865,
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        }
+    ],
+    "StatusRegisters": [
+        {
+            "Offset": 37377,
+            "Bits": [
+                {
+                    "Name": "RPU_Coolant_Inlet_Temp_C",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "RPU_Coolant_Outlet_Temp_C",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Offset": 37376,
+            "Bits": [
+                {
+                    "Name": "RPU_Coolant_Inlet_Temp_C",
+                    "Type": "SensorFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "RPU_Coolant_Outlet_Temp_C",
+                    "Type": "SensorFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                }
+            ]
+        }
+    ],
+    "FirmwareRegisters": [
+        {
+            "Name": "RPU_PLC_FW_Revision",
+            "Type": "Version",
+            "Offset": 6632,
+            "Size": 4
+        }
+    ]
+}
