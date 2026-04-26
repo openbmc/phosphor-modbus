@@ -103,7 +103,7 @@ class BasePort
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
-                              std::vector<uint16_t>& registers)
+                              std::span<uint16_t> registers)
         -> sdbusplus::async::task<bool>;
 
     bool probeInProgress = false;
