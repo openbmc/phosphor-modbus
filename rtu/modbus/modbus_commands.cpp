@@ -20,7 +20,7 @@ auto ReadHoldingRegistersRequest::encode() -> void
 }
 
 ReadHoldingRegistersResponse::ReadHoldingRegistersResponse(
-    uint8_t deviceAddress, std::vector<uint16_t>& registers) :
+    uint8_t deviceAddress, std::span<uint16_t> registers) :
     expectedDeviceAddress(deviceAddress), registers(registers)
 {
     if (registers.empty())

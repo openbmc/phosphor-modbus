@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -40,7 +41,7 @@ class Message
                      uint32_t expectedValue) -> void;
 
     template <typename T>
-    Message& operator>>(std::vector<T>& d)
+    Message& operator>>(std::span<T> d)
     {
         for (auto it = d.rbegin(); it != d.rend(); it++)
         {

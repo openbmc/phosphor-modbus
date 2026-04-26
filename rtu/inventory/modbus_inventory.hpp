@@ -141,6 +141,7 @@ class Device
     bool stopped = false;
     bool finished = false;
     std::vector<RegisterSpan> registerSpans;
+    std::vector<uint16_t> readBuffer;
 };
 
 } // namespace phosphor::modbus::rtu::inventory

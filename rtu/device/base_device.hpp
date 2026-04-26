@@ -115,6 +115,7 @@ class BaseDevice
     sensors_map_t sensors;
     std::vector<SensorEntry> sensorEntries;
     std::vector<SensorBucket> sensorBuckets;
+    std::vector<uint16_t> readBuffer;
     bool stopped = false;
     bool finished = false;
 };
