@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "modbus_rtu_config.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
 #include "test_base.hpp"
@@ -211,6 +212,7 @@ class DeviceEventsTest : public BaseTest
                 .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
                 .size = TestIntf::testReadHoldingRegisterTempCount,
                 .format = ProfileIntf::SensorFormat::floatingPoint,
+                .pollInterval = ModbusIntf::defaultSensorPollInterval,
             }},
             .statusRegisters = {{TestIntf::testReadHoldingRegisterEventOffset,
                                  {statusBit}}},
@@ -241,7 +243,7 @@ class DeviceEventsTest : public BaseTest
         MockPort mockPort(ctx, portConfig, clientDevicePath);
         auto device = DeviceIntf::DeviceFactory::create(
             ctx, deviceFactoryConfig, mockPort, events);
-        co_await device->readSensorRegisters();
+        co_await device->pollRegisters();
         auto properties = co_await SensorValueIntf(ctx)
                               .service(serviceName)
                               .path(objectPath)
