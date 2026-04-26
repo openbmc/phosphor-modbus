@@ -16,6 +16,9 @@
 #include <xyz/openbmc_project/State/Decorator/Availability/aserver.hpp>
 #include <xyz/openbmc_project/State/Decorator/OperationalStatus/aserver.hpp>
 
+#include <cstdint>
+#include <span>
+
 namespace phosphor::modbus::rtu::device
 {
 
@@ -54,7 +57,8 @@ class BaseDevice
                         const config::Config& config, PortIntf& serialPort,
                         EventIntf::Events& events);
 
-    auto readSensorRegisters() -> sdbusplus::async::task<void>;
+    /** @brief Poll sensor and status registers in a timed loop. */
+    auto pollRegisters() -> sdbusplus::async::task<void>;
 
     /** @brief Request the sensor polling coroutine to stop. */
     auto stop() -> void
@@ -85,21 +89,47 @@ class BaseDevice
         SensorIntf& sensor;
     };
 
-    struct SensorBucket
+    struct PollBucket
     {
         std::chrono::seconds pollInterval;
         std::vector<RegisterSpan> spans;
         std::chrono::steady_clock::time_point nextPollTime;
     };
 
+    // Pre-computed pairing of status register address and its status bits,
+    // built at construction for span-based batch reads.
+    struct StatusEntry
+    {
+        uint16_t address;
+        const std::vector<ProfileIntf::StatusBit>* statusBits;
+    };
+
+    /** @brief Create D-Bus sensor objects from the device profile. */
     auto createSensors() -> void;
 
-    auto buildSensorBuckets() -> void;
+    /** @brief Build poll buckets with merged sensor and status spans. */
+    auto buildPollBuckets() -> void;
 
-    auto pollSensorBucket(SensorBucket& bucket) -> sdbusplus::async::task<void>;
+    /** @brief Group sensor indices by poll interval, appending status
+     *         register indices to the default poll interval bucket. */
+    auto groupByPollInterval()
+        -> std::vector<std::pair<std::chrono::seconds, std::vector<size_t>>>;
 
-    auto readStatusRegisters() -> sdbusplus::async::task<void>;
+    /** @brief Read and process all spans in a single poll bucket. */
+    auto pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>;
 
+    /** @brief Convert raw register data and update a sensor value. */
+    auto processSensorEntry(size_t sensorIdx,
+                            std::span<const uint16_t> spanBuffer,
+                            uint16_t spanStartOffset) -> void;
+
+    /** @brief Process status bits for a single status register entry. */
+    auto processStatusEntry(size_t statusIdx,
+                            std::span<const uint16_t> spanBuffer,
+                            uint16_t spanStartOffset)
+        -> sdbusplus::async::task<void>;
+
+    /** @brief Generate a Redfish event for a status bit assertion. */
     auto generateEvent(const ProfileIntf::StatusBit& statusBit,
                        const sdbusplus::object_path& objectPath,
                        double sensorValue, SensorIntf::Unit sensorUnit,
@@ -114,7 +144,8 @@ class BaseDevice
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
     std::vector<SensorEntry> sensorEntries;
-    std::vector<SensorBucket> sensorBuckets;
+    std::vector<PollBucket> pollBuckets;
+    std::vector<StatusEntry> statusEntries;
     std::vector<uint16_t> readBuffer;
     bool stopped = false;
     bool finished = false;
