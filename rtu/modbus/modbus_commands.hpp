@@ -2,6 +2,7 @@
 
 #include "modbus_message.hpp"
 
+#include <span>
 #include <vector>
 
 namespace phosphor::modbus::rtu
@@ -50,7 +51,7 @@ class ReadHoldingRegistersResponse : public Response
         delete;
 
     explicit ReadHoldingRegistersResponse(uint8_t deviceAddress,
-                                          std::vector<uint16_t>& registers);
+                                          std::span<uint16_t> registers);
 
     auto decode() -> void;
 
@@ -58,8 +59,8 @@ class ReadHoldingRegistersResponse : public Response
     static constexpr uint8_t expectedCommandCode =
         ReadHoldingRegistersFunctionCode;
     const uint8_t expectedDeviceAddress;
-    // The returned response is stored in the registers vector
-    std::vector<uint16_t>& registers;
+    // The returned response is stored in the registers span
+    std::span<uint16_t> registers;
 };
 
 } // namespace phosphor::modbus::rtu
