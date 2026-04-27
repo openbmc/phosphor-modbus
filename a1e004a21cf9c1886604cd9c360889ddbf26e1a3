@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8f27b4e5_bdc71e2b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-27T18:13:00Z",
+      "side": 1,
+      "message": "Change phrase wire to update inventory instead.",
+      "revId": "a1e004a21cf9c1886604cd9c360889ddbf26e1a3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
