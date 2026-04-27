@@ -73,10 +73,14 @@ static const std::unordered_map<std::string, FirmwareRegisterType>
 };
 
 static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
+    {"BatteryBackupUnit", DeviceType::batteryBackupUnit},
+    {"CapacitorBankUnit", DeviceType::capacitorBankUnit},
     {"FlowMeter", DeviceType::flowMeter},
     {"HeatExchanger", DeviceType::heatExchanger},
     {"PowerMonitorModule", DeviceType::powerMonitorModule},
+    {"PowerSupplyUnit", DeviceType::powerSupplyUnit},
     {"ReservoirPumpUnit", DeviceType::reservoirPumpUnit},
+    {"Valve", DeviceType::valve},
 };
 
 static const std::unordered_map<std::string, DeviceModel> deviceModelMap = {
