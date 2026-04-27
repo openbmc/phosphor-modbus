@@ -67,8 +67,6 @@ profile_cpp_args = ['-DPROFILE_DIR="' + profile_dir + '"']
 device_src = files(
     'device/base_device.cpp',
     'device/device_factory.cpp',
-    'device/power_monitor_module.cpp',
-    'device/reservoir_pump_unit.cpp',
 )
 
 firmware_src = files('firmware/device_firmware.cpp')
