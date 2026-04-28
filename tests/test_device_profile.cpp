@@ -214,6 +214,22 @@ TEST_F(DeviceProfileTest, GetDeviceModelUnknownThrows)
     EXPECT_THROW(getDeviceModel("NonExistentDevice"), std::runtime_error);
 }
 
+TEST_F(DeviceProfileTest, LoadsValveProfile)
+{
+    const auto& profile = getDeviceProfile("Danfoss003Z8540Valve");
+
+    EXPECT_EQ(profile.parity, Parity::none);
+    EXPECT_EQ(profile.baudRate, 19200U);
+    EXPECT_FALSE(profile.inventoryRegisters.empty());
+    EXPECT_FALSE(profile.sensorRegisters.empty());
+    EXPECT_FALSE(profile.statusRegisters.empty());
+    EXPECT_FALSE(profile.firmwareRegisters.empty());
+
+    EXPECT_EQ(getDeviceType("Danfoss003Z8540Valve"), DeviceType::valve);
+    EXPECT_EQ(getDeviceModel("Danfoss003Z8540Valve"),
+              DeviceModel::Danfoss003Z8540);
+}
+
 TEST_F(DeviceProfileTest, GetProfileNamesScansDirectory)
 {
     auto names = getProfileNames();
