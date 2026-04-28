@@ -85,6 +85,7 @@ static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
 
 static const std::unordered_map<std::string, DeviceModel> deviceModelMap = {
     {"Artesyn7000433970000", DeviceModel::Artesyn7000433970000},
+    {"Danfoss003Z8540", DeviceModel::Danfoss003Z8540},
     {"DeltaECD70000020", DeviceModel::DeltaECD70000020},
     {"DeltaRDF040DSS5193E0", DeviceModel::DeltaRDF040DSS5193E0},
     {"PanasonicBJBPM102A0001", DeviceModel::PanasonicBJBPM102A0001},

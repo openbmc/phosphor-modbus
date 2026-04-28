@@ -130,6 +130,7 @@ enum class DeviceType
 enum class DeviceModel
 {
     Artesyn7000433970000,
+    Danfoss003Z8540,
     DeltaECD70000020,
     DeltaRDF040DSS5193E0,
     PanasonicBJBPM102A0001,
