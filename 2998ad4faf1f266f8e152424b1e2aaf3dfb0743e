@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2f09873_c0b11e9b",
+        "filename": "rtu/inventory/modbus_inventory.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:12:08Z",
+      "side": 1,
+      "message": "Rename these vars similar to the sensor stop flow. Same goes for API names above.",
+      "revId": "2998ad4faf1f266f8e152424b1e2aaf3dfb0743e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
