@@ -16,6 +16,40 @@
       "message": "Is it possible to combine sensorEntries and statusEntries into one and add more metadata into that struct for type - sensor/status and do this decision making based on that.",
       "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9adc9ef7_63c8defb",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-29T22:32:36Z",
+      "side": 1,
+      "message": "struct Entry {\n  std::variant\u003cSensorEntry, StatusEntry\u003e entry;\n  bool isSensor;\n};",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2fd87a81_eb5f8cf6",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-04-29T22:32:36Z",
+      "side": 1,
+      "message": "std:vector\u003cEntry\u003e entries;",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
