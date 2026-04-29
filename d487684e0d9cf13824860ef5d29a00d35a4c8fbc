@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a261b8ce_8f730a70",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:10:59Z",
+      "side": 1,
+      "message": "requestStop()",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7645deb7_e76ebb98",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:10:59Z",
+      "side": 1,
+      "message": "Rename isStopFinished()",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cd094e40_bb38813f",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:10:59Z",
+      "side": 1,
+      "message": "Rename to stopRequested.",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c21b32b5_5b85b658",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:10:59Z",
+      "side": 1,
+      "message": "Rename to stopFinished/Completed.",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
