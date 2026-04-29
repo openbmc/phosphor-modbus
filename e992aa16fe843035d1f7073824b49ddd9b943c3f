@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5cee815d_0fee8dda",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-29T22:31:42Z",
+      "side": 1,
+      "message": "Is it possible to combine sensorEntries and statusEntries into one and add more metadata into that struct for type - sensor/status and do this decision making based on that.",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
