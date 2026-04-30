@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "07605568_bcbe7798",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-30T21:05:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a261b8ce_8f730a70",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7645deb7_e76ebb98",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-04-29T22:10:59Z",
       "side": 1,
       "message": "Rename isStopFinished()",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "215ff0c9_c6eff5e4",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-30T21:05:55Z",
+      "side": 1,
+      "message": "Rename to isStopped()",
+      "parentUuid": "7645deb7_e76ebb98",
       "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
@@ -52,6 +88,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a2c57f4_9a6cb8f2",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-30T21:05:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd094e40_bb38813f",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c21b32b5_5b85b658",
@@ -65,6 +119,24 @@
       "writtenOn": "2026-04-29T22:10:59Z",
       "side": 1,
       "message": "Rename to stopFinished/Completed.",
+      "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "717da839_0b1c626c",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-04-30T21:05:55Z",
+      "side": 1,
+      "message": "Renamed to stopped.",
+      "parentUuid": "c21b32b5_5b85b658",
       "revId": "d487684e0d9cf13824860ef5d29a00d35a4c8fbc",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
