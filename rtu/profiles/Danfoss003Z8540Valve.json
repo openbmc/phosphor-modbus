@@ -1,0 +1,196 @@
+{
+    "DeviceType": "Valve",
+    "DeviceModel": "Danfoss003Z8540",
+    "Parity": "None",
+    "BaudRate": 19200,
+    "ProbeRegister": {
+        "Offset": 33120,
+        "Size": 25,
+        "ExpectedValue": "Danfoss A/S"
+    },
+    "InventoryRegisters": [
+        {
+            "Name": "Model",
+            "Type": "Model",
+            "Offset": 33056,
+            "Size": 25
+        },
+        {
+            "Name": "PartNumber",
+            "Type": "PartNumber",
+            "Offset": 33088,
+            "Size": 25
+        },
+        {
+            "Name": "Manufacturer",
+            "Type": "Manufacturer",
+            "Offset": 33120,
+            "Size": 25
+        },
+        {
+            "Name": "SerialNumber",
+            "Type": "SerialNumber",
+            "Offset": 33184,
+            "Size": 25
+        },
+        {
+            "Name": "SparePartNumber",
+            "Type": "SparePartNumber",
+            "Offset": 33035,
+            "Size": 1
+        }
+    ],
+    "SensorRegisters": [
+        {
+            "Name": "FlowRateFeedback",
+            "Type": "LiquidFlow",
+            "Offset": 33282,
+            "Size": 2,
+            "Precision": 2,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "CoolingDesignFlowRate",
+            "Type": "LiquidFlow",
+            "Offset": 32798,
+            "Size": 2,
+            "Precision": 2,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "MaxValueOfDesignFlowRate",
+            "Type": "Utilization",
+            "Offset": 33028,
+            "Size": 2,
+            "Precision": 2,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "ValvePosition",
+            "Type": "Altitude",
+            "Offset": 33026,
+            "Size": 2,
+            "Precision": 2,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "VoltageOnAnalogOutput",
+            "Type": "Voltage",
+            "Offset": 33286,
+            "Size": 2,
+            "Precision": 2,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "MinutesSinceFullyClosed",
+            "Type": "Utilization",
+            "Offset": 33812,
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "Integer"
+        },
+        {
+            "Name": "MinutesSinceFullyOpen",
+            "Type": "Utilization",
+            "Offset": 33814,
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "Integer"
+        }
+    ],
+    "StatusRegisters": [
+        {
+            "Offset": 33536,
+            "Bits": [
+                {
+                    "Name": "TemperatureOutOfRange",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "PowerSupplyVoltageTooHigh",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "PowerSupplyVoltageTooLow",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "CommunicationFaults",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "InvalidSlaveIdSetting",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Offset": 33537,
+            "Bits": [
+                {
+                    "Name": "NoControlSignal",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "ErrorDuringMovement",
+                    "Type": "SensorFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "ErrorDuringCalibration",
+                    "Type": "SensorFailure",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "InternalError",
+                    "Type": "SensorFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                }
+            ]
+        }
+    ],
+    "FirmwareRegisters": [
+        {
+            "Name": "SWVersion",
+            "Type": "Version",
+            "Offset": 272,
+            "Size": 25
+        }
+    ]
+}

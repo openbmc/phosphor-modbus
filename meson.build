@@ -36,6 +36,7 @@ if get_option('tests').allowed()
 endif
 
 profile_json_files = files(
+    'rtu/profiles/Danfoss003Z8540Valve.json',
     'rtu/profiles/DeltaRDF040DSS5193E0ReservoirPumpUnit.json',
 )
 
