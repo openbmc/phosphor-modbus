@@ -44,7 +44,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
 
 auto BasePort::readHoldingRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
-    Parity parity, std::vector<uint16_t>& registers)
+    Parity parity, std::span<uint16_t> registers)
     -> sdbusplus::async::task<bool>
 {
     sdbusplus::async::lock_guard lg{mutex};

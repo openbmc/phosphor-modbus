@@ -4,6 +4,7 @@
 
 #include <phosphor-logging/lg2.hpp>
 
+#include <span>
 #include <type_traits>
 #include <variant>
 
@@ -42,7 +43,7 @@ static auto fillAssetProperties(
     }
 }
 
-static auto matchesProbeValue(const std::vector<uint16_t>& readBuffer,
+static auto matchesProbeValue(std::span<const uint16_t> readBuffer,
                               const ProfileIntf::ProbeRegister& probe) -> bool
 {
     return std::visit(
@@ -98,6 +99,15 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
         regInfos.push_back({.offset = reg.offset, .size = reg.size});
     }
     registerSpans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
+
+    // Allocate a single read buffer sized to the largest span or probe
+    // register, whichever is bigger.
+    uint16_t maxSize = config.profile.probeRegister.size;
+    for (const auto& span : registerSpans)
+    {
+        maxSize = std::max(maxSize, span.totalSize);
+    }
+    readBuffer.resize(maxSize);
 }
 
 auto Device::startProbing() -> sdbusplus::async::task<void>
@@ -187,7 +197,8 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
           config.address);
 
     const auto& probe = config.profile.probeRegister;
-    auto registers = std::vector<uint16_t>(probe.size);
+    auto registers = std::span(readBuffer.data(), probe.size);
+    std::fill(registers.begin(), registers.end(), 0);
 
     auto ret = co_await port.readHoldingRegisters(
         config.address, probe.offset, config.profile.baudRate,
@@ -231,10 +242,11 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
 
     for (const auto& span : registerSpans)
     {
-        auto readBuffer = std::vector<uint16_t>(span.totalSize);
+        auto spanBuffer = std::span(readBuffer.data(), span.totalSize);
+        std::fill(spanBuffer.begin(), spanBuffer.end(), 0);
         auto ret = co_await port.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
-            config.profile.parity, readBuffer);
+            config.profile.parity, spanBuffer);
         if (!ret)
         {
             for (auto idx : span.registerIndices)
@@ -256,7 +268,7 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
             // Reswap bytes in each register for string conversion
             for (uint8_t i = 0; i < reg.size; i++)
             {
-                auto value = readBuffer[regStart + i];
+                auto value = spanBuffer[regStart + i];
                 strValue += static_cast<char>((value >> 8) & 0xFF);
                 strValue += static_cast<char>(value & 0xFF);
             }

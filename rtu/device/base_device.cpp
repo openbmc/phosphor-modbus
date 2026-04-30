@@ -189,6 +189,7 @@ auto BaseDevice::buildSensorBuckets() -> void
         }
     }
 
+    uint16_t maxSpanSize = 0;
     for (auto& [interval, indices] : bucketIndices)
     {
         std::vector<RegisterInfo> regInfos;
@@ -204,6 +205,7 @@ auto BaseDevice::buildSensorBuckets() -> void
         // Remap span indices from local regInfos back to sensorEntries indices.
         for (auto& span : spans)
         {
+            maxSpanSize = std::max(maxSpanSize, span.totalSize);
             for (auto& localIdx : span.registerIndices)
             {
                 localIdx = indices[localIdx];
@@ -214,6 +216,11 @@ auto BaseDevice::buildSensorBuckets() -> void
                                  .spans = std::move(spans),
                                  .nextPollTime = {}});
     }
+
+    // Allocate a single read buffer sized to the largest span across all
+    // buckets. Minimum size of 1 for status register reads.
+    // Buckets are polled sequentially so one buffer suffices.
+    readBuffer.resize(std::max<uint16_t>(maxSpanSize, 1));
 }
 
 static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
@@ -271,10 +278,11 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
 {
     for (const auto& span : bucket.spans)
     {
-        auto readBuffer = std::vector<uint16_t>(span.totalSize);
+        auto spanBuffer = std::span(readBuffer.data(), span.totalSize);
+        std::fill(spanBuffer.begin(), spanBuffer.end(), 0);
         auto ret = co_await serialPort.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
-            config.profile.parity, readBuffer);
+            config.profile.parity, spanBuffer);
         if (!ret)
         {
             for (auto idx : span.registerIndices)
@@ -295,7 +303,7 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
             auto& [sensorRegister, sensor] = sensorEntries[idx];
             auto regStart = sensorRegister.offset - span.startOffset;
             auto regSlice = std::span<const uint16_t>(
-                readBuffer.begin() + regStart, sensorRegister.size);
+                spanBuffer.data() + regStart, sensorRegister.size);
 
             double regVal = static_cast<double>(
                 getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
@@ -433,11 +441,12 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
     for (const auto& [address, statusBits] : config.profile.statusRegisters)
     {
         static constexpr auto maxRegisterSize = 1;
-        auto registers = std::vector<uint16_t>(maxRegisterSize);
+        auto registerSpan = std::span(readBuffer.data(), maxRegisterSize);
+        std::fill(registerSpan.begin(), registerSpan.end(), 0);
 
         auto ret = co_await serialPort.readHoldingRegisters(
             config.address, address, config.profile.baudRate,
-            config.profile.parity, registers);
+            config.profile.parity, registerSpan);
         if (!ret)
         {
             error("Failed to read holding registers for {DEVICE_ADDRESS}",
@@ -456,7 +465,7 @@ auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
                 continue;
             }
             auto statusBitValue =
-                ((registers[0] & (1 << statusBit.bitPosition)) != 0);
+                ((registerSpan[0] & (1 << statusBit.bitPosition)) != 0);
             auto statusAsserted = (statusBitValue == statusBit.value);
             auto objectPath =
                 getObjectPath(config, statusBit.type, statusBit.name);
