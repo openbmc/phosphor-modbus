@@ -504,3 +504,57 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
     EXPECT_LE(totalRequests, 6)
         << "Slow bucket should not poll more than once in 2.5s";
 }
+
+// Verify that calling requestStop() causes the sensor polling coroutine to
+// exit, sets isStopped() to true, and no further sensor polls occur.
+TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        ProfileIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+    });
+
+    const ProfileIntf::SensorRegister sensorRegister = {
+        .name = sensorName,
+        .type = SensorTypeIntf::temperature,
+        .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+        .size = TestIntf::testReadHoldingRegisterTempCount,
+        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = std::chrono::seconds(1),
+    };
+
+    EventIntf::Events events{ctx};
+    auto devPair = createDevice({sensorRegister}, events);
+    auto& device = devPair.second;
+
+    EXPECT_FALSE(device->isStopped()) << "Device should not be stopped yet";
+
+    ctx.spawn(device->readSensorRegisters());
+
+    // Let it poll once, then stop it
+    ctx.spawn(
+        sdbusplus::async::sleep_for(ctx, 1500ms) |
+        sdbusplus::async::execution::then([&]() { device->requestStop(); }));
+
+    // Wait for coroutine to exit, then verify no further polls
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+              sdbusplus::async::execution::then([&]() {
+                  EXPECT_TRUE(device->isStopped())
+                      << "Device should be stopped after requestStop";
+                  auto countAfterStop = serverTester->totalRequestCount.load();
+
+                  // Schedule another check — count should not increase
+                  ctx.spawn(
+                      sdbusplus::async::sleep_for(ctx, 2s) |
+                      sdbusplus::async::execution::then([&, countAfterStop]() {
+                          EXPECT_EQ(serverTester->totalRequestCount.load(),
+                                    countAfterStop)
+                              << "No further polls after stop";
+                          ctx.request_stop();
+                      }));
+              }));
+
+    ctx.run();
+}
