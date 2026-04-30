@@ -145,7 +145,7 @@ class SensorsTest : public BaseTest
         auto devPair = createDevice({sensorRegister}, events);
         auto& device = devPair.second;
 
-        co_await device->readSensorRegisters();
+        co_await device->pollRegisters();
 
         auto properties = co_await SensorValueIntf(ctx)
                               .service(serviceName)
@@ -344,7 +344,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
-        co_await device->readSensorRegisters();
+        co_await device->pollRegisters();
 
         // Two contiguous registers should merge into 1 Modbus read.
         EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 1)
@@ -412,7 +412,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
-        co_await device->readSensorRegisters();
+        co_await device->pollRegisters();
 
         // Two distant registers should produce 2 separate Modbus reads.
         EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 2)
@@ -486,7 +486,7 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
     // Fast bucket (1s): polls at t=0, t=1, t=2 -> 3 requests
     // Slow bucket (10s): polls at t=0 only     -> 1 request
     // Total expected: 4
-    ctx.spawn(device->readSensorRegisters());
+    ctx.spawn(device->pollRegisters());
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 2500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
@@ -531,7 +531,7 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
 
     EXPECT_FALSE(device->isStopped()) << "Device should not be stopped yet";
 
-    ctx.spawn(device->readSensorRegisters());
+    ctx.spawn(device->pollRegisters());
 
     // Let it poll once, then stop it
     ctx.spawn(
@@ -595,7 +595,7 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
         EventIntf::Events events{ctx};
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
-        co_await device->readSensorRegisters();
+        co_await device->pollRegisters();
 
         // Both sensors in the span should be NaN and non-functional
         for (const auto& name : {validSensorName, badSensorName})

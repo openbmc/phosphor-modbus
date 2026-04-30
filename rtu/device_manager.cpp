@@ -168,7 +168,7 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
         {
             info("Restarting sensor device {NAME}", "NAME", config.name);
             iter->second->restart();
-            ctx.spawn(iter->second->readSensorRegisters());
+            ctx.spawn(iter->second->pollRegisters());
         }
         else
         {
@@ -190,7 +190,7 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
     {
         auto device =
             DeviceFactoryIntf::create(ctx, config, *(portIter->second), events);
-        ctx.spawn(device->readSensorRegisters());
+        ctx.spawn(device->pollRegisters());
         devices[config.name] = std::move(device);
     }
     catch (const std::exception& e)

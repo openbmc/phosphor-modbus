@@ -96,7 +96,7 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     ctx(ctx), config(config), serialPort(serialPort), events(events)
 {
     createSensors();
-    buildSensorBuckets();
+    buildPollBuckets();
 
     if (!config.profile.firmwareRegisters.empty())
     {
@@ -160,67 +160,81 @@ auto BaseDevice::createSensors() -> void
         sensor->Critical::emit_added();
         sensor->Definitions::emit_added();
 
-        sensorEntries.push_back({sensorRegister, *sensor});
-
         sensors.emplace(sensorRegister.name, std::move(sensor));
     }
 }
 
-auto BaseDevice::buildSensorBuckets() -> void
+auto BaseDevice::buildPollBuckets() -> void
 {
-    // Group sensor entries by poll interval into buckets. Each bucket
-    // tracks the sensorEntries indices that share the same interval.
-    std::vector<std::pair<std::chrono::seconds, std::vector<size_t>>>
-        bucketIndices;
-
-    for (size_t i = 0; i < sensorEntries.size(); i++)
-    {
-        auto interval = sensorEntries[i].reg.pollInterval;
+    // Helper to find or create a bucket for a given poll interval.
+    auto findOrCreateBucket =
+        [this](std::chrono::seconds interval) -> PollBucket& {
         auto it = std::find_if(
-            bucketIndices.begin(), bucketIndices.end(),
-            [&](const auto& entry) { return entry.first == interval; });
-        if (it != bucketIndices.end())
+            pollBuckets.begin(), pollBuckets.end(),
+            [&](const auto& b) { return b.pollInterval == interval; });
+        if (it != pollBuckets.end())
         {
-            it->second.push_back(i);
+            return *it;
+        }
+        pollBuckets.push_back({.pollInterval = interval,
+                               .entries = {},
+                               .spans = {},
+                               .nextPollTime = {}});
+        return pollBuckets.back();
+    };
+
+    // Group sensor entries into buckets by poll interval.
+    for (const auto& reg : config.profile.sensorRegisters)
+    {
+        auto sensorIter = sensors.find(reg.name);
+        if (sensorIter == sensors.end())
+        {
+            continue;
+        }
+        auto& bucket = findOrCreateBucket(reg.pollInterval);
+        bucket.entries.emplace_back(SensorEntry{reg, *(sensorIter->second)});
+    }
+
+    // Add status entries to the default poll interval bucket.
+    for (const auto& [address, statusBits] : config.profile.statusRegisters)
+    {
+        auto& bucket = findOrCreateBucket(defaultSensorPollInterval);
+        bucket.entries.emplace_back(StatusEntry{address, &statusBits});
+    }
+
+    // Build register spans for each bucket.
+    uint16_t maxSpanSize = 0;
+    for (auto& bucket : pollBuckets)
+    {
+        buildBucketSpans(bucket);
+        for (const auto& span : bucket.spans)
+        {
+            maxSpanSize = std::max(maxSpanSize, span.totalSize);
+        }
+    }
+
+    readBuffer.resize(maxSpanSize);
+}
+
+auto BaseDevice::buildBucketSpans(PollBucket& bucket) -> void
+{
+    std::vector<RegisterInfo> regInfos;
+    regInfos.reserve(bucket.entries.size());
+    for (const auto& entry : bucket.entries)
+    {
+        if (std::holds_alternative<SensorEntry>(entry))
+        {
+            const auto& reg = std::get<SensorEntry>(entry).reg;
+            regInfos.push_back({.offset = reg.offset, .size = reg.size});
         }
         else
         {
-            bucketIndices.emplace_back(interval, std::vector<size_t>{i});
+            const auto& status = std::get<StatusEntry>(entry);
+            regInfos.push_back({.offset = status.address, .size = 1});
         }
     }
 
-    uint16_t maxSpanSize = 0;
-    for (auto& [interval, indices] : bucketIndices)
-    {
-        std::vector<RegisterInfo> regInfos;
-        regInfos.reserve(indices.size());
-        for (auto idx : indices)
-        {
-            const auto& reg = sensorEntries[idx].reg;
-            regInfos.push_back({.offset = reg.offset, .size = reg.size});
-        }
-
-        auto spans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
-
-        // Remap span indices from local regInfos back to sensorEntries indices.
-        for (auto& span : spans)
-        {
-            maxSpanSize = std::max(maxSpanSize, span.totalSize);
-            for (auto& localIdx : span.registerIndices)
-            {
-                localIdx = indices[localIdx];
-            }
-        }
-
-        sensorBuckets.push_back({.pollInterval = interval,
-                                 .spans = std::move(spans),
-                                 .nextPollTime = {}});
-    }
-
-    // Allocate a single read buffer sized to the largest span across all
-    // buckets. Minimum size of 1 for status register reads.
-    // Buckets are polled sequentially so one buffer suffices.
-    readBuffer.resize(std::max<uint16_t>(maxSpanSize, 1));
+    bucket.spans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
 }
 
 static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
@@ -273,8 +287,28 @@ static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
     return result;
 }
 
-auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
-    -> sdbusplus::async::task<void>
+auto BaseDevice::processSensorEntry(const SensorEntry& entry,
+                                    std::span<const uint16_t> spanBuffer,
+                                    uint16_t spanStartOffset) -> void
+{
+    auto& [sensorRegister, sensor] = entry;
+    auto regStart = sensorRegister.offset - spanStartOffset;
+    auto regSlice = std::span<const uint16_t>(spanBuffer.data() + regStart,
+                                              sensorRegister.size);
+
+    double regVal = static_cast<double>(
+        getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
+    if (sensorRegister.format == ProfileIntf::SensorFormat::floatingPoint)
+    {
+        regVal = sensorRegister.shift +
+                 (sensorRegister.scale *
+                  (regVal / (1ULL << sensorRegister.precision)));
+    }
+
+    sensor.value(regVal);
+}
+
+auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
 {
     for (const auto& span : bucket.spans)
     {
@@ -287,35 +321,40 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
         {
             for (auto idx : span.registerIndices)
             {
-                auto& [sensorRegister, sensor] = sensorEntries[idx];
-                error(
-                    "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                    "NAME", sensorRegister.name, "DEVICE_ADDRESS",
-                    config.address);
-                sensor.value(std::numeric_limits<double>::quiet_NaN());
-                sensor.functional(false);
+                if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
+                {
+                    auto& [sensorRegister,
+                           sensor] = std::get<SensorEntry>(bucket.entries[idx]);
+                    error(
+                        "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
+                        "NAME", sensorRegister.name, "DEVICE_ADDRESS",
+                        config.address);
+                    sensor.value(std::numeric_limits<double>::quiet_NaN());
+                    sensor.functional(false);
+                }
+                else
+                {
+                    error(
+                        "Failed to read status registers for {DEVICE_ADDRESS}",
+                        "DEVICE_ADDRESS", config.address);
+                }
             }
             continue;
         }
 
         for (auto idx : span.registerIndices)
         {
-            auto& [sensorRegister, sensor] = sensorEntries[idx];
-            auto regStart = sensorRegister.offset - span.startOffset;
-            auto regSlice = std::span<const uint16_t>(
-                spanBuffer.data() + regStart, sensorRegister.size);
-
-            double regVal = static_cast<double>(
-                getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
-            if (sensorRegister.format ==
-                ProfileIntf::SensorFormat::floatingPoint)
+            if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
             {
-                regVal = sensorRegister.shift +
-                         (sensorRegister.scale *
-                          (regVal / (1ULL << sensorRegister.precision)));
+                processSensorEntry(std::get<SensorEntry>(bucket.entries[idx]),
+                                   spanBuffer, span.startOffset);
             }
-
-            sensor.value(regVal);
+            else
+            {
+                co_await processStatusEntry(
+                    std::get<StatusEntry>(bucket.entries[idx]), spanBuffer,
+                    span.startOffset);
+            }
         }
     }
 }
@@ -334,14 +373,14 @@ auto BaseDevice::pollSensorBucket(SensorBucket& bucket)
 //   t=2: poll 2s    -> sleep 2s
 //   t=4: poll 2s    -> sleep 1s  (5s bucket due at t=5)
 //   t=5: poll 5s    -> sleep 1s  (2s bucket due at t=6)
-auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
+auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
 {
     while (!ctx.stop_requested() && !stopRequested)
     {
         auto now = std::chrono::steady_clock::now();
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
 
-        for (auto& bucket : sensorBuckets)
+        for (auto& bucket : pollBuckets)
         {
             if (now < bucket.nextPollTime)
             {
@@ -349,12 +388,10 @@ auto BaseDevice::readSensorRegisters() -> sdbusplus::async::task<void>
                     std::min(earliestNextPoll, bucket.nextPollTime);
                 continue;
             }
-            co_await pollSensorBucket(bucket);
+            co_await pollBucket(bucket);
             bucket.nextPollTime = now + bucket.pollInterval;
             earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
         }
-
-        co_await readStatusRegisters();
 
         auto sleepDuration = std::chrono::duration_cast<std::chrono::seconds>(
             earliestNextPoll - std::chrono::steady_clock::now());
@@ -436,57 +473,41 @@ static auto updateSensorOnStatusChange(
     }
 }
 
-auto BaseDevice::readStatusRegisters() -> sdbusplus::async::task<void>
+auto BaseDevice::processStatusEntry(const StatusEntry& entry,
+                                    std::span<const uint16_t> spanBuffer,
+                                    uint16_t spanStartOffset)
+    -> sdbusplus::async::task<void>
 {
-    for (const auto& [address, statusBits] : config.profile.statusRegisters)
-    {
-        static constexpr auto maxRegisterSize = 1;
-        auto registerSpan = std::span(readBuffer.data(), maxRegisterSize);
-        std::fill(registerSpan.begin(), registerSpan.end(), 0);
+    auto regOffset = entry.address - spanStartOffset;
 
-        auto ret = co_await serialPort.readHoldingRegisters(
-            config.address, address, config.profile.baudRate,
-            config.profile.parity, registerSpan);
-        if (!ret)
+    for (const auto& statusBit : *entry.statusBits)
+    {
+        static constexpr auto maxBitPosition = 15;
+        if (statusBit.bitPosition > maxBitPosition)
         {
-            error("Failed to read holding registers for {DEVICE_ADDRESS}",
-                  "DEVICE_ADDRESS", config.address);
+            error("Invalid status bit position {POSITION} for {NAME}",
+                  "POSITION", statusBit.bitPosition, "NAME", statusBit.name);
             continue;
         }
-
-        for (const auto& statusBit : statusBits)
+        auto statusBitValue =
+            ((spanBuffer[regOffset] & (1 << statusBit.bitPosition)) != 0);
+        auto statusAsserted = (statusBitValue == statusBit.value);
+        auto objectPath = getObjectPath(config, statusBit.type, statusBit.name);
+        double sensorValue = std::numeric_limits<double>::quiet_NaN();
+        SensorIntf::Unit sensorUnit = SensorIntf::Unit::Percent;
+        auto sensorIter = sensors.find(statusBit.name);
+        if (sensorIter != sensors.end())
         {
-            static constexpr auto maxBitPoistion = 15;
-            if (statusBit.bitPosition > maxBitPoistion)
-            {
-                error("Invalid status bit position {POSITION} for {NAME}",
-                      "POSITION", statusBit.bitPosition, "NAME",
-                      statusBit.name);
-                continue;
-            }
-            auto statusBitValue =
-                ((registerSpan[0] & (1 << statusBit.bitPosition)) != 0);
-            auto statusAsserted = (statusBitValue == statusBit.value);
-            auto objectPath =
-                getObjectPath(config, statusBit.type, statusBit.name);
-            double sensorValue = std::numeric_limits<double>::quiet_NaN();
-            SensorIntf::Unit sensorUnit = SensorIntf::Unit::Percent;
-            auto sensorIter = sensors.find(statusBit.name);
-            if (sensorIter != sensors.end())
-            {
-                sensorValue = sensorIter->second->value();
-                sensorUnit = sensorIter->second->unit();
+            sensorValue = sensorIter->second->value();
+            sensorUnit = sensorIter->second->unit();
 
-                updateSensorOnStatusChange(*(sensorIter->second),
-                                           statusBit.type, statusAsserted);
-            }
-
-            co_await generateEvent(statusBit, objectPath, sensorValue,
-                                   sensorUnit, statusAsserted);
+            updateSensorOnStatusChange(*(sensorIter->second), statusBit.type,
+                                       statusAsserted);
         }
-    }
 
-    co_return;
+        co_await generateEvent(statusBit, objectPath, sensorValue, sensorUnit,
+                               statusAsserted);
+    }
 }
 
 auto BaseDevice::generateEvent(const ProfileIntf::StatusBit& statusBit,

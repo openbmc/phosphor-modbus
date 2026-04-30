@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "modbus_rtu_config.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
 #include "test_base.hpp"
@@ -193,13 +194,17 @@ class DeviceEventsTest : public BaseTest
         EXPECT_TRUE(std::isnan(properties.max_value)) << "Max value mismatch";
     }
 
-    auto createTestProfile(ProfileIntf::StatusType statusType)
+    auto createTestProfile(
+        ProfileIntf::StatusType statusType, bool statusValue = true,
+        uint16_t sensorOffset =
+            TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+        uint16_t statusOffset = TestIntf::testReadHoldingRegisterEventOffset)
         -> ProfileIntf::DeviceProfile
     {
         ProfileIntf::StatusBit statusBit = {.name = sensorName,
                                             .type = statusType,
                                             .bitPosition = 0,
-                                            .value = true};
+                                            .value = statusValue};
         return {
             .parity = ModbusIntf::Parity::none,
             .baudRate = baudRate,
@@ -208,22 +213,20 @@ class DeviceEventsTest : public BaseTest
             .sensorRegisters = {{
                 .name = sensorName,
                 .type = ProfileIntf::SensorType::temperature,
-                .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+                .offset = sensorOffset,
                 .size = TestIntf::testReadHoldingRegisterTempCount,
                 .format = ProfileIntf::SensorFormat::floatingPoint,
+                .pollInterval = ModbusIntf::defaultSensorPollInterval,
             }},
-            .statusRegisters = {{TestIntf::testReadHoldingRegisterEventOffset,
-                                 {statusBit}}},
+            .statusRegisters = {{statusOffset, {statusBit}}},
             .firmwareRegisters = {},
         };
     }
 
-    auto testSensorCreation(std::string objectPath,
-                            ProfileIntf::StatusType statusType,
-                            double expectedValue)
-        -> sdbusplus::async::task<void>
+    auto createDevice(const ProfileIntf::DeviceProfile& profile,
+                      EventIntf::Events& events, MockPort& mockPort)
+        -> std::unique_ptr<DeviceIntf::BaseDevice>
     {
-        auto testProfile = createTestProfile(statusType);
         DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
             {
                 .name = deviceName,
@@ -232,16 +235,25 @@ class DeviceEventsTest : public BaseTest
                 .serialPort = portConfig.name,
                 .inventoryPath = sdbusplus::object_path(
                     "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
-                .profile = testProfile,
+                .profile = profile,
             },
             ProfileIntf::DeviceType::reservoirPumpUnit,
             ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
         };
+        return DeviceIntf::DeviceFactory::create(ctx, deviceFactoryConfig,
+                                                 mockPort, events);
+    }
+
+    auto testSensorCreation(std::string objectPath,
+                            ProfileIntf::StatusType statusType,
+                            double expectedValue)
+        -> sdbusplus::async::task<void>
+    {
+        auto testProfile = createTestProfile(statusType);
         EventIntf::Events events{ctx};
         MockPort mockPort(ctx, portConfig, clientDevicePath);
-        auto device = DeviceIntf::DeviceFactory::create(
-            ctx, deviceFactoryConfig, mockPort, events);
-        co_await device->readSensorRegisters();
+        auto device = createDevice(testProfile, events, mockPort);
+        co_await device->pollRegisters();
         auto properties = co_await SensorValueIntf(ctx)
                               .service(serviceName)
                               .path(objectPath)
@@ -267,6 +279,34 @@ class DeviceEventsTest : public BaseTest
         co_return;
     }
 };
+
+TEST_F(DeviceEventsTest, TestSensorStatusSpanMerge)
+{
+    eventServer.expectedEvent =
+        "xyz.openbmc_project.Sensor.Threshold.ReadingCritical";
+
+    // Sensor at 0x0120 (size 1) and status at 0x0121 are contiguous,
+    // so they should merge into a single Modbus read.
+    auto testProfile =
+        createTestProfile(ProfileIntf::StatusType::sensorReadingCritical, false,
+                          TestIntf::testReadHoldingRegisterSpanSensor1Offset,
+                          TestIntf::testReadHoldingRegisterSpanSensor2Offset);
+    EventIntf::Events events{ctx};
+    MockPort mockPort(ctx, portConfig, clientDevicePath);
+    auto device = createDevice(testProfile, events, mockPort);
+    auto countBefore = serverTester->totalRequestCount.load();
+    ctx.spawn(device->pollRegisters());
+
+    ctx.spawn(
+        sdbusplus::async::sleep_for(ctx, 1s) |
+        sdbusplus::async::execution::then([&]() {
+            EXPECT_EQ(serverTester->totalRequestCount.load() - countBefore, 1)
+                << "Sensor and status registers should merge into one span";
+            ctx.request_stop();
+        }));
+
+    ctx.run();
+}
 
 TEST_F(DeviceEventsTest, TestSensorReadingCritical)
 {
