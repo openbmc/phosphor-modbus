@@ -104,7 +104,7 @@ auto Device::startProbing() -> sdbusplus::async::task<void>
 {
     debug("Probing device {NAME} at address {ADDRESS} on port {PORT}", "NAME",
           config.name, "ADDRESS", config.address, "PORT", config.serialPort);
-    while (!ctx.stop_requested())
+    while (isRunning())
     {
         co_await probeDevice();
 
@@ -112,12 +112,29 @@ auto Device::startProbing() -> sdbusplus::async::task<void>
         // promptly instead of blocking for the full probe interval.
         constexpr auto stopCheckInterval = std::chrono::seconds(3);
         for (auto elapsed = std::chrono::seconds(0);
-             elapsed < inventoryProbeInterval && !ctx.stop_requested();
+             elapsed < inventoryProbeInterval && isRunning();
              elapsed += stopCheckInterval)
         {
             co_await sdbusplus::async::sleep_for(ctx, stopCheckInterval);
         }
     }
+
+    // Clean up inventory D-Bus object if it exists
+    if (inventoryServer)
+    {
+        inventoryServer->emit_removed();
+        inventoryServer.reset();
+        if (probeCallback)
+        {
+            co_await probeCallback(false);
+        }
+    }
+    stopped = true;
+}
+
+auto Device::isRunning() const -> bool
+{
+    return !ctx.stop_requested() && !stopRequested;
 }
 
 auto Device::checkAndClearDormant() -> bool
