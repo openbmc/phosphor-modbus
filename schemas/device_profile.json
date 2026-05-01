@@ -14,10 +14,14 @@
         "DeviceType": {
             "type": "string",
             "enum": [
+                "BatteryBackupUnit",
+                "CapacitorBankUnit",
                 "FlowMeter",
                 "HeatExchanger",
                 "PowerMonitorModule",
-                "ReservoirPumpUnit"
+                "PowerSupplyUnit",
+                "ReservoirPumpUnit",
+                "Valve"
             ]
         },
         "DeviceModel": {

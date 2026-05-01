@@ -1,8 +1,5 @@
 #include "device_factory.hpp"
 
-#include "power_monitor_module.hpp"
-#include "reservoir_pump_unit.hpp"
-
 #include <phosphor-logging/lg2.hpp>
 
 #include <string>
@@ -55,19 +52,12 @@ auto DeviceFactory::create(sdbusplus::async::context& ctx,
                            PortIntf& serialPort, EventIntf::Events& events)
     -> std::unique_ptr<BaseDevice>
 {
-    switch (config.deviceType)
+    if (config.deviceType == ProfileIntf::DeviceType::unknown)
     {
-        case ProfileIntf::DeviceType::reservoirPumpUnit:
-            return std::make_unique<ReservoirPumpUnit>(ctx, config, serialPort,
-                                                       events);
-        case ProfileIntf::DeviceType::powerMonitorModule:
-            return std::make_unique<PowerMonitorModule>(ctx, config, serialPort,
-                                                        events);
-        default:
-            break;
+        return nullptr;
     }
 
-    return nullptr;
+    return std::make_unique<BaseDevice>(ctx, config, serialPort, events);
 }
 
 } // namespace phosphor::modbus::rtu::device

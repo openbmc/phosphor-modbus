@@ -116,10 +116,14 @@ struct FirmwareRegister
 
 enum class DeviceType
 {
+    batteryBackupUnit,
+    capacitorBankUnit,
     flowMeter,
     heatExchanger,
     powerMonitorModule,
+    powerSupplyUnit,
     reservoirPumpUnit,
+    valve,
     unknown
 };
 
