@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "79b4877d_0c7ffae2",
+        "filename": "rtu/device/base_device.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-05-01T18:45:40Z",
+      "side": 1,
+      "message": "Refer https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/89694/comment/9adc9ef7_63c8defb/.",
+      "parentUuid": "5cee815d_0fee8dda",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9adc9ef7_63c8defb",
@@ -35,6 +53,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b6cd64b_6f06ad4c",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-05-01T18:45:40Z",
+      "side": 1,
+      "message": "Made changes to create a PollEntry with std:variant type. In recent patch, building the buckets in one go and entries reside inside them rather than as a separate data structure in BaseDevice, so avoids the need to cross-reference this another data structure from outside bucket.",
+      "parentUuid": "9adc9ef7_63c8defb",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2fd87a81_eb5f8cf6",
@@ -48,6 +84,24 @@
       "writtenOn": "2026-04-29T22:32:36Z",
       "side": 1,
       "message": "std:vector\u003cEntry\u003e entries;",
+      "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3339343_f3c8fe98",
+        "filename": "rtu/device/base_device.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-05-01T18:45:40Z",
+      "side": 1,
+      "message": "Rfere here https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/89694/comment/9adc9ef7_63c8defb/.",
+      "parentUuid": "2fd87a81_eb5f8cf6",
       "revId": "e992aa16fe843035d1f7073824b49ddd9b943c3f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
