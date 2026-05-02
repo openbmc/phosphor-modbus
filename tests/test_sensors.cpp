@@ -33,6 +33,7 @@ namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace DeviceConfigIntf = DeviceIntf::config;
 namespace EventIntf = phosphor::modbus::events;
 using SensorTypeIntf = ProfileIntf::SensorType;
+constexpr auto testPollInterval = std::chrono::seconds(1);
 
 class MockPort : public PortIntf::BasePort
 {
@@ -331,13 +332,13 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
          .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+         .pollInterval = testPollInterval},
         {.name = sensor2Name,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+         .pollInterval = testPollInterval}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -399,13 +400,13 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+         .pollInterval = testPollInterval},
         {.name = farName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+         .pollInterval = testPollInterval}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -469,7 +470,7 @@ TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = std::chrono::seconds(1)},
+         .pollInterval = testPollInterval},
         {.name = slowName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
@@ -583,13 +584,13 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
          .offset = validOffset,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval},
+         .pollInterval = testPollInterval},
         {.name = badSensorName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testIllegalDataAddressRegister,
          .size = 1,
          .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = ModbusIntf::defaultSensorPollInterval}};
+         .pollInterval = testPollInterval}};
 
     auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
