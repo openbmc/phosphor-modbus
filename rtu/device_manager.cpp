@@ -94,6 +94,9 @@ auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
               objectPath, "ERROR", e);
         co_return;
     }
+
+    co_await entityManager.handleInventoryGet(
+        DeviceFactoryIntf::getInterfaces());
 }
 
 auto DeviceManager::processInventoryAdded(

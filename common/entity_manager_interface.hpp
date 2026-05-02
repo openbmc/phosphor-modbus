@@ -28,6 +28,10 @@ class EntityManagerInterface
     /** Get the inventory info from Entity Manager */
     auto handleInventoryGet() -> sdbusplus::async::task<>;
 
+    /** Get the inventory info from Entity Manager for specific interfaces */
+    auto handleInventoryGet(const interface_list_t& filterInterfaces)
+        -> sdbusplus::async::task<>;
+
   private:
     /** @brief Handle async inventory add from Entity Manager */
     auto handleInventoryAdded() -> sdbusplus::async::task<>;

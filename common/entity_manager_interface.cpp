@@ -37,6 +37,12 @@ EntityManagerInterface::EntityManagerInterface(
 
 auto EntityManagerInterface::handleInventoryGet() -> sdbusplus::async::task<>
 {
+    co_await handleInventoryGet(interfaceNames);
+}
+
+auto EntityManagerInterface::handleInventoryGet(
+    const interface_list_t& filterInterfaces) -> sdbusplus::async::task<>
+{
     if (!addedCallback)
     {
         error("addedCallback is not set");
@@ -56,7 +62,7 @@ auto EntityManagerInterface::handleInventoryGet() -> sdbusplus::async::task<>
          co_await entityManager.call<ManagedObjectType>(ctx,
                                                         "GetManagedObjects"))
     {
-        for (const auto& interfaceName : interfaceNames)
+        for (const auto& interfaceName : filterInterfaces)
         {
             if (interfaceConfig.contains(interfaceName))
             {
