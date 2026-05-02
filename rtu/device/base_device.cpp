@@ -377,11 +377,11 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
 {
     while (!ctx.stop_requested() && !stopRequested)
     {
-        auto now = std::chrono::steady_clock::now();
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
 
         for (auto& bucket : pollBuckets)
         {
+            auto now = std::chrono::steady_clock::now();
             if (now < bucket.nextPollTime)
             {
                 earliestNextPoll =
@@ -389,19 +389,21 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
                 continue;
             }
             co_await pollBucket(bucket);
-            bucket.nextPollTime = now + bucket.pollInterval;
+            bucket.nextPollTime =
+                std::chrono::steady_clock::now() + bucket.pollInterval;
             earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
         }
 
-        auto sleepDuration = std::chrono::duration_cast<std::chrono::seconds>(
-            earliestNextPoll - std::chrono::steady_clock::now());
-        if (sleepDuration > std::chrono::seconds(0))
+        auto sleepDuration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                earliestNextPoll - std::chrono::steady_clock::now());
+        if (sleepDuration > std::chrono::milliseconds(0))
         {
             co_await sdbusplus::async::sleep_for(ctx, sleepDuration);
         }
         else
         {
-            warning(
+            debug(
                 "No idle time between poll cycles for {NAME}, check poll interval configuration",
                 "NAME", config.name);
         }
