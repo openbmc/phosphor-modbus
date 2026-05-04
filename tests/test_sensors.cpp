@@ -291,7 +291,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         "PowerMonitorModule",
         "xyz/openbmc_project/Inventory/PowerMonitorModule",
         ProfileIntf::DeviceType::powerMonitorModule,
-        ProfileIntf::DeviceModel::PanasonicBJBPM102A0001,
+        ProfileIntf::DeviceModel::PanasonicBJBPM103A,
     });
 
     const ProfileIntf::SensorRegister sensorRegister = {

@@ -121,6 +121,7 @@ enum class DeviceType
     flowMeter,
     heatExchanger,
     powerMonitorModule,
+    powerShelf,
     powerSupplyUnit,
     reservoirPumpUnit,
     valve,
@@ -129,11 +130,23 @@ enum class DeviceType
 
 enum class DeviceModel
 {
-    Artesyn7000433970000,
+    Artesyn7000552480000,
+    Artesyn7000552531000,
+    Artesyn7000555240000,
     Danfoss003Z8540,
+    DeltaBBUBC100AE000,
+    DeltaBBUBS723AE000,
+    DeltaBBUBU123AE000,
+    DeltaECD17020037,
+    DeltaECD27010006,
+    DeltaECD68000047,
+    DeltaECD68000049,
+    DeltaECD70000017,
     DeltaECD70000020,
     DeltaRDF040DSS5193E0,
-    PanasonicBJBPM102A0001,
+    PanasonicBJA3C0002A,
+    PanasonicBJBPM103A,
+    PanasonicBJBSB103A,
     unknown
 };
 

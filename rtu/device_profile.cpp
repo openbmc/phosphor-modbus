@@ -82,17 +82,30 @@ static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
     {"FlowMeter", DeviceType::flowMeter},
     {"HeatExchanger", DeviceType::heatExchanger},
     {"PowerMonitorModule", DeviceType::powerMonitorModule},
+    {"PowerShelf", DeviceType::powerShelf},
     {"PowerSupplyUnit", DeviceType::powerSupplyUnit},
     {"ReservoirPumpUnit", DeviceType::reservoirPumpUnit},
     {"Valve", DeviceType::valve},
 };
 
 static const std::unordered_map<std::string, DeviceModel> deviceModelMap = {
-    {"Artesyn7000433970000", DeviceModel::Artesyn7000433970000},
+    {"Artesyn7000552480000", DeviceModel::Artesyn7000552480000},
+    {"Artesyn7000552531000", DeviceModel::Artesyn7000552531000},
+    {"Artesyn7000555240000", DeviceModel::Artesyn7000555240000},
     {"Danfoss003Z8540", DeviceModel::Danfoss003Z8540},
+    {"DeltaBBUBC100AE000", DeviceModel::DeltaBBUBC100AE000},
+    {"DeltaBBUBS723AE000", DeviceModel::DeltaBBUBS723AE000},
+    {"DeltaBBUBU123AE000", DeviceModel::DeltaBBUBU123AE000},
+    {"DeltaECD17020037", DeviceModel::DeltaECD17020037},
+    {"DeltaECD27010006", DeviceModel::DeltaECD27010006},
+    {"DeltaECD68000047", DeviceModel::DeltaECD68000047},
+    {"DeltaECD68000049", DeviceModel::DeltaECD68000049},
+    {"DeltaECD70000017", DeviceModel::DeltaECD70000017},
     {"DeltaECD70000020", DeviceModel::DeltaECD70000020},
     {"DeltaRDF040DSS5193E0", DeviceModel::DeltaRDF040DSS5193E0},
-    {"PanasonicBJBPM102A0001", DeviceModel::PanasonicBJBPM102A0001},
+    {"PanasonicBJA3C0002A", DeviceModel::PanasonicBJA3C0002A},
+    {"PanasonicBJBPM103A", DeviceModel::PanasonicBJBPM103A},
+    {"PanasonicBJBSB103A", DeviceModel::PanasonicBJBSB103A},
 };
 
 template <typename EnumType>
