@@ -21,13 +21,11 @@ static constexpr auto testProfileJson = R"({
     },
     "InventoryRegisters": [
         {
-            "Name": "TestModel",
             "Type": "Model",
             "Offset": 100,
             "Size": 4
         },
         {
-            "Name": "TestSerial",
             "Type": "SerialNumber",
             "Offset": 200,
             "Size": 8
@@ -109,11 +107,9 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
 
     // Inventory registers
     ASSERT_EQ(profile.inventoryRegisters.size(), 2U);
-    EXPECT_EQ(profile.inventoryRegisters[0].name, "TestModel");
     EXPECT_EQ(profile.inventoryRegisters[0].type, InventoryDataType::model);
     EXPECT_EQ(profile.inventoryRegisters[0].offset, 100U);
     EXPECT_EQ(profile.inventoryRegisters[0].size, 4U);
-    EXPECT_EQ(profile.inventoryRegisters[1].name, "TestSerial");
     EXPECT_EQ(profile.inventoryRegisters[1].type,
               InventoryDataType::serialNumber);
     EXPECT_EQ(profile.inventoryRegisters[1].offset, 200U);

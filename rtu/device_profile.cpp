@@ -110,7 +110,6 @@ static auto lookupEnum(const std::unordered_map<std::string, EnumType>& map,
 
 static void from_json(const json& j, InventoryRegister& r)
 {
-    r.name = j.at("Name").get<std::string>();
     r.type = lookupEnum(inventoryDataTypeMap, j.at("Type").get<std::string>(),
                         "Type");
     r.offset = j.at("Offset").get<uint16_t>();

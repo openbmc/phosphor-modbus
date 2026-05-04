@@ -10,31 +10,26 @@
     },
     "InventoryRegisters": [
         {
-            "Name": "Model",
             "Type": "Model",
             "Offset": 33056,
             "Size": 25
         },
         {
-            "Name": "PartNumber",
             "Type": "PartNumber",
             "Offset": 33088,
             "Size": 25
         },
         {
-            "Name": "Manufacturer",
             "Type": "Manufacturer",
             "Offset": 33120,
             "Size": 25
         },
         {
-            "Name": "SerialNumber",
             "Type": "SerialNumber",
             "Offset": 33184,
             "Size": 25
         },
         {
-            "Name": "SparePartNumber",
             "Type": "SparePartNumber",
             "Offset": 33035,
             "Size": 1

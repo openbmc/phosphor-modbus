@@ -82,8 +82,7 @@ class InventoryTest : public BaseTest
                           .size = TestIntf::testReadHoldingRegisterModelCount,
                           .expectedValue = std::string("RDF040DSS5190")},
         .inventoryRegisters =
-            {{.name = "Model",
-              .type = ProfileIntf::InventoryDataType::model,
+            {{.type = ProfileIntf::InventoryDataType::model,
               .offset = TestIntf::testReadHoldingRegisterModelOffset,
               .size = TestIntf::testReadHoldingRegisterModelCount}},
         .sensorRegisters = {},
@@ -98,8 +97,7 @@ class InventoryTest : public BaseTest
         .probeRegister = {.offset = TestIntf::testFailureReadHoldingRegister,
                           .size = 0x1,
                           .expectedValue = uint64_t(0)},
-        .inventoryRegisters = {{.name = "Unknown",
-                                .type = ProfileIntf::InventoryDataType::unknown,
+        .inventoryRegisters = {{.type = ProfileIntf::InventoryDataType::unknown,
                                 .offset =
                                     TestIntf::testFailureReadHoldingRegister,
                                 .size = 0x1}},
@@ -117,8 +115,7 @@ class InventoryTest : public BaseTest
                           .size = TestIntf::testFlakyReadHoldingRegisterCount,
                           .expectedValue = uint64_t(0x0050)},
         .inventoryRegisters =
-            {{.name = "Flaky",
-              .type = ProfileIntf::InventoryDataType::unknown,
+            {{.type = ProfileIntf::InventoryDataType::unknown,
               .offset = TestIntf::testFlakyReadHoldingRegisterOffset,
               .size = TestIntf::testFlakyReadHoldingRegisterCount}},
         .sensorRegisters = {},

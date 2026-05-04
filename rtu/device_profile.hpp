@@ -31,7 +31,6 @@ enum class InventoryDataType
 
 struct InventoryRegister
 {
-    std::string name = "unknown";
     InventoryDataType type = InventoryDataType::unknown;
     uint16_t offset = 0;
     uint8_t size = 0;

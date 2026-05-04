@@ -57,10 +57,9 @@
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["Name", "Type", "Offset", "Size"],
+                "required": ["Type", "Offset", "Size"],
                 "additionalProperties": false,
                 "properties": {
-                    "Name": { "type": "string" },
                     "Type": {
                         "type": "string",
                         "enum": [

@@ -10,25 +10,21 @@
     },
     "InventoryRegisters": [
         {
-            "Name": "Model",
             "Type": "Model",
             "Offset": 6604,
             "Size": 8
         },
         {
-            "Name": "BuildDate",
             "Type": "BuildDate",
             "Offset": 6612,
             "Size": 4
         },
         {
-            "Name": "SerialNumber",
             "Type": "SerialNumber",
             "Offset": 6616,
             "Size": 8
         },
         {
-            "Name": "SparePartNumber",
             "Type": "SparePartNumber",
             "Offset": 6652,
             "Size": 4

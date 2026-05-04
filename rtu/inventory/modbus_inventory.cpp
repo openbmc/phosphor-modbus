@@ -252,8 +252,8 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
             for (auto idx : span.registerIndices)
             {
                 error(
-                    "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                    "NAME", config.profile.inventoryRegisters[idx].name,
+                    "Failed to read holding register at offset {OFFSET} for {DEVICE_ADDRESS}",
+                    "OFFSET", config.profile.inventoryRegisters[idx].offset,
                     "DEVICE_ADDRESS", config.address);
             }
             continue;
