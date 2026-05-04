@@ -21,8 +21,8 @@ option('tests', type: 'feature', description: 'Build tests.')
 option(
     'modbus-rtu-timeout-microseconds',
     type: 'integer',
-    value: 1000000,
-    description: 'This defines the timeout for the modbus RTU client. The default value is 1 second (1000000 microseconds).',
+    value: 300000,
+    description: 'Modbus RTU client timeout in microseconds.',
 )
 
 option(
