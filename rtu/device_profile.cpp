@@ -161,6 +161,14 @@ static auto parseStatusRegisters(const json& j)
     {
         auto address = reg.at("Offset").get<uint16_t>();
         auto bits = reg.at("Bits").get<std::vector<StatusBit>>();
+        if (reg.contains("Name") && !reg.at("Name").get<std::string>().empty())
+        {
+            auto prefix = reg.at("Name").get<std::string>();
+            for (auto& bit : bits)
+            {
+                bit.name = prefix + "_" + bit.name;
+            }
+        }
         validateUniqueNames(bits, "status bit name", [](const StatusBit& b) {
             return b.name;
         });

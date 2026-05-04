@@ -68,6 +68,18 @@ static constexpr auto testProfileJson = R"({
                     "Value": false
                 }
             ]
+        },
+        {
+            "Name": "RPU",
+            "Offset": 501,
+            "Bits": [
+                {
+                    "Name": "PumpFault",
+                    "Type": "PumpFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                }
+            ]
         }
     ],
     "FirmwareRegisters": [
@@ -141,8 +153,8 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_FALSE(voltage.isSigned);
     EXPECT_EQ(voltage.format, SensorFormat::integer);
 
-    // Status registers
-    ASSERT_EQ(profile.statusRegisters.size(), 1U);
+    // Status registers — without register Name
+    ASSERT_EQ(profile.statusRegisters.size(), 2U);
     auto it = profile.statusRegisters.find(500);
     ASSERT_NE(it, profile.statusRegisters.end());
     ASSERT_EQ(it->second.size(), 2U);
@@ -154,6 +166,15 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(it->second[1].type, StatusType::sensorReadingCritical);
     EXPECT_EQ(it->second[1].bitPosition, 3U);
     EXPECT_FALSE(it->second[1].value);
+
+    // Status registers — with register Name prepended to bit names
+    auto it2 = profile.statusRegisters.find(501);
+    ASSERT_NE(it2, profile.statusRegisters.end());
+    ASSERT_EQ(it2->second.size(), 1U);
+    EXPECT_EQ(it2->second[0].name, "RPU_PumpFault");
+    EXPECT_EQ(it2->second[0].type, StatusType::pumpFailure);
+    EXPECT_EQ(it2->second[0].bitPosition, 1U);
+    EXPECT_TRUE(it2->second[0].value);
 
     // Firmware registers
     ASSERT_EQ(profile.firmwareRegisters.size(), 1U);
