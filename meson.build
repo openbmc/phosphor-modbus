@@ -50,7 +50,7 @@ custom_target(
     command: [
         find_program('python3'),
         files('scripts/validate_profiles.py'),
-        files('schemas/device_profile.json'),
+        files('rtu/schemas/device_profile.json'),
         profile_json_files,
     ],
     build_by_default: true,
