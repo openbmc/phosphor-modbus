@@ -1,0 +1,41 @@
+{
+    "DeviceType": "PowerSupplyUnit",
+    "DeviceModel": "DeltaECD17020037",
+    "Parity": "Even",
+    "BaudRate": 115200,
+    "ProbeRegister": {
+        "Offset": 8,
+        "Size": 8,
+        "ExpectedValue": "ECD17020037"
+    },
+    "InventoryRegisters": [
+        {
+            "Type": "SparePartNumber",
+            "Offset": 0,
+            "Size": 8
+        },
+        {
+            "Type": "Model",
+            "Offset": 8,
+            "Size": 8
+        },
+        {
+            "Type": "BuildDate",
+            "Offset": 16,
+            "Size": 8
+        },
+        {
+            "Type": "SerialNumber",
+            "Offset": 24,
+            "Size": 16
+        }
+    ],
+    "FirmwareRegisters": [
+        {
+            "Name": "PSU_FW_Revision",
+            "Type": "Version",
+            "Offset": 48,
+            "Size": 4
+        }
+    ]
+}

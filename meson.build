@@ -36,9 +36,11 @@ if get_option('tests').allowed()
 endif
 
 profile_json_files = files(
+    'rtu/profiles/Artesyn7000552480000PowerSupplyUnit.json',
     'rtu/profiles/Artesyn7000552531000PowerShelf.json',
     'rtu/profiles/Danfoss003Z8540Valve.json',
     'rtu/profiles/DeltaBBUBS723AE000PowerShelf.json',
+    'rtu/profiles/DeltaECD17020037PowerSupplyUnit.json',
     'rtu/profiles/DeltaECD68000047PowerShelf.json',
     'rtu/profiles/DeltaECD68000049PowerShelf.json',
     'rtu/profiles/DeltaRDF040DSS5193E0ReservoirPumpUnit.json',
