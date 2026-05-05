@@ -1,0 +1,46 @@
+{
+    "DeviceType": "BatteryBackupUnit",
+    "DeviceModel": "DeltaBBUBU123AE000",
+    "Parity": "Even",
+    "BaudRate": 115200,
+    "ProbeRegister": {
+        "Offset": 8,
+        "Size": 8,
+        "ExpectedValue": "BBUBU123AE000"
+    },
+    "InventoryRegisters": [
+        {
+            "Type": "Manufacturer",
+            "Offset": 0,
+            "Size": 8
+        },
+        {
+            "Type": "Model",
+            "Offset": 8,
+            "Size": 8
+        },
+        {
+            "Type": "BuildDate",
+            "Offset": 16,
+            "Size": 8
+        },
+        {
+            "Type": "SparePartNumber",
+            "Offset": 24,
+            "Size": 8
+        },
+        {
+            "Type": "SerialNumber",
+            "Offset": 64,
+            "Size": 16
+        }
+    ],
+    "FirmwareRegisters": [
+        {
+            "Name": "BBU_FW_Revision",
+            "Type": "Version",
+            "Offset": 56,
+            "Size": 4
+        }
+    ]
+}
