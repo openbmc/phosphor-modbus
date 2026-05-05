@@ -38,15 +38,20 @@ endif
 profile_json_files = files(
     'rtu/profiles/Artesyn7000552480000PowerSupplyUnit.json',
     'rtu/profiles/Artesyn7000552531000PowerShelf.json',
+    'rtu/profiles/Artesyn7000555240000PowerMonitorModule.json',
     'rtu/profiles/Danfoss003Z8540Valve.json',
+    'rtu/profiles/DeltaBBUBC100AE000PowerMonitorModule.json',
     'rtu/profiles/DeltaBBUBS723AE000PowerShelf.json',
     'rtu/profiles/DeltaBBUBU123AE000BatteryBackupUnit.json',
     'rtu/profiles/DeltaECD17020037PowerSupplyUnit.json',
     'rtu/profiles/DeltaECD27010006CapacitorBankUnit.json',
     'rtu/profiles/DeltaECD68000047PowerShelf.json',
     'rtu/profiles/DeltaECD68000049PowerShelf.json',
+    'rtu/profiles/DeltaECD70000017PowerMonitorModule.json',
+    'rtu/profiles/DeltaECD70000020PowerMonitorModule.json',
     'rtu/profiles/DeltaRDF040DSS5193E0ReservoirPumpUnit.json',
     'rtu/profiles/PanasonicBJA3C0002ABatteryBackupUnit.json',
+    'rtu/profiles/PanasonicBJBPM103APowerMonitorModule.json',
     'rtu/profiles/PanasonicBJBSB103APowerShelf.json',
 )
 
