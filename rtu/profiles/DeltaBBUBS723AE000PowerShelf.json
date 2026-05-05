@@ -1,0 +1,38 @@
+{
+    "DeviceType": "PowerShelf",
+    "DeviceModel": "DeltaBBUBS723AE000",
+    "Parity": "Even",
+    "BaudRate": 115200,
+    "ProbeRegister": {
+        "Offset": 392,
+        "Size": 8,
+        "ExpectedValue": "Delta"
+    },
+    "InventoryRegisters": [
+        {
+            "Type": "Manufacturer",
+            "Offset": 392,
+            "Size": 8
+        },
+        {
+            "Type": "SparePartNumber",
+            "Offset": 400,
+            "Size": 8
+        },
+        {
+            "Type": "Model",
+            "Offset": 408,
+            "Size": 8
+        },
+        {
+            "Type": "SerialNumber",
+            "Offset": 424,
+            "Size": 16
+        },
+        {
+            "Type": "BuildDate",
+            "Offset": 440,
+            "Size": 8
+        }
+    ]
+}

@@ -247,6 +247,20 @@ TEST_F(DeviceProfileTest, LoadsValveProfile)
               DeviceModel::Danfoss003Z8540);
 }
 
+TEST_F(DeviceProfileTest, LoadsShelfProfile)
+{
+    const auto& profile = getDeviceProfile("DeltaECD68000049PowerShelf");
+
+    EXPECT_EQ(profile.parity, Parity::even);
+    EXPECT_EQ(profile.baudRate, 115200U);
+    EXPECT_FALSE(profile.inventoryRegisters.empty());
+
+    EXPECT_EQ(getDeviceType("DeltaECD68000049PowerShelf"),
+              DeviceType::powerShelf);
+    EXPECT_EQ(getDeviceModel("DeltaECD68000049PowerShelf"),
+              DeviceModel::DeltaECD68000049);
+}
+
 TEST_F(DeviceProfileTest, GetProfileNamesScansDirectory)
 {
     auto names = getProfileNames();
