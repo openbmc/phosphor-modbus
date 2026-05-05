@@ -123,8 +123,8 @@ auto DeviceManager::processInventoryAdded(
     auto portIter = ports.find(config->serialPort);
     if (portIter == ports.end())
     {
-        error("Serial port {PORT} not found for {NAME}", "PORT",
-              config->serialPort, "NAME", config->name);
+        warning("Serial port {PORT} not found for {NAME}", "PORT",
+                config->serialPort, "NAME", config->name);
         co_return;
     }
 
