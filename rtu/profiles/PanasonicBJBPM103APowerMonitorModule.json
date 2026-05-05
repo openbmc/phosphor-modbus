@@ -1,0 +1,46 @@
+{
+    "DeviceType": "PowerMonitorModule",
+    "DeviceModel": "PanasonicBJBPM103A",
+    "Parity": "Even",
+    "BaudRate": 115200,
+    "ProbeRegister": {
+        "Offset": 8,
+        "Size": 8,
+        "ExpectedValue": "Panasonic"
+    },
+    "InventoryRegisters": [
+        {
+            "Type": "SparePartNumber",
+            "Offset": 0,
+            "Size": 8
+        },
+        {
+            "Type": "Manufacturer",
+            "Offset": 8,
+            "Size": 8
+        },
+        {
+            "Type": "Model",
+            "Offset": 16,
+            "Size": 8
+        },
+        {
+            "Type": "BuildDate",
+            "Offset": 24,
+            "Size": 8
+        },
+        {
+            "Type": "SerialNumber",
+            "Offset": 32,
+            "Size": 16
+        }
+    ],
+    "FirmwareRegisters": [
+        {
+            "Name": "PMM_FW_Revision",
+            "Type": "Version",
+            "Offset": 56,
+            "Size": 4
+        }
+    ]
+}
