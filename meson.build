@@ -42,6 +42,7 @@ profile_json_files = files(
     'rtu/profiles/DeltaBBUBS723AE000PowerShelf.json',
     'rtu/profiles/DeltaBBUBU123AE000BatteryBackupUnit.json',
     'rtu/profiles/DeltaECD17020037PowerSupplyUnit.json',
+    'rtu/profiles/DeltaECD27010006CapacitorBankUnit.json',
     'rtu/profiles/DeltaECD68000047PowerShelf.json',
     'rtu/profiles/DeltaECD68000049PowerShelf.json',
     'rtu/profiles/DeltaRDF040DSS5193E0ReservoirPumpUnit.json',
