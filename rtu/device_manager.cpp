@@ -111,7 +111,8 @@ auto DeviceManager::processInventoryAdded(
         co_return;
     }
 
-    auto inventoryIter = inventoryDevices.find(config->name);
+    auto inventoryKey = config->name + "/" + config->type;
+    auto inventoryIter = inventoryDevices.find(inventoryKey);
     if (inventoryIter != inventoryDevices.end() &&
         !inventoryIter->second->isStopped())
     {
@@ -130,13 +131,14 @@ auto DeviceManager::processInventoryAdded(
 
     auto callback =
         [this, config = *config](bool success) -> sdbusplus::async::task<> {
+        auto deviceKey = config.name + "/" + config.type;
         if (success)
         {
             co_await processDeviceAdded(config);
         }
         else
         {
-            auto iter = devices.find(config.name);
+            auto iter = devices.find(deviceKey);
             if (iter != devices.end())
             {
                 iter->second->requestStop();
@@ -151,7 +153,7 @@ auto DeviceManager::processInventoryAdded(
         auto inventoryDevice = std::make_unique<InventoryIntf::Device>(
             ctx, *config, *(portIter->second), std::move(callback));
         ctx.spawn(inventoryDevice->startProbing());
-        inventoryDevices[config->name] = std::move(inventoryDevice);
+        inventoryDevices[inventoryKey] = std::move(inventoryDevice);
     }
     catch (const std::exception& e)
     {
@@ -164,7 +166,8 @@ auto DeviceManager::processInventoryAdded(
 auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
     -> sdbusplus::async::task<>
 {
-    auto iter = devices.find(config.name);
+    auto deviceKey = config.name + "/" + config.type;
+    auto iter = devices.find(deviceKey);
     if (iter != devices.end())
     {
         if (iter->second->isStopped())
@@ -194,7 +197,7 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
         auto device =
             DeviceFactoryIntf::create(ctx, config, *(portIter->second), events);
         ctx.spawn(device->pollRegisters());
-        devices[config.name] = std::move(device);
+        devices[deviceKey] = std::move(device);
     }
     catch (const std::exception& e)
     {
@@ -233,16 +236,18 @@ auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
 }
 
 auto DeviceManager::processConfigRemoved(
-    const sdbusplus::object_path& objectPath,
-    const std::string& /*interfaceName*/) -> sdbusplus::async::task<>
+    const sdbusplus::object_path& objectPath, const std::string& interfaceName)
+    -> sdbusplus::async::task<>
 {
-    auto name = objectPath.filename();
+    auto name = std::string(objectPath.filename());
+    auto type = interfaceName.substr(interfaceName.rfind('.') + 1);
+    auto inventoryKey = name + "/" + type;
     info("Config removed for device {NAME}", "NAME", name);
 
     // Stop inventory device — its probing coroutine will clean up the
     // inventory D-Bus object and stop the sensor device via the probe
     // callback. Both are cleaned up by the regular cleanup loop.
-    auto inventoryIter = inventoryDevices.find(name);
+    auto inventoryIter = inventoryDevices.find(inventoryKey);
     if (inventoryIter != inventoryDevices.end())
     {
         inventoryIter->second->requestStop();
