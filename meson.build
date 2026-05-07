@@ -39,6 +39,7 @@ profile_json_files = files(
     'rtu/profiles/Artesyn7000552480000PowerSupplyUnit.json',
     'rtu/profiles/Artesyn7000552531000PowerShelf.json',
     'rtu/profiles/Artesyn7000555240000PowerMonitorModule.json',
+    'rtu/profiles/BelimoEV200ARXEValve.json',
     'rtu/profiles/Danfoss003Z8540Valve.json',
     'rtu/profiles/DeltaBBUBC100AE000PowerMonitorModule.json',
     'rtu/profiles/DeltaBBUBS723AE000PowerShelf.json',
