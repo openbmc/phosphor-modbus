@@ -35,6 +35,140 @@
             "Size": 16
         }
     ],
+    "SensorRegisters": [
+        {
+            "Name": "PSU1_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 257,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU1_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 258,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU2_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 273,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU2_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 274,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU3_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 289,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU3_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 290,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU4_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 305,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU4_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 306,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU5_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 321,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU5_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 322,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU6_Input_Voltage_AC",
+            "Type": "Voltage",
+            "Offset": 337,
+            "Size": 1,
+            "Precision": 6,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "PSU6_Input_Current_AC",
+            "Type": "Current",
+            "Offset": 338,
+            "Size": 1,
+            "Precision": 10,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "FloatingPoint"
+        }
+    ],
     "FirmwareRegisters": [
         {
             "Name": "PMM_FW_Revision",
