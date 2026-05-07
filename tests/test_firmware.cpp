@@ -93,6 +93,7 @@ class FirmwareTest : public BaseTest
             .type = "TestDevice",
             .address = TestIntf::testDeviceAddress,
             .serialPort = portConfig.name,
+            .parentInventoryPath = sdbusplus::object_path("/"),
             .inventoryPath = sdbusplus::object_path(
                 "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
             .profile = testProfile,

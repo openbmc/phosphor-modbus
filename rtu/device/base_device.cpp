@@ -125,7 +125,10 @@ auto BaseDevice::createSensors() -> void
     constexpr SensorIntf::Warning::properties_t initWarning{};
     constexpr SensorIntf::Critical::properties_t initCritical{};
     const SensorIntf::Definitions::properties_t initAssociations{
-        {{"monitoring", "monitored_by", config.inventoryPath},
+        {{"monitoring", "monitored_by", config.parentInventoryPath},
+         {"inventory", "sensors", config.parentInventoryPath},
+         {"inventory", "all_sensors", config.parentInventoryPath},
+         {"monitoring", "monitored_by", config.inventoryPath},
          {"inventory", "sensors", config.inventoryPath},
          {"inventory", "all_sensors", config.inventoryPath}}};
 

@@ -280,18 +280,15 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
     InventoryServer::ChassisIntf::properties_t chassisProps{
         .type = InventoryServer::ChassisIntf::ChassisType::Module};
 
-    InventoryServer::AssocIntf::properties_t assocProps{};
+    InventoryServer::AssocIntf::properties_t assocProps{
+        {{"contained_by", "containing", config.parentInventoryPath}}};
 
-    auto pathSuffix = config.name + "_" + std::to_string(config.address) + "_" +
-                      config.serialPort;
-
-    auto objectPath = std::string(inventoryServerPath) + "/" + pathSuffix;
-
-    inventoryServer = std::make_unique<InventoryServer>(
-        ctx, objectPath.c_str(), chassisProps, assetProps, assocProps);
+    inventoryServer =
+        std::make_unique<InventoryServer>(ctx, config.inventoryPath.str.c_str(),
+                                          chassisProps, assetProps, assocProps);
     inventoryServer->emit_added();
 
-    info("Added inventory object at {PATH}", "PATH", objectPath);
+    info("Added inventory object at {PATH}", "PATH", config.inventoryPath);
 }
 
 } // namespace phosphor::modbus::rtu::inventory

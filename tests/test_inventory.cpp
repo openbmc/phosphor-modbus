@@ -1,3 +1,4 @@
+#include "device/device_factory.hpp"
 #include "inventory/modbus_inventory.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
@@ -19,6 +20,7 @@ namespace ModbusIntf = phosphor::modbus::rtu;
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
 namespace PortIntf = phosphor::modbus::rtu::port;
 namespace PortConfigIntf = PortIntf::config;
+using DeviceIntf = phosphor::modbus::rtu::device::DeviceFactory;
 namespace InventoryIntf = phosphor::modbus::rtu::inventory;
 
 class MockPort : public PortIntf::BasePort
@@ -60,7 +62,11 @@ class InventoryTest : public BaseTest
             .type = "TestDevice",
             .address = TestIntf::testDeviceAddress,
             .serialPort = portConfig.name,
-            .inventoryPath = sdbusplus::object_path("/"),
+            .parentInventoryPath = sdbusplus::object_path("/"),
+            .inventoryPath = sdbusplus::object_path(
+                std::string(DeviceIntf::chassisInventoryPath) + "/" +
+                deviceName + "_" + std::to_string(TestIntf::testDeviceAddress) +
+                "_" + portConfig.name),
             .profile = profile,
         };
 
@@ -255,8 +261,8 @@ class InventoryTest : public BaseTest
 TEST_F(InventoryTest, TestAddInventoryObject)
 {
     auto objPath =
-        std::format("{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
-                    deviceName, TestIntf::testDeviceAddress, portConfig.name);
+        std::format("{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
+                    TestIntf::testDeviceAddress, portConfig.name);
 
     ctx.spawn(testInventoryObjectCreation(objPath));
 
@@ -276,8 +282,8 @@ TEST_F(InventoryTest, TestNonRespondingAddressNoInventoryObject)
         co_await inventoryDevice->startProbing();
 
         auto objPath = std::format(
-            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
-            deviceName, TestIntf::testDeviceAddress, portConfig.name);
+            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
+            TestIntf::testDeviceAddress, portConfig.name);
 
         EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist for failed probe";
@@ -354,8 +360,8 @@ TEST_F(InventoryTest, TestProbeValueMismatchNoInventoryObject)
         co_await inventoryDevice->probeDevice();
 
         auto objPath = std::format(
-            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
-            deviceName, TestIntf::testDeviceAddress, portConfig.name);
+            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
+            TestIntf::testDeviceAddress, portConfig.name);
 
         EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist when probe value mismatches";
@@ -412,8 +418,8 @@ TEST_F(InventoryTest, TestStopDeviceExitsAndCleansUp)
         co_await inventoryDevice->probeDevice();
 
         auto objPath = std::format(
-            "{}/{}_{}_{}", InventoryIntf::Device::inventoryServerPath,
-            deviceName, TestIntf::testDeviceAddress, portConfig.name);
+            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
+            TestIntf::testDeviceAddress, portConfig.name);
 
         // Verify inventory object exists on D-Bus
         EXPECT_TRUE(co_await checkInventoryObjectExists(objPath))

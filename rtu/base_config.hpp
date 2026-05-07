@@ -21,6 +21,7 @@ struct Config
     std::string type = "unknown";
     uint8_t address = 0;
     std::string serialPort;
+    sdbusplus::object_path parentInventoryPath;
     sdbusplus::object_path inventoryPath;
     const ProfileIntf::DeviceProfile& profile;
 };

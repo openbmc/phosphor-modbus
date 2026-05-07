@@ -107,9 +107,6 @@ class Device
         return stopped;
     }
 
-    static constexpr auto inventoryServerPath =
-        "/xyz/openbmc_project/inventory/system/chassis";
-
     const config::Config config;
 
   private:

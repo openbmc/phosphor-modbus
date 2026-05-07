@@ -32,6 +32,7 @@ namespace PortConfigIntf = PortIntf::config;
 namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace DeviceConfigIntf = DeviceIntf::config;
 namespace EventIntf = phosphor::modbus::events;
+using DeviceIntf::DeviceFactory;
 using SensorTypeIntf = ProfileIntf::SensorType;
 constexpr auto testPollInterval = std::chrono::seconds(1);
 
@@ -98,16 +99,36 @@ class SensorsTest : public BaseTest
         portConfig.rtsDelay = 1;
     }
 
-    auto checkInventoryAssociations() -> sdbusplus::async::task<void>
+    auto checkInventoryAssociations(const std::string& parentInventoryPath,
+                                    const std::string& inventoryPath)
+        -> sdbusplus::async::task<void>
     {
-        constexpr auto numOfInventoryAssociations = 3;
         auto associationProperties =
             co_await AssociationIntf(ctx)
                 .service(serviceName)
                 .path(objectPath)
                 .properties();
-        EXPECT_EQ(associationProperties.associations.size(),
-                  numOfInventoryAssociations);
+
+        using Association = std::tuple<std::string, std::string, std::string>;
+        std::vector<Association> expected = {
+            {"monitoring", "monitored_by", parentInventoryPath},
+            {"inventory", "sensors", parentInventoryPath},
+            {"inventory", "all_sensors", parentInventoryPath},
+            {"monitoring", "monitored_by", inventoryPath},
+            {"inventory", "sensors", inventoryPath},
+            {"inventory", "all_sensors", inventoryPath},
+        };
+
+        EXPECT_EQ(associationProperties.associations.size(), expected.size());
+        for (const auto& assoc : expected)
+        {
+            EXPECT_NE(std::find(associationProperties.associations.begin(),
+                                associationProperties.associations.end(),
+                                assoc),
+                      associationProperties.associations.end())
+                << "Missing association: " << std::get<0>(assoc) << ", "
+                << std::get<1>(assoc) << ", " << std::get<2>(assoc);
+        }
     }
 
     auto createDevice(std::vector<ProfileIntf::SensorRegister> sensorRegisters,
@@ -117,14 +138,19 @@ class SensorsTest : public BaseTest
     {
         testProfile.sensorRegisters = std::move(sensorRegisters);
 
+        auto inventoryPath = sdbusplus::object_path(
+            std::string(DeviceFactory::chassisInventoryPath) + "/" +
+            deviceName);
+
         DeviceConfigIntf::DeviceFactoryConfig deviceFactoryConfig = {
             {
                 .name = deviceName,
                 .type = "TestDevice",
                 .address = TestIntf::testDeviceAddress,
                 .serialPort = portConfig.name,
-                .inventoryPath =
+                .parentInventoryPath =
                     sdbusplus::object_path(deviceTestConfig.inventoryPath),
+                .inventoryPath = std::move(inventoryPath),
                 .profile = testProfile,
             },
             deviceTestConfig.deviceType,
@@ -174,7 +200,11 @@ class SensorsTest : public BaseTest
         EXPECT_EQ(availabilityProperties.available, true)
             << "Availability mismatch";
 
-        co_await checkInventoryAssociations();
+        auto inventoryPath = sdbusplus::object_path(
+            std::string(DeviceFactory::chassisInventoryPath) + "/" +
+            deviceName);
+        co_await checkInventoryAssociations(deviceTestConfig.inventoryPath,
+                                            inventoryPath);
 
         co_return;
     }

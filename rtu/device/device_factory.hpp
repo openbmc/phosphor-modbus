@@ -24,6 +24,9 @@ class DeviceFactory
   public:
     DeviceFactory() = delete;
 
+    static constexpr auto chassisInventoryPath =
+        "/xyz/openbmc_project/inventory/system/chassis";
+
     static auto getInterfaces() -> std::vector<std::string>;
 
     static auto getConfig(sdbusplus::async::context& ctx,

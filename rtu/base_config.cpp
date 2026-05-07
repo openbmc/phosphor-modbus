@@ -62,7 +62,8 @@ static auto parseConfig(const ConfigMap& configMap,
             .type = std::move(type),
             .address = static_cast<uint8_t>(address),
             .serialPort = std::move(serialPort),
-            .inventoryPath = objectPath.parent_path(),
+            .parentInventoryPath = objectPath.parent_path(),
+            .inventoryPath = {},
             .profile = profile,
         };
     }
