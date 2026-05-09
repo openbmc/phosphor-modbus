@@ -4,9 +4,9 @@
     "Parity": "Even",
     "BaudRate": 115200,
     "ProbeRegister": {
-        "Offset": 8,
+        "Offset": 0,
         "Size": 8,
-        "ExpectedValue": "BBUBU123AE000"
+        "ExpectedValue": "Delta"
     },
     "InventoryRegisters": [
         {

@@ -6,7 +6,7 @@
     "ProbeRegister": {
         "Offset": 8,
         "Size": 8,
-        "ExpectedValue": "700-055248-0000"
+        "ExpectedValue": "700-037147-0000"
     },
     "InventoryRegisters": [
         {

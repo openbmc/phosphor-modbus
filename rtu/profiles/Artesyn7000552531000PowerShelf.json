@@ -6,7 +6,7 @@
     "ProbeRegister": {
         "Offset": 392,
         "Size": 8,
-        "ExpectedValue": "Artesyn"
+        "ExpectedValue": "ARTESYN"
     },
     "InventoryRegisters": [
         {
