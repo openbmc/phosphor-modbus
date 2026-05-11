@@ -262,7 +262,12 @@ auto main() -> int
     constexpr auto path = "/xyz/openbmc_project";
     constexpr auto serviceName = "xyz.openbmc_project.ModbusRTU";
     sdbusplus::async::context ctx;
-    sdbusplus::server::manager_t manager{ctx, path};
+    sdbusplus::server::manager_t sensorManager{ctx,
+                                               "/xyz/openbmc_project/sensors"};
+    sdbusplus::server::manager_t inventoryManager{
+        ctx, "/xyz/openbmc_project/inventory"};
+    sdbusplus::server::manager_t softwareManager{
+        ctx, "/xyz/openbmc_project/software"};
 
     info("Creating Modbus device manager at {PATH}", "PATH", path);
     phosphor::modbus::rtu::DeviceManager deviceManager{ctx};
