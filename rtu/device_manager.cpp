@@ -7,6 +7,9 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/server/manager.hpp>
+#include <xyz/openbmc_project/Inventory/Item/client.hpp>
+#include <xyz/openbmc_project/Sensor/Value/client.hpp>
+#include <xyz/openbmc_project/Software/Version/client.hpp>
 
 PHOSPHOR_LOG2_USING;
 
@@ -259,12 +262,21 @@ auto DeviceManager::processConfigRemoved(
 
 auto main() -> int
 {
-    constexpr auto path = "/xyz/openbmc_project";
     constexpr auto serviceName = "xyz.openbmc_project.ModbusRTU";
     sdbusplus::async::context ctx;
-    sdbusplus::server::manager_t manager{ctx, path};
+    using SensorIntf = sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
+    using InventoryIntf =
+        sdbusplus::client::xyz::openbmc_project::inventory::Item<>;
+    using SoftwareIntf =
+        sdbusplus::client::xyz::openbmc_project::software::Version<>;
+    sdbusplus::server::manager_t sensorManager{
+        ctx, SensorIntf::namespace_path::value};
+    sdbusplus::server::manager_t inventoryManager{
+        ctx, InventoryIntf::namespace_path};
+    sdbusplus::server::manager_t softwareManager{ctx,
+                                                 SoftwareIntf::namespace_path};
 
-    info("Creating Modbus device manager at {PATH}", "PATH", path);
+    info("Creating Modbus device manager");
     phosphor::modbus::rtu::DeviceManager deviceManager{ctx};
 
     ctx.request_name(serviceName);
