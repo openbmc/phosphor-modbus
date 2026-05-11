@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "df57a32f_f496d9db",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-05-11T19:14:12Z",
+      "side": 1,
+      "message": "Done, dropped and removed from log statement too.",
+      "parentUuid": "aa5abe5c_bd3915e5",
+      "revId": "21ee05f3d6dd4a8868bb4a13cfb22529e711cc41",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e904f7c3_c3923dd8",
@@ -49,6 +67,24 @@
       "side": 1,
       "message": "Something like https://github.com/openbmc/phosphor-state-manager/commit/f566c964cab791bb9427fdd31bca9f63e437de65 ?",
       "parentUuid": "e904f7c3_c3923dd8",
+      "revId": "21ee05f3d6dd4a8868bb4a13cfb22529e711cc41",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ad06122_94e9e710",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-05-11T19:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "543a8e98_86ae8648",
       "revId": "21ee05f3d6dd4a8868bb4a13cfb22529e711cc41",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
