@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa5abe5c_bd3915e5",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2026-05-11T16:24:58Z",
+      "side": 1,
+      "message": "Seems effectively unused at this point other than as a log statement?",
+      "revId": "21ee05f3d6dd4a8868bb4a13cfb22529e711cc41",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e904f7c3_c3923dd8",
+        "filename": "rtu/device_manager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2026-05-11T16:24:58Z",
+      "side": 1,
+      "message": "We have path strings generated in the PDI bindings that you could use rather than raw strings.",
+      "revId": "21ee05f3d6dd4a8868bb4a13cfb22529e711cc41",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
