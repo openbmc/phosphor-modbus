@@ -108,6 +108,19 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     info("Successfully created device {NAME}", "NAME", config.name);
 }
 
+BaseDevice::~BaseDevice()
+{
+    for (auto& [name, sensor] : sensors)
+    {
+        sensor->Value::emit_removed();
+        sensor->Availability::emit_removed();
+        sensor->OperationalStatus::emit_removed();
+        sensor->Warning::emit_removed();
+        sensor->Critical::emit_removed();
+        sensor->Definitions::emit_removed();
+    }
+}
+
 static auto getObjectPath(std::string_view sensorType,
                           const std::string& sensorName)
     -> sdbusplus::object_path

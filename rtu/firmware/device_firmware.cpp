@@ -64,6 +64,13 @@ DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
     info("Device firmware {NAME} created successfully", "NAME", config.name);
 }
 
+DeviceFirmware::~DeviceFirmware()
+{
+    currentFirmware->Version::emit_removed();
+    currentFirmware->Activation::emit_removed();
+    currentFirmware->Definitions::emit_removed();
+}
+
 auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
 {
     const auto it =

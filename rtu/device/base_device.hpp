@@ -57,6 +57,7 @@ class BaseDevice
     explicit BaseDevice(sdbusplus::async::context& ctx,
                         const config::Config& config, PortIntf& serialPort,
                         EventIntf::Events& events);
+    ~BaseDevice();
 
     /** @brief Poll sensor and status registers in a timed loop. */
     auto pollRegisters() -> sdbusplus::async::task<void>;

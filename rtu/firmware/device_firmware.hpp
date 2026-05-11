@@ -32,6 +32,7 @@ class DeviceFirmware
     explicit DeviceFirmware(sdbusplus::async::context& ctx,
                             const ConfigIntf::Config& config,
                             PortIntf& serialPort);
+    ~DeviceFirmware();
 
     auto readVersionRegister() -> sdbusplus::async::task<void>;
 
