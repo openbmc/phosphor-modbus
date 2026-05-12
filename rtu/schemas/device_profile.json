@@ -114,7 +114,8 @@
                             "Frequency",
                             "Humidity",
                             "Utilization",
-                            "Valve"
+                            "Valve",
+                            "Charge"
                         ]
                     },
                     "Offset": { "type": "integer" },

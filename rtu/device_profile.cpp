@@ -50,6 +50,7 @@ static const std::unordered_map<std::string, SensorType> sensorTypeMap = {
     {"Humidity", SensorType::humidity},
     {"Utilization", SensorType::utilization},
     {"Valve", SensorType::valve},
+    {"Charge", SensorType::charge},
 };
 
 static const std::unordered_map<std::string, SensorFormat> sensorFormatMap = {

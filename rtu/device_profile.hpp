@@ -59,6 +59,7 @@ enum class SensorType
     humidity,
     utilization,
     valve,
+    charge,
     unknown
 };
 
