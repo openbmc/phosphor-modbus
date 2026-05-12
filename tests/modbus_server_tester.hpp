@@ -61,6 +61,11 @@ constexpr uint16_t testReadHoldingRegisterNullPaddedCount = 0x4;
 const std::vector<uint16_t> testReadHoldingRegisterNullPadded = {
     0x4142, 0x0000, 0x0000, 0x0000}; // "AB" + 6 null bytes
 
+// Device Metric Testing Constants
+constexpr uint16_t testReadHoldingRegisterMetricOffset = 0x0130;
+constexpr uint16_t testReadHoldingRegisterMetricCount = 0x1;
+const std::vector<uint16_t> testReadHoldingRegisterMetric = {0x012C}; // 300
+
 // Device Firmware Testing Constants
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionOffset = 0x0115;
 constexpr uint16_t testReadHoldingRegisterFirmwareVersionCount = 0x2;
@@ -94,6 +99,8 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
           testReadHoldingRegisterSpanMerged}},
         {testReadHoldingRegisterDistantOffset,
          {testReadHoldingRegisterDistantCount, testReadHoldingRegisterDistant}},
+        {testReadHoldingRegisterMetricOffset,
+         {testReadHoldingRegisterMetricCount, testReadHoldingRegisterMetric}},
         {testReadHoldingRegisterFirmwareVersionOffset,
          {testReadHoldingRegisterFirmwareVersionCount,
           testReadHoldingRegisterFirmwareVersion}},

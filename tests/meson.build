@@ -105,6 +105,23 @@ test(
 )
 
 test(
+    'test_metrics',
+    executable(
+        'test_metrics',
+        'test_metrics.cpp',
+        'modbus_server_tester.cpp',
+        device_src,
+        base_config_src,
+        profile_src,
+        firmware_src,
+        cpp_args: test_profile_cpp_args,
+        link_with: [modbus_common_lib, test_base_lib],
+        dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
+
+test(
     'test_events',
     executable(
         'test_events',

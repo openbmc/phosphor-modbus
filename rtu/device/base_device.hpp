@@ -9,6 +9,7 @@
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/async/server.hpp>
 #include <xyz/openbmc_project/Association/Definitions/aserver.hpp>
+#include <xyz/openbmc_project/Metric/Value/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/Critical/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/Warning/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Value/aserver.hpp>
@@ -45,6 +46,18 @@ using SensorIntf = sdbusplus::async::server_t<
     sdbusplus::aserver::xyz::openbmc_project::sensor::threshold::Warning,
     sdbusplus::aserver::xyz::openbmc_project::sensor::threshold::Critical,
     sdbusplus::aserver::xyz::openbmc_project::association::Definitions>;
+
+using MetricIntf = sdbusplus::async::server_t<
+    BaseDevice, sdbusplus::aserver::xyz::openbmc_project::metric::Value,
+    sdbusplus::aserver::xyz::openbmc_project::association::Definitions>;
+
+/** @brief Returns the D-Bus object path suffix for a metric type.
+ *  @throws std::invalid_argument if type is unknown. */
+auto getMetricPathSuffix(ProfileIntf::MetricType type) -> std::string_view;
+
+/** @brief Returns the metric unit corresponding to a metric type.
+ *  @throws std::invalid_argument if type is unknown. */
+auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit;
 
 using PortIntf = phosphor::modbus::rtu::port::BasePort;
 namespace EventIntf = phosphor::modbus::events;
@@ -98,8 +111,16 @@ class BaseDevice
         const std::vector<ProfileIntf::StatusBit>* statusBits;
     };
 
-    // Unified entry for both sensor and status registers in poll spans.
-    using PollEntry = std::variant<SensorEntry, StatusEntry>;
+    // Pre-computed pairing of metric register config and its corresponding
+    // metric, built at construction for span-based batch reads.
+    struct MetricEntry
+    {
+        const ProfileIntf::MetricRegister& reg;
+        MetricIntf& metric;
+    };
+
+    // Unified entry for sensor, status, and metric registers in poll spans.
+    using PollEntry = std::variant<SensorEntry, StatusEntry, MetricEntry>;
 
     struct PollBucket
     {
@@ -112,6 +133,12 @@ class BaseDevice
     /** @brief Create D-Bus sensor objects from the device profile. */
     auto createSensors() -> void;
 
+    /** @brief Create D-Bus metric objects from the device profile. */
+    auto createMetrics() -> void;
+
+    /** @brief Find or create a poll bucket for a given interval. */
+    auto findOrCreateBucket(std::chrono::seconds interval) -> PollBucket&;
+
     /** @brief Build poll buckets with merged sensor and status spans. */
     auto buildPollBuckets() -> void;
 
@@ -121,8 +148,17 @@ class BaseDevice
     /** @brief Read and process all spans in a single poll bucket. */
     auto pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>;
 
+    /** @brief Mark entries as failed when a span read fails. */
+    auto handleSpanReadFailure(PollBucket& bucket, const RegisterSpan& span)
+        -> void;
+
     /** @brief Convert raw register data and update a sensor value. */
     auto processSensorEntry(const SensorEntry& entry,
+                            std::span<const uint16_t> spanBuffer,
+                            uint16_t spanStartOffset) -> void;
+
+    /** @brief Convert raw register data and update a metric value. */
+    auto processMetricEntry(const MetricEntry& entry,
                             std::span<const uint16_t> spanBuffer,
                             uint16_t spanStartOffset) -> void;
 
@@ -140,12 +176,15 @@ class BaseDevice
 
     using sensors_map_t =
         std::unordered_map<std::string, std::unique_ptr<SensorIntf>>;
+    using metrics_map_t =
+        std::unordered_map<std::string, std::unique_ptr<MetricIntf>>;
     sdbusplus::async::context& ctx;
     const config::Config config;
     PortIntf& serialPort;
     EventIntf::Events& events;
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
+    metrics_map_t metrics;
     std::vector<PollBucket> pollBuckets;
     std::vector<uint16_t> readBuffer;
     bool stopRequested = false;

@@ -8,6 +8,7 @@
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/server/manager.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
+#include <xyz/openbmc_project/Metric/Value/client.hpp>
 #include <xyz/openbmc_project/Sensor/Value/client.hpp>
 #include <xyz/openbmc_project/Software/Version/client.hpp>
 
@@ -267,10 +268,13 @@ auto main() -> int
     using SensorIntf = sdbusplus::client::xyz::openbmc_project::sensor::Value<>;
     using InventoryIntf =
         sdbusplus::client::xyz::openbmc_project::inventory::Item<>;
+    using MetricIntf = sdbusplus::client::xyz::openbmc_project::metric::Value<>;
     using SoftwareIntf =
         sdbusplus::client::xyz::openbmc_project::software::Version<>;
     sdbusplus::server::manager_t sensorManager{
         ctx, SensorIntf::namespace_path::value};
+    sdbusplus::server::manager_t metricManager{
+        ctx, MetricIntf::namespace_path::value};
     sdbusplus::server::manager_t inventoryManager{
         ctx, InventoryIntf::namespace_path};
     sdbusplus::server::manager_t softwareManager{ctx,

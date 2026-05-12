@@ -98,12 +98,40 @@ auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit
     throw std::invalid_argument("Unknown sensor type");
 }
 
+auto getMetricPathSuffix(ProfileIntf::MetricType type) -> std::string_view
+{
+    switch (type)
+    {
+        case ProfileIntf::MetricType::valveClosedDuration:
+            return MetricIntf::namespace_path::valve_closed_duration;
+        case ProfileIntf::MetricType::valveOpenDuration:
+            return MetricIntf::namespace_path::valve_open_duration;
+        case ProfileIntf::MetricType::unknown:
+            throw std::invalid_argument("Unknown metric type");
+    }
+    throw std::invalid_argument("Unknown metric type");
+}
+
+auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit
+{
+    switch (type)
+    {
+        case ProfileIntf::MetricType::valveClosedDuration:
+        case ProfileIntf::MetricType::valveOpenDuration:
+            return MetricIntf::Unit::Seconds;
+        case ProfileIntf::MetricType::unknown:
+            throw std::invalid_argument("Unknown metric type");
+    }
+    throw std::invalid_argument("Unknown metric type");
+}
+
 BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
                        const config::Config& config, PortIntf& serialPort,
                        EventIntf::Events& events) :
     ctx(ctx), config(config), serialPort(serialPort), events(events)
 {
     createSensors();
+    createMetrics();
     buildPollBuckets();
 
     if (!config.profile.firmwareRegisters.empty())
@@ -126,6 +154,11 @@ BaseDevice::~BaseDevice()
         sensor->Warning::emit_removed();
         sensor->Critical::emit_removed();
         sensor->Definitions::emit_removed();
+    }
+    for (auto& [name, metric] : metrics)
+    {
+        metric->Value::emit_removed();
+        metric->Definitions::emit_removed();
     }
 }
 
@@ -188,25 +221,70 @@ auto BaseDevice::createSensors() -> void
     }
 }
 
+static auto getMetricObjectPath(std::string_view metricType,
+                                const std::string& metricName)
+    -> sdbusplus::object_path
+{
+    return sdbusplus::object_path(
+        std::string(MetricIntf::namespace_path::value) + "/" +
+        std::string(metricType) + "/" + metricName);
+}
+
+auto BaseDevice::createMetrics() -> void
+{
+    const MetricIntf::Definitions::properties_t initAssociations{
+        {{"measuring", "measured_by", config.parentInventoryPath},
+         {"measuring", "measured_by", config.inventoryPath}}};
+
+    static constexpr auto maxRegisterSize = 4;
+    for (const auto& metricRegister : config.profile.metricRegisters)
+    {
+        if (metricRegister.size > maxRegisterSize)
+        {
+            error("Unsupported size for metric register {NAME}, skipping",
+                  "NAME", metricRegister.name);
+            continue;
+        }
+
+        MetricIntf::Value::properties_t initValue = {
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN(),
+            std::numeric_limits<double>::quiet_NaN(),
+            getMetricUnit(metricRegister.type)};
+
+        auto metricPath =
+            getMetricObjectPath(getMetricPathSuffix(metricRegister.type),
+                                config.name + "_" + metricRegister.name);
+
+        auto metric = std::make_unique<MetricIntf>(ctx, metricPath.str.c_str(),
+                                                   initValue, initAssociations);
+
+        metric->Value::emit_added();
+        metric->Definitions::emit_added();
+
+        metrics.emplace(metricRegister.name, std::move(metric));
+    }
+}
+
+auto BaseDevice::findOrCreateBucket(std::chrono::seconds interval)
+    -> PollBucket&
+{
+    auto it =
+        std::find_if(pollBuckets.begin(), pollBuckets.end(),
+                     [&](const auto& b) { return b.pollInterval == interval; });
+    if (it != pollBuckets.end())
+    {
+        return *it;
+    }
+    pollBuckets.push_back({.pollInterval = interval,
+                           .entries = {},
+                           .spans = {},
+                           .nextPollTime = {}});
+    return pollBuckets.back();
+}
+
 auto BaseDevice::buildPollBuckets() -> void
 {
-    // Helper to find or create a bucket for a given poll interval.
-    auto findOrCreateBucket =
-        [this](std::chrono::seconds interval) -> PollBucket& {
-        auto it = std::find_if(
-            pollBuckets.begin(), pollBuckets.end(),
-            [&](const auto& b) { return b.pollInterval == interval; });
-        if (it != pollBuckets.end())
-        {
-            return *it;
-        }
-        pollBuckets.push_back({.pollInterval = interval,
-                               .entries = {},
-                               .spans = {},
-                               .nextPollTime = {}});
-        return pollBuckets.back();
-    };
-
     // Group sensor entries into buckets by poll interval.
     for (const auto& reg : config.profile.sensorRegisters)
     {
@@ -217,6 +295,18 @@ auto BaseDevice::buildPollBuckets() -> void
         }
         auto& bucket = findOrCreateBucket(reg.pollInterval);
         bucket.entries.emplace_back(SensorEntry{reg, *(sensorIter->second)});
+    }
+
+    // Group metric entries into buckets by poll interval.
+    for (const auto& reg : config.profile.metricRegisters)
+    {
+        auto metricIter = metrics.find(reg.name);
+        if (metricIter == metrics.end())
+        {
+            continue;
+        }
+        auto& bucket = findOrCreateBucket(reg.pollInterval);
+        bucket.entries.emplace_back(MetricEntry{reg, *(metricIter->second)});
     }
 
     // Add status entries to the default poll interval bucket.
@@ -249,6 +339,11 @@ auto BaseDevice::buildBucketSpans(PollBucket& bucket) -> void
         if (std::holds_alternative<SensorEntry>(entry))
         {
             const auto& reg = std::get<SensorEntry>(entry).reg;
+            regInfos.push_back({.offset = reg.offset, .size = reg.size});
+        }
+        else if (std::holds_alternative<MetricEntry>(entry))
+        {
+            const auto& reg = std::get<MetricEntry>(entry).reg;
             regInfos.push_back({.offset = reg.offset, .size = reg.size});
         }
         else
@@ -332,6 +427,59 @@ auto BaseDevice::processSensorEntry(const SensorEntry& entry,
     sensor.value(regVal);
 }
 
+auto BaseDevice::processMetricEntry(const MetricEntry& entry,
+                                    std::span<const uint16_t> spanBuffer,
+                                    uint16_t spanStartOffset) -> void
+{
+    auto& [metricRegister, metric] = entry;
+    auto regStart = metricRegister.offset - spanStartOffset;
+    auto regSlice = std::span<const uint16_t>(spanBuffer.data() + regStart,
+                                              metricRegister.size);
+
+    double regVal = static_cast<double>(
+        getRawIntegerFromRegister(regSlice, metricRegister.isSigned));
+    if (metricRegister.format == ProfileIntf::SensorFormat::floatingPoint)
+    {
+        regVal = metricRegister.shift +
+                 (metricRegister.scale *
+                  (regVal / (1ULL << metricRegister.precision)));
+    }
+
+    metric.value(regVal);
+}
+
+auto BaseDevice::handleSpanReadFailure(PollBucket& bucket,
+                                       const RegisterSpan& span) -> void
+{
+    for (auto idx : span.registerIndices)
+    {
+        if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
+        {
+            auto& [sensorRegister,
+                   sensor] = std::get<SensorEntry>(bucket.entries[idx]);
+            error(
+                "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
+                "NAME", sensorRegister.name, "DEVICE_ADDRESS", config.address);
+            sensor.value(std::numeric_limits<double>::quiet_NaN());
+            sensor.functional(false);
+        }
+        else if (std::holds_alternative<MetricEntry>(bucket.entries[idx]))
+        {
+            auto& [metricRegister,
+                   metric] = std::get<MetricEntry>(bucket.entries[idx]);
+            error(
+                "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
+                "NAME", metricRegister.name, "DEVICE_ADDRESS", config.address);
+            metric.value(std::numeric_limits<double>::quiet_NaN());
+        }
+        else
+        {
+            error("Failed to read status registers for {DEVICE_ADDRESS}",
+                  "DEVICE_ADDRESS", config.address);
+        }
+    }
+}
+
 auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
 {
     for (const auto& span : bucket.spans)
@@ -343,26 +491,7 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
             config.profile.parity, spanBuffer);
         if (!ret)
         {
-            for (auto idx : span.registerIndices)
-            {
-                if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
-                {
-                    auto& [sensorRegister,
-                           sensor] = std::get<SensorEntry>(bucket.entries[idx]);
-                    error(
-                        "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                        "NAME", sensorRegister.name, "DEVICE_ADDRESS",
-                        config.address);
-                    sensor.value(std::numeric_limits<double>::quiet_NaN());
-                    sensor.functional(false);
-                }
-                else
-                {
-                    error(
-                        "Failed to read status registers for {DEVICE_ADDRESS}",
-                        "DEVICE_ADDRESS", config.address);
-                }
-            }
+            handleSpanReadFailure(bucket, span);
             continue;
         }
 
@@ -371,6 +500,11 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
             if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
             {
                 processSensorEntry(std::get<SensorEntry>(bucket.entries[idx]),
+                                   spanBuffer, span.startOffset);
+            }
+            else if (std::holds_alternative<MetricEntry>(bucket.entries[idx]))
+            {
+                processMetricEntry(std::get<MetricEntry>(bucket.entries[idx]),
                                    spanBuffer, span.startOffset);
             }
             else
