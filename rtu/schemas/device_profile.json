@@ -115,7 +115,8 @@
                             "Humidity",
                             "Utilization",
                             "Valve",
-                            "Charge"
+                            "Charge",
+                            "RotationalPosition"
                         ]
                     },
                     "Offset": { "type": "integer" },

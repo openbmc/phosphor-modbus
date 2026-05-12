@@ -60,6 +60,7 @@ enum class SensorType
     utilization,
     valve,
     charge,
+    rotationalPosition,
     unknown
 };
 

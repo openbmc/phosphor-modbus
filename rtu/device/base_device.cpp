@@ -48,6 +48,8 @@ auto getPathSuffix(ProfileIntf::SensorType type) -> std::string_view
             return SensorValueIntf::namespace_path::valve;
         case ProfileIntf::SensorType::charge:
             return SensorValueIntf::namespace_path::charge;
+        case ProfileIntf::SensorType::rotationalPosition:
+            return SensorValueIntf::namespace_path::rotational_position;
         case ProfileIntf::SensorType::unknown:
             throw std::invalid_argument("Unknown sensor type");
     }
@@ -88,6 +90,8 @@ auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit
             return SensorValueIntf::Unit::Percent;
         case ProfileIntf::SensorType::charge:
             return SensorValueIntf::Unit::AmpereHours;
+        case ProfileIntf::SensorType::rotationalPosition:
+            return SensorValueIntf::Unit::Radians;
         case ProfileIntf::SensorType::unknown:
             throw std::invalid_argument("Unknown sensor type");
     }
