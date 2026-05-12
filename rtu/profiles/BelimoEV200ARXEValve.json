@@ -128,14 +128,14 @@
         },
         {
             "Name": "Absolute_Position",
-            "Type": "Utilization",
+            "Type": "RotationalPosition",
             "Offset": 5,
             "Size": 1,
-            "Precision": 2,
-            "Scale": 0.01,
+            "Precision": 0,
+            "Scale": 0.000174533,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Setpoint_Analog",
