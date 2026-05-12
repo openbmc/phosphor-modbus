@@ -137,7 +137,7 @@
         },
         {
             "Name": "BBU1_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 266,
             "Size": 1,
             "Precision": 0,
@@ -148,7 +148,7 @@
         },
         {
             "Name": "BBU1_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 267,
             "Size": 1,
             "Precision": 0,
@@ -258,7 +258,7 @@
         },
         {
             "Name": "BBU2_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 282,
             "Size": 1,
             "Precision": 0,
@@ -269,7 +269,7 @@
         },
         {
             "Name": "BBU2_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 283,
             "Size": 1,
             "Precision": 0,
@@ -379,7 +379,7 @@
         },
         {
             "Name": "BBU3_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 298,
             "Size": 1,
             "Precision": 0,
@@ -390,7 +390,7 @@
         },
         {
             "Name": "BBU3_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 299,
             "Size": 1,
             "Precision": 0,
@@ -500,7 +500,7 @@
         },
         {
             "Name": "BBU4_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 314,
             "Size": 1,
             "Precision": 0,
@@ -511,7 +511,7 @@
         },
         {
             "Name": "BBU4_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 315,
             "Size": 1,
             "Precision": 0,
@@ -621,7 +621,7 @@
         },
         {
             "Name": "BBU5_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 330,
             "Size": 1,
             "Precision": 0,
@@ -632,7 +632,7 @@
         },
         {
             "Name": "BBU5_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 331,
             "Size": 1,
             "Precision": 0,
@@ -742,7 +742,7 @@
         },
         {
             "Name": "BBU6_Remaining_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 346,
             "Size": 1,
             "Precision": 0,
@@ -753,7 +753,7 @@
         },
         {
             "Name": "BBU6_Full_Charge_Capacity",
-            "Type": "Energy",
+            "Type": "Charge",
             "Offset": 347,
             "Size": 1,
             "Precision": 0,
