@@ -21,110 +21,110 @@
             "Type": "Temperature",
             "Offset": 13,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Remote_Temperature",
             "Type": "Temperature",
             "Offset": 19,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Flowbody_Temperature",
             "Type": "Temperature",
             "Offset": 21,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Relative_Volumetric_Flow",
             "Type": "Utilization",
             "Offset": 6,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Absolute_Volumetric_Flow",
             "Type": "LiquidFlow",
             "Offset": 8,
             "Size": 1,
-            "Precision": 1,
+            "Precision": 0,
             "Scale": 0.378541,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Setpoint_Absolute_Volumetric_Flow",
             "Type": "LiquidFlow",
             "Offset": 16,
             "Size": 1,
-            "Precision": 1,
+            "Precision": 0,
             "Scale": 0.378541,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Minimum_Volumetric_Flow_Limit",
             "Type": "Utilization",
             "Offset": 105,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Maximum_Volumetric_Flow_Limit",
             "Type": "Utilization",
             "Offset": 106,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Setpoint_Relative_Percentage",
             "Type": "Utilization",
             "Offset": 0,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Relative_Position",
             "Type": "Utilization",
             "Offset": 4,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Absolute_Position",
@@ -142,22 +142,22 @@
             "Type": "Utilization",
             "Offset": 11,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Glycol_Concentration",
             "Type": "Utilization",
             "Offset": 25,
             "Size": 1,
-            "Precision": 2,
+            "Precision": 0,
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         }
     ],
     "StatusRegisters": [
@@ -171,144 +171,25 @@
                     "Value": true
                 },
                 {
-                    "Name": "Over_Train",
-                    "Type": "SensorFailure",
+                    "Name": "Gear_Train_Disengaged",
+                    "Type": "ControllerFailure",
                     "BitPosition": 1,
                     "Value": true
                 },
                 {
-                    "Name": "Mechanical_Overload",
-                    "Type": "SensorFailure",
+                    "Name": "Actuator_Blocked",
+                    "Type": "ControllerFailure",
                     "BitPosition": 2,
                     "Value": true
                 },
                 {
-                    "Name": "Revenue_Loss_Detected",
+                    "Name": "Reverse_Flow",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 3,
-                    "Value": true
-                },
-                {
-                    "Name": "Setpoint_Cannot_Be_Reached_Within_15_Min",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 4,
-                    "Value": true
-                },
-                {
-                    "Name": "Flow_Measured_But_Valve_Closed",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 5,
-                    "Value": true
-                },
-                {
-                    "Name": "Actual_Flow_Exceeds_Nominal",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 6,
-                    "Value": true
-                },
-                {
-                    "Name": "Air_In_System",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 7,
-                    "Value": true
-                },
-                {
-                    "Name": "External_Temp_Sensor_Error",
-                    "Type": "SensorFailure",
-                    "BitPosition": 8,
-                    "Value": true
-                },
-                {
-                    "Name": "Embedded_Temp_Sensor_Error",
-                    "Type": "SensorFailure",
-                    "BitPosition": 9,
-                    "Value": true
-                },
-                {
-                    "Name": "Flow_Sensor_Communication_Interrupted",
-                    "Type": "ControllerFailure",
-                    "BitPosition": 10,
-                    "Value": true
-                },
-                {
-                    "Name": "Grease_Ice_Risk",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 11,
-                    "Value": true
-                },
-                {
-                    "Name": "Glycol_In_MFI",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 12,
-                    "Value": true
-                },
-                {
-                    "Name": "Setpoint_Not_Reached_Power",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 13,
                     "Value": true
                 },
                 {
                     "Name": "Setpoint_Not_Reached",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 14,
-                    "Value": true
-                },
-                {
-                    "Name": "Bus_Watchdog_Timeout",
-                    "Type": "ControllerFailure",
-                    "BitPosition": 15,
-                    "Value": true
-                },
-                {
-                    "Name": "No_Setpoint_Override_Update",
-                    "Type": "ControllerFailure",
-                    "BitPosition": 16,
-                    "Value": true
-                },
-                {
-                    "Name": "No_Differential_Pressure_Within_5_Min",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 17,
-                    "Value": true
-                },
-                {
-                    "Name": "Differential_Pressure_Setpoint_Not_Reached",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 18,
-                    "Value": true
-                }
-            ]
-        },
-        {
-            "Offset": 158,
-            "Bits": [
-                {
-                    "Name": "No_Communication_Error",
-                    "Type": "ControllerFailure",
-                    "BitPosition": 0,
-                    "Value": true
-                },
-                {
-                    "Name": "Gear_Train_Change",
-                    "Type": "SensorFailure",
-                    "BitPosition": 1,
-                    "Value": true
-                },
-                {
-                    "Name": "Actuator_Cannot_Move",
-                    "Type": "SensorFailure",
-                    "BitPosition": 2,
-                    "Value": true
-                },
-                {
-                    "Name": "Revenue_Loss",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 3,
-                    "Value": true
-                },
-                {
-                    "Name": "Flow_Setpoint_Not_Reached",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 4,
                     "Value": true
@@ -320,7 +201,7 @@
                     "Value": true
                 },
                 {
-                    "Name": "Flow_Exceeds_Nominal",
+                    "Name": "Actual_Flow_Exceeds_Nominal",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 6,
                     "Value": true
@@ -344,7 +225,7 @@
                     "Value": true
                 },
                 {
-                    "Name": "Communication_To_Sensor",
+                    "Name": "Flow_Sensor_Communication_Interrupted",
                     "Type": "ControllerFailure",
                     "BitPosition": 10,
                     "Value": true
@@ -368,33 +249,38 @@
                     "Value": true
                 },
                 {
-                    "Name": "Device_End_Of_Life_Reached",
-                    "Type": "SensorReadingCritical",
+                    "Name": "Device_End_Of_Life",
+                    "Type": "SensorFailure",
                     "BitPosition": 14,
                     "Value": true
                 },
                 {
-                    "Name": "Bus_Watchdog_Triggered",
+                    "Name": "Bus_Watchdog_Timeout",
                     "Type": "ControllerFailure",
                     "BitPosition": 15,
                     "Value": true
-                },
+                }
+            ]
+        },
+        {
+            "Offset": 158,
+            "Bits": [
                 {
                     "Name": "No_Differential_Pressure_Detected",
                     "Type": "SensorReadingCritical",
-                    "BitPosition": 16,
+                    "BitPosition": 0,
                     "Value": true
                 },
                 {
                     "Name": "Differential_Pressure_Setpoint_Not_Reached",
                     "Type": "SensorReadingCritical",
-                    "BitPosition": 17,
+                    "BitPosition": 1,
                     "Value": true
                 },
                 {
                     "Name": "Minimum_Position_Applied",
-                    "Type": "SensorReadingCritical",
-                    "BitPosition": 18,
+                    "Type": "SensorReadingWarning",
+                    "BitPosition": 2,
                     "Value": true
                 }
             ]
