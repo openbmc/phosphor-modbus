@@ -219,6 +219,7 @@ class DeviceEventsTest : public BaseTest
                 .pollInterval = ModbusIntf::defaultSensorPollInterval,
             }},
             .statusRegisters = {{statusOffset, {statusBit}}},
+            .metricRegisters = {},
             .firmwareRegisters = {},
         };
     }

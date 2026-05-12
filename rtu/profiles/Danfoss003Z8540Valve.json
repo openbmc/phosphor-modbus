@@ -90,28 +90,30 @@
             "Shift": 0.0,
             "IsSigned": true,
             "Format": "FloatingPoint"
-        },
+        }
+    ],
+    "MetricRegisters": [
         {
             "Name": "Minutes_Since_Fully_Closed",
-            "Type": "Utilization",
+            "Type": "ValveClosedDuration",
             "Offset": 33812,
             "Size": 2,
             "Precision": 0,
-            "Scale": 1.0,
+            "Scale": 60.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         },
         {
             "Name": "Minutes_Since_Fully_Open",
-            "Type": "Utilization",
+            "Type": "ValveOpenDuration",
             "Offset": 33814,
             "Size": 2,
             "Precision": 0,
-            "Scale": 1.0,
+            "Scale": 60.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "Integer"
+            "Format": "FloatingPoint"
         }
     ],
     "StatusRegisters": [

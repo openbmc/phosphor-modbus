@@ -177,6 +177,31 @@
                 }
             }
         },
+        "MetricRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Name", "Type", "Offset", "Size", "Format"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Type": {
+                        "type": "string",
+                        "enum": ["ValveClosedDuration", "ValveOpenDuration"]
+                    },
+                    "Offset": { "type": "integer" },
+                    "Size": { "type": "integer" },
+                    "Precision": { "type": "integer", "default": 0 },
+                    "Scale": { "type": "number", "default": 1.0 },
+                    "Shift": { "type": "number", "default": 0.0 },
+                    "IsSigned": { "type": "boolean", "default": false },
+                    "Format": {
+                        "type": "string",
+                        "enum": ["FloatingPoint", "Integer"]
+                    }
+                }
+            }
+        },
         "FirmwareRegisters": {
             "type": "array",
             "items": {

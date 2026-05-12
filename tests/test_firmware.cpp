@@ -85,6 +85,7 @@ class FirmwareTest : public BaseTest
             .inventoryRegisters = {},
             .sensorRegisters = {},
             .statusRegisters = {},
+            .metricRegisters = {},
             .firmwareRegisters = {firmwareRegister},
         };
 

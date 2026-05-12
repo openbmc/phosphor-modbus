@@ -216,6 +216,7 @@ class SensorsTest : public BaseTest
         .inventoryRegisters = {},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 };

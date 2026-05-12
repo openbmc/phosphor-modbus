@@ -72,6 +72,11 @@ static const std::unordered_map<std::string, StatusType> statusTypeMap = {
     {"SensorReadingWarning", StatusType::sensorReadingWarning},
 };
 
+static const std::unordered_map<std::string, MetricType> metricTypeMap = {
+    {"ValveClosedDuration", MetricType::valveClosedDuration},
+    {"ValveOpenDuration", MetricType::valveOpenDuration},
+};
+
 static const std::unordered_map<std::string, FirmwareRegisterType>
     firmwareRegisterTypeMap = {
         {"Version", FirmwareRegisterType::version},
@@ -208,6 +213,20 @@ static void from_json(const json& j, ProbeRegister& r)
     }
 }
 
+static void from_json(const json& j, MetricRegister& r)
+{
+    r.name = j.at("Name").get<std::string>();
+    r.type = lookupEnum(metricTypeMap, j.at("Type").get<std::string>(), "Type");
+    r.offset = j.at("Offset").get<uint16_t>();
+    r.size = j.at("Size").get<uint8_t>();
+    r.precision = j.value("Precision", defaultPrecision);
+    r.scale = j.value("Scale", defaultScale);
+    r.shift = j.value("Shift", defaultShift);
+    r.isSigned = j.value("IsSigned", defaultIsSigned);
+    r.format = lookupEnum(sensorFormatMap, j.at("Format").get<std::string>(),
+                          "Format");
+}
+
 static void from_json(const json& j, FirmwareRegister& r)
 {
     r.name = j.at("Name").get<std::string>();
@@ -266,6 +285,14 @@ static auto parseProfileEntry(const std::filesystem::path& path)
     {
         entry.profile.statusRegisters =
             parseStatusRegisters(j["StatusRegisters"]);
+    }
+    if (j.contains("MetricRegisters"))
+    {
+        entry.profile.metricRegisters =
+            j["MetricRegisters"].get<std::vector<MetricRegister>>();
+        validateUniqueNames(entry.profile.metricRegisters,
+                            "metric register name",
+                            [](const MetricRegister& r) { return r.name; });
     }
     if (j.contains("FirmwareRegisters"))
     {

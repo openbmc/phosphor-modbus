@@ -101,6 +101,27 @@ struct StatusBit
     bool value = false;
 };
 
+enum class MetricType
+{
+    valveClosedDuration,
+    valveOpenDuration,
+    unknown
+};
+
+struct MetricRegister
+{
+    std::string name = "unknown";
+    MetricType type = MetricType::unknown;
+    uint16_t offset = 0;
+    uint8_t size = 0;
+    uint8_t precision = 0;
+    double scale = 1.0;
+    double shift = 0.0;
+    bool isSigned = false;
+    SensorFormat format = SensorFormat::unknown;
+    std::chrono::seconds pollInterval = defaultSensorPollInterval;
+};
+
 enum class FirmwareRegisterType
 {
     version,
@@ -168,6 +189,7 @@ struct DeviceProfile
     std::vector<InventoryRegister> inventoryRegisters;
     std::vector<SensorRegister> sensorRegisters;
     std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
+    std::vector<MetricRegister> metricRegisters;
     std::vector<FirmwareRegister> firmwareRegisters;
 };
 

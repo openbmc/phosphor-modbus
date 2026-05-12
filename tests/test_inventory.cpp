@@ -93,6 +93,7 @@ class InventoryTest : public BaseTest
               .size = TestIntf::testReadHoldingRegisterModelCount}},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 
@@ -109,6 +110,7 @@ class InventoryTest : public BaseTest
                                 .size = 0x1}},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 
@@ -126,6 +128,7 @@ class InventoryTest : public BaseTest
               .size = TestIntf::testFlakyReadHoldingRegisterCount}},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 
@@ -140,6 +143,7 @@ class InventoryTest : public BaseTest
         .inventoryRegisters = {},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 
@@ -154,6 +158,7 @@ class InventoryTest : public BaseTest
         .inventoryRegisters = {},
         .sensorRegisters = {},
         .statusRegisters = {},
+        .metricRegisters = {},
         .firmwareRegisters = {},
     };
 

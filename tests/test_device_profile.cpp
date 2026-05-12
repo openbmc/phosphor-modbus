@@ -82,6 +82,19 @@ static constexpr auto testProfileJson = R"({
             ]
         }
     ],
+    "MetricRegisters": [
+        {
+            "Name": "TestClosedDuration",
+            "Type": "ValveClosedDuration",
+            "Offset": 700,
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 60.0,
+            "Shift": 0.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        }
+    ],
     "FirmwareRegisters": [
         {
             "Name": "TestFW",
@@ -176,6 +189,19 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(it2->second[0].bitPosition, 1U);
     EXPECT_TRUE(it2->second[0].value);
 
+    // Metric registers
+    ASSERT_EQ(profile.metricRegisters.size(), 1U);
+    const auto& metric = profile.metricRegisters[0];
+    EXPECT_EQ(metric.name, "TestClosedDuration");
+    EXPECT_EQ(metric.type, MetricType::valveClosedDuration);
+    EXPECT_EQ(metric.offset, 700U);
+    EXPECT_EQ(metric.size, 2U);
+    EXPECT_EQ(metric.precision, 0U);
+    EXPECT_DOUBLE_EQ(metric.scale, 60.0);
+    EXPECT_DOUBLE_EQ(metric.shift, 0.0);
+    EXPECT_TRUE(metric.isSigned);
+    EXPECT_EQ(metric.format, SensorFormat::floatingPoint);
+
     // Firmware registers
     ASSERT_EQ(profile.firmwareRegisters.size(), 1U);
     EXPECT_EQ(profile.firmwareRegisters[0].name, "TestFW");
@@ -241,6 +267,9 @@ TEST_F(DeviceProfileTest, LoadsValveProfile)
     EXPECT_FALSE(profile.sensorRegisters.empty());
     EXPECT_FALSE(profile.statusRegisters.empty());
     EXPECT_FALSE(profile.firmwareRegisters.empty());
+    ASSERT_EQ(profile.metricRegisters.size(), 2U);
+    EXPECT_EQ(profile.metricRegisters[0].type, MetricType::valveClosedDuration);
+    EXPECT_EQ(profile.metricRegisters[1].type, MetricType::valveOpenDuration);
 
     EXPECT_EQ(getDeviceType("Danfoss003Z8540Valve"), DeviceType::valve);
     EXPECT_EQ(getDeviceModel("Danfoss003Z8540Valve"),
