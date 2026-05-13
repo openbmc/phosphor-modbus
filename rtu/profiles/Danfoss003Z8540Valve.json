@@ -37,59 +37,44 @@
     ],
     "SensorRegisters": [
         {
-            "Name": "Flow_Rate_Feedback",
-            "Type": "LiquidFlow",
-            "Offset": 33282,
+            "Name": "Estimated_Flow_Rate",
+            "Type": "Utilization",
+            "Offset": 34312,
             "Size": 2,
-            "Precision": 2,
-            "Scale": 1.0,
-            "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "Integer"
         },
         {
             "Name": "Cooling_Design_Flow_Rate",
             "Type": "LiquidFlow",
             "Offset": 32798,
             "Size": 2,
-            "Precision": 2,
-            "Scale": 1.0,
-            "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "Integer"
         },
         {
             "Name": "Max_Value_Of_Design_Flow_Rate",
             "Type": "Utilization",
             "Offset": 33028,
             "Size": 2,
-            "Precision": 2,
-            "Scale": 1.0,
-            "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "Integer"
         },
         {
-            "Name": "Valve_Position",
-            "Type": "Altitude",
-            "Offset": 33026,
+            "Name": "Actuator_Spindle_Position",
+            "Type": "Utilization",
+            "Offset": 33302,
             "Size": 2,
-            "Precision": 2,
-            "Scale": 1.0,
-            "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "Integer"
         },
         {
             "Name": "Voltage_On_Analog_Output",
             "Type": "Voltage",
             "Offset": 33286,
             "Size": 2,
-            "Precision": 2,
-            "Scale": 1.0,
-            "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "Integer"
         }
     ],
     "MetricRegisters": [
