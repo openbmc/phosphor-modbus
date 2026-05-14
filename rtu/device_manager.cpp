@@ -115,10 +115,9 @@ auto DeviceManager::processInventoryAdded(
         co_return;
     }
 
-    auto inventoryKey = config->name + "/" + config->type;
-    auto inventoryIter = inventoryDevices.find(inventoryKey);
-    if (inventoryIter != inventoryDevices.end() &&
-        !inventoryIter->second->isStopped())
+    auto& variants = inventoryDevices[config->name];
+    auto variantIter = variants.find(config->type);
+    if (variantIter != variants.end() && !variantIter->second->isStopped())
     {
         debug("Inventory device {NAME} already exists, skipping", "NAME",
               config->name);
@@ -135,13 +134,13 @@ auto DeviceManager::processInventoryAdded(
 
     auto callback =
         [this, config = *config](bool success) -> sdbusplus::async::task<> {
-        auto deviceKey = config.name + "/" + config.type;
         if (success)
         {
             co_await processDeviceAdded(config);
         }
         else
         {
+            auto deviceKey = config.name + "/" + config.type;
             auto iter = devices.find(deviceKey);
             if (iter != devices.end())
             {
@@ -150,6 +149,7 @@ auto DeviceManager::processInventoryAdded(
                       config.name);
             }
         }
+        handleSiblingProbes(config, success);
     };
 
     try
@@ -157,13 +157,38 @@ auto DeviceManager::processInventoryAdded(
         auto inventoryDevice = std::make_unique<InventoryIntf::Device>(
             ctx, *config, *(portIter->second), std::move(callback));
         ctx.spawn(inventoryDevice->startProbing());
-        inventoryDevices[inventoryKey] = std::move(inventoryDevice);
+        variants[config->type] = std::move(inventoryDevice);
     }
     catch (const std::exception& e)
     {
         error("Failed to create Inventory Device for {PATH} with {ERROR}",
               "PATH", objectPath, "ERROR", e);
         co_return;
+    }
+}
+
+auto DeviceManager::handleSiblingProbes(const DeviceFactoryConfigIntf& config,
+                                        bool success) -> void
+{
+    for (auto& [type, inv] : inventoryDevices[config.name])
+    {
+        if (type == config.type)
+        {
+            continue;
+        }
+        if (success && !inv->isStopped())
+        {
+            // Stop probing for other vendors with the same device
+            // name and type (e.g., stop Delta when Artesyn probed).
+            inv->requestStop(true);
+        }
+        else if (!success && inv->isStopped())
+        {
+            // Restart probing for sibling variants so a replacement
+            // device of either type can be rediscovered.
+            inv->restart();
+            ctx.spawn(inv->startProbing());
+        }
     }
 }
 
@@ -227,15 +252,21 @@ auto DeviceManager::cleanupStoppedDevices() -> sdbusplus::async::task<>
             return false;
         });
 
-        std::erase_if(inventoryDevices, [](const auto& entry) {
-            if (entry.second->isStopped())
-            {
-                info("Removing stopped inventory device {NAME}", "NAME",
-                     entry.first);
-                return true;
-            }
-            return false;
-        });
+        for (auto& [name, variants] : inventoryDevices)
+        {
+            std::erase_if(variants, [](const auto& entry) {
+                if (entry.second->isStopped() &&
+                    !entry.second->isStoppedBySibling())
+                {
+                    info("Removing stopped inventory device {NAME}", "NAME",
+                         entry.first);
+                    return true;
+                }
+                return false;
+            });
+        }
+        std::erase_if(inventoryDevices,
+                      [](const auto& entry) { return entry.second.empty(); });
     }
 }
 
@@ -245,16 +276,19 @@ auto DeviceManager::processConfigRemoved(
 {
     auto name = std::string(objectPath.filename());
     auto type = interfaceName.substr(interfaceName.rfind('.') + 1);
-    auto inventoryKey = name + "/" + type;
     info("Config removed for device {NAME}", "NAME", name);
 
     // Stop inventory device — its probing coroutine will clean up the
     // inventory D-Bus object and stop the sensor device via the probe
     // callback. Both are cleaned up by the regular cleanup loop.
-    auto inventoryIter = inventoryDevices.find(inventoryKey);
-    if (inventoryIter != inventoryDevices.end())
+    auto nameIter = inventoryDevices.find(name);
+    if (nameIter != inventoryDevices.end())
     {
-        inventoryIter->second->requestStop();
+        auto variantIter = nameIter->second.find(type);
+        if (variantIter != nameIter->second.end())
+        {
+            variantIter->second->requestStop();
+        }
     }
     co_return;
 }

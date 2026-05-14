@@ -30,8 +30,13 @@ class DeviceManager
     explicit DeviceManager(sdbusplus::async::context& ctx);
 
   private:
-    using inventory_device_map_t =
+    // Maps device type (e.g. "Artesyn7000552531000PowerShelf") to its
+    // inventory device. Multiple variants can exist for the same physical slot.
+    using inventory_variant_map_t =
         std::unordered_map<std::string, std::unique_ptr<InventoryIntf::Device>>;
+    // Maps device name (e.g. "PSU_SHELF_1") to its variants.
+    using inventory_device_map_t =
+        std::unordered_map<std::string, inventory_variant_map_t>;
 
     using port_map_t =
         std::unordered_map<std::string, std::unique_ptr<PortIntf::BasePort>>;
@@ -54,6 +59,11 @@ class DeviceManager
 
     auto processDeviceAdded(const device::config::DeviceFactoryConfig& config)
         -> sdbusplus::async::task<>;
+
+    /** @brief Stop sibling inventory variants or restart them based on
+     *         probe result. */
+    auto handleSiblingProbes(const device::config::DeviceFactoryConfig& config,
+                             bool success) -> void;
 
     auto processConfigRemoved(const sdbusplus::object_path& objectPath,
                               const std::string& interfaceName)

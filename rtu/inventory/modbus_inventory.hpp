@@ -95,16 +95,37 @@ class Device
         return dormant;
     }
 
-    /** @brief Request the probing coroutine to stop. */
-    auto requestStop() -> void
+    /** @brief Request the probing coroutine to stop.
+     *  @param siblingWon If true, this device was stopped because a sibling
+     *         variant probed successfully. The device is kept for potential
+     *         restart if the sibling later fails. */
+    auto requestStop(bool siblingWon = false) -> void
     {
         stopRequested = true;
+        stoppedBySibling = siblingWon;
     }
 
     /** @brief Returns true after the probing coroutine has exited. */
     auto isStopped() const -> bool
     {
         return stopped;
+    }
+
+    /** @brief Reset stop flags so the probing loop can be restarted. */
+    auto restart() -> void
+    {
+        stopRequested = false;
+        stopped = false;
+        stoppedBySibling = false;
+        dormant = false;
+        mismatchLogged = false;
+    }
+
+    /** @brief Returns true if this device was stopped because a sibling
+     *         variant probed successfully. */
+    auto isStoppedBySibling() const -> bool
+    {
+        return stoppedBySibling;
     }
 
     const config::Config config;
@@ -137,6 +158,7 @@ class Device
     bool mismatchLogged = false;
     bool stopRequested = false;
     bool stopped = false;
+    bool stoppedBySibling = false;
     std::vector<RegisterSpan> registerSpans;
     std::vector<uint16_t> readBuffer;
 };
