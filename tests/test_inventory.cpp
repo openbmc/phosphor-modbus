@@ -312,7 +312,7 @@ TEST_F(InventoryTest, TestDormantDeviceSkippedAndExpires)
 {
     ctx.spawn(testDormantSkippedAndExpires());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -348,7 +348,7 @@ TEST_F(InventoryTest, TestDiscoveredDeviceNotMarkedDormant)
 
     ctx.spawn(testProbe());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -376,7 +376,7 @@ TEST_F(InventoryTest, TestProbeValueMismatchNoInventoryObject)
 
     ctx.spawn(testProbe());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -402,7 +402,7 @@ TEST_F(InventoryTest, TestProbeNullPaddedStringMatch)
 
     ctx.spawn(testProbe());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -448,6 +448,73 @@ TEST_F(InventoryTest, TestStopDeviceExitsAndCleansUp)
     };
 
     ctx.spawn(testStop());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// Verify that requestStop(true) sets the stoppedBySibling flag, and that
+// restart() clears it along with all other stop/dormant state.
+TEST_F(InventoryTest, TestSiblingStopAndRestart)
+{
+    auto devicePair = createDevice(testProfile);
+    auto& inventoryDevice = devicePair.second;
+
+    EXPECT_FALSE(inventoryDevice->isStoppedBySibling());
+
+    inventoryDevice->requestStop(true);
+    EXPECT_TRUE(inventoryDevice->isStoppedBySibling());
+
+    inventoryDevice->restart();
+    EXPECT_FALSE(inventoryDevice->isStopped());
+    EXPECT_FALSE(inventoryDevice->isStoppedBySibling());
+    EXPECT_FALSE(inventoryDevice->isDormant());
+}
+
+// Verify that a device stopped by a sibling can be restarted and
+// successfully probe again.
+TEST_F(InventoryTest, TestSiblingRestartResumesProbing)
+{
+    auto testRestart = [&]() -> sdbusplus::async::task<void> {
+        auto devicePair = createDevice(testProfile);
+        auto& inventoryDevice = devicePair.second;
+
+        auto objPath = std::format(
+            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
+            TestIntf::testDeviceAddress, portConfig.name);
+
+        // Probe once to create the inventory D-Bus object
+        co_await inventoryDevice->probeDevice();
+
+        EXPECT_TRUE(co_await checkInventoryObjectExists(objPath))
+            << "Inventory object should exist after probe";
+
+        // Start probing loop and stop as sibling
+        ctx.spawn(inventoryDevice->startProbing());
+        inventoryDevice->requestStop(true);
+        while (!inventoryDevice->isStopped())
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 100ms);
+        }
+
+        // Inventory object should be cleaned up on stop
+        EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
+            << "Inventory object should be removed after sibling stop";
+
+        // Restart and probe directly
+        inventoryDevice->restart();
+        co_await inventoryDevice->probeDevice();
+
+        // Should re-discover and re-create inventory object
+        EXPECT_TRUE(co_await checkInventoryObjectExists(objPath))
+            << "Inventory object should be re-created after restart";
+
+        co_return;
+    };
+
+    ctx.spawn(testRestart());
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 5s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
