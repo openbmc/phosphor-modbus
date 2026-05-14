@@ -134,6 +134,7 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
         .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = 1s,
     };
 
     // Raw value 0x012C = 300, with scale=60 -> 300 * 60 = 18000 seconds
@@ -162,7 +163,7 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
 
     ctx.spawn(testMetric());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 2s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
