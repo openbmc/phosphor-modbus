@@ -235,6 +235,7 @@ TEST_F(MetricsTest, TestMetricValueInteger)
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
         .format = ProfileIntf::SensorFormat::integer,
+        .pollInterval = 1s,
     };
 
     // Raw value 0x012C = 300, Integer format ignores scale -> 300

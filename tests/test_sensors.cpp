@@ -236,6 +236,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = 1s,
     };
 
     ctx.spawn(
@@ -264,6 +265,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .isSigned = true,
         .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = 1s,
     };
 
     // Convert expected hex value to a signed 16-bit integer for comparison
@@ -302,6 +304,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         .scale = 0.1,
         .shift = 50,
         .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = 1s,
     };
 
     ctx.spawn(testSensorCreation(
@@ -331,6 +334,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = ProfileIntf::SensorFormat::floatingPoint,
+        .pollInterval = 1s,
     };
 
     ctx.spawn(

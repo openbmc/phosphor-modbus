@@ -557,7 +557,19 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
                 earliestNextPoll - std::chrono::steady_clock::now());
         if (sleepDuration > std::chrono::milliseconds(0))
         {
-            co_await sdbusplus::async::sleep_for(ctx, sleepDuration);
+            // Sleep in short intervals so we can respond to stop
+            // requests promptly instead of blocking for the full
+            // poll interval.
+            constexpr auto stopCheckInterval = std::chrono::milliseconds(3000);
+            for (auto elapsed = std::chrono::milliseconds(0);
+                 elapsed < sleepDuration && !ctx.stop_requested() &&
+                 !stopRequested;)
+            {
+                auto sleepTime =
+                    std::min(sleepDuration - elapsed, stopCheckInterval);
+                co_await sdbusplus::async::sleep_for(ctx, sleepTime);
+                elapsed += sleepTime;
+            }
         }
         else
         {

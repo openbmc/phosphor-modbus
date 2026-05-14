@@ -198,8 +198,8 @@ class DeviceEventsTest : public BaseTest
         ProfileIntf::StatusType statusType, bool statusValue = true,
         uint16_t sensorOffset =
             TestIntf::testReadHoldingRegisterTempUnsignedOffset,
-        uint16_t statusOffset = TestIntf::testReadHoldingRegisterEventOffset)
-        -> ProfileIntf::DeviceProfile
+        uint16_t statusOffset = TestIntf::testReadHoldingRegisterEventOffset,
+        std::chrono::seconds pollInterval = 1s) -> ProfileIntf::DeviceProfile
     {
         ProfileIntf::StatusBit statusBit = {.name = sensorName,
                                             .type = statusType,
@@ -216,7 +216,7 @@ class DeviceEventsTest : public BaseTest
                 .offset = sensorOffset,
                 .size = TestIntf::testReadHoldingRegisterTempCount,
                 .format = ProfileIntf::SensorFormat::floatingPoint,
-                .pollInterval = ModbusIntf::defaultSensorPollInterval,
+                .pollInterval = pollInterval,
             }},
             .statusRegisters = {{statusOffset, {statusBit}}},
             .metricRegisters = {},
@@ -289,10 +289,11 @@ TEST_F(DeviceEventsTest, TestSensorStatusSpanMerge)
 
     // Sensor at 0x0120 (size 1) and status at 0x0121 are contiguous,
     // so they should merge into a single Modbus read.
-    auto testProfile =
-        createTestProfile(ProfileIntf::StatusType::sensorReadingCritical, false,
-                          TestIntf::testReadHoldingRegisterSpanSensor1Offset,
-                          TestIntf::testReadHoldingRegisterSpanSensor2Offset);
+    auto testProfile = createTestProfile(
+        ProfileIntf::StatusType::sensorReadingCritical, false,
+        TestIntf::testReadHoldingRegisterSpanSensor1Offset,
+        TestIntf::testReadHoldingRegisterSpanSensor2Offset,
+        ModbusIntf::defaultSensorPollInterval);
     EventIntf::Events events{ctx};
     MockPort mockPort(ctx, portConfig, clientDevicePath);
     auto device = createDevice(testProfile, events, mockPort);

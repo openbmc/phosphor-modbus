@@ -28,7 +28,7 @@ option(
 option(
     'sensor-poll-interval-seconds',
     type: 'integer',
-    value: 3,
+    value: 180,
     description: 'Sensor poll interval in seconds.',
 )
 
