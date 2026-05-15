@@ -65,8 +65,7 @@ class InventoryTest : public BaseTest
             .parentInventoryPath = sdbusplus::object_path("/"),
             .inventoryPath = sdbusplus::object_path(
                 std::string(DeviceIntf::chassisInventoryPath) + "/" +
-                deviceName + "_" + std::to_string(TestIntf::testDeviceAddress) +
-                "_" + portConfig.name),
+                deviceName),
             .profile = profile,
         };
 
@@ -266,8 +265,7 @@ class InventoryTest : public BaseTest
 TEST_F(InventoryTest, TestAddInventoryObject)
 {
     auto objPath =
-        std::format("{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
-                    TestIntf::testDeviceAddress, portConfig.name);
+        std::format("{}/{}", DeviceIntf::chassisInventoryPath, deviceName);
 
     ctx.spawn(testInventoryObjectCreation(objPath));
 
@@ -286,9 +284,8 @@ TEST_F(InventoryTest, TestNonRespondingAddressNoInventoryObject)
 
         co_await inventoryDevice->startProbing();
 
-        auto objPath = std::format(
-            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
-            TestIntf::testDeviceAddress, portConfig.name);
+        auto objPath =
+            std::format("{}/{}", DeviceIntf::chassisInventoryPath, deviceName);
 
         EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist for failed probe";
@@ -364,9 +361,8 @@ TEST_F(InventoryTest, TestProbeValueMismatchNoInventoryObject)
 
         co_await inventoryDevice->probeDevice();
 
-        auto objPath = std::format(
-            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
-            TestIntf::testDeviceAddress, portConfig.name);
+        auto objPath =
+            std::format("{}/{}", DeviceIntf::chassisInventoryPath, deviceName);
 
         EXPECT_FALSE(co_await checkInventoryObjectExists(objPath))
             << "Inventory object should not exist when probe value mismatches";
@@ -422,9 +418,8 @@ TEST_F(InventoryTest, TestStopDeviceExitsAndCleansUp)
         // Probe once to create the inventory D-Bus object
         co_await inventoryDevice->probeDevice();
 
-        auto objPath = std::format(
-            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
-            TestIntf::testDeviceAddress, portConfig.name);
+        auto objPath =
+            std::format("{}/{}", DeviceIntf::chassisInventoryPath, deviceName);
 
         // Verify inventory object exists on D-Bus
         EXPECT_TRUE(co_await checkInventoryObjectExists(objPath))
@@ -481,9 +476,8 @@ TEST_F(InventoryTest, TestSiblingRestartResumesProbing)
         auto devicePair = createDevice(testProfile);
         auto& inventoryDevice = devicePair.second;
 
-        auto objPath = std::format(
-            "{}/{}_{}_{}", DeviceIntf::chassisInventoryPath, deviceName,
-            TestIntf::testDeviceAddress, portConfig.name);
+        auto objPath =
+            std::format("{}/{}", DeviceIntf::chassisInventoryPath, deviceName);
 
         // Probe once to create the inventory D-Bus object
         co_await inventoryDevice->probeDevice();

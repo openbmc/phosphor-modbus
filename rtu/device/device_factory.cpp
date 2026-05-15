@@ -41,12 +41,8 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
     auto profileName =
         interfaceName.substr(std::string_view(configInterfacePrefix).size());
 
-    auto sanitizedPort = baseConfig->serialPort;
-    std::replace(sanitizedPort.begin(), sanitizedPort.end(), '-', '_');
-
     baseConfig->inventoryPath = sdbusplus::object_path(
-        std::string(chassisInventoryPath) + "/" + baseConfig->name + "_" +
-        std::to_string(baseConfig->address) + "_" + sanitizedPort);
+        std::string(chassisInventoryPath) + "/" + baseConfig->name);
 
     co_return config::DeviceFactoryConfig{
         {std::move(*baseConfig)},
