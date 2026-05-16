@@ -29,11 +29,18 @@ enum class InventoryDataType
     unknown
 };
 
+enum class InventoryFormat
+{
+    string,
+    integer
+};
+
 struct InventoryRegister
 {
     InventoryDataType type = InventoryDataType::unknown;
     uint16_t offset = 0;
     uint8_t size = 0;
+    InventoryFormat format = InventoryFormat::string;
 };
 
 enum class SensorFormat

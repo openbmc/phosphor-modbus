@@ -61,6 +61,11 @@ constexpr uint16_t testReadHoldingRegisterNullPaddedCount = 0x4;
 const std::vector<uint16_t> testReadHoldingRegisterNullPadded = {
     0x4142, 0x0000, 0x0000, 0x0000}; // "AB" + 6 null bytes
 
+// Integer inventory register for testing InventoryFormat::integer
+constexpr uint16_t testReadHoldingRegisterIntInventoryOffset = 0x0400;
+constexpr uint16_t testReadHoldingRegisterIntInventoryCount = 0x1;
+const std::vector<uint16_t> testReadHoldingRegisterIntInventory = {42};
+
 // Device Metric Testing Constants
 constexpr uint16_t testReadHoldingRegisterMetricOffset = 0x0130;
 constexpr uint16_t testReadHoldingRegisterMetricCount = 0x1;
@@ -108,7 +113,10 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
          {testReadHoldingRegisterEventCount, testReadHoldingRegisterEvent}},
         {testReadHoldingRegisterNullPaddedOffset,
          {testReadHoldingRegisterNullPaddedCount,
-          testReadHoldingRegisterNullPadded}}};
+          testReadHoldingRegisterNullPadded}},
+        {testReadHoldingRegisterIntInventoryOffset,
+         {testReadHoldingRegisterIntInventoryCount,
+          testReadHoldingRegisterIntInventory}}};
 
 class ServerTester
 {

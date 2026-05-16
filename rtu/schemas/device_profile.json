@@ -86,7 +86,12 @@
                         ]
                     },
                     "Offset": { "type": "integer" },
-                    "Size": { "type": "integer" }
+                    "Size": { "type": "integer" },
+                    "Format": {
+                        "type": "string",
+                        "enum": ["String", "Integer"],
+                        "default": "String"
+                    }
                 }
             }
         },

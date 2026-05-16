@@ -89,7 +89,11 @@ class InventoryTest : public BaseTest
         .inventoryRegisters =
             {{.type = ProfileIntf::InventoryDataType::model,
               .offset = TestIntf::testReadHoldingRegisterModelOffset,
-              .size = TestIntf::testReadHoldingRegisterModelCount}},
+              .size = TestIntf::testReadHoldingRegisterModelCount},
+             {.type = ProfileIntf::InventoryDataType::partNumber,
+              .offset = TestIntf::testReadHoldingRegisterIntInventoryOffset,
+              .size = TestIntf::testReadHoldingRegisterIntInventoryCount,
+              .format = ProfileIntf::InventoryFormat::integer}},
         .sensorRegisters = {},
         .statusRegisters = {},
         .metricRegisters = {},
@@ -198,6 +202,8 @@ class InventoryTest : public BaseTest
 
         EXPECT_EQ(assetProps.model, TestIntf::testReadHoldingRegisterModelStr)
             << "Model mismatch";
+        EXPECT_EQ(assetProps.part_number, "42")
+            << "Integer format PartNumber mismatch";
         EXPECT_EQ(assetProps.serial_number, "") << "Serial number mismatch";
 
         // Read back Chassis properties from D-Bus

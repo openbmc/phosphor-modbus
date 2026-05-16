@@ -12,7 +12,8 @@
         {
             "Type": "PartNumber",
             "Offset": 3,
-            "Size": 1
+            "Size": 1,
+            "Format": "Integer"
         }
     ],
     "SensorRegisters": [

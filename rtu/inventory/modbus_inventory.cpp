@@ -13,6 +13,30 @@ namespace phosphor::modbus::rtu::inventory
 PHOSPHOR_LOG2_USING;
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
+static auto registerToString(const ProfileIntf::InventoryRegister& reg,
+                             std::span<const uint16_t> buffer,
+                             uint16_t startOffset) -> std::string
+{
+    if (reg.format == ProfileIntf::InventoryFormat::integer)
+    {
+        uint32_t intValue = 0;
+        for (uint8_t i = 0; i < reg.size; i++)
+        {
+            intValue = (intValue << 16) | buffer[startOffset + i];
+        }
+        return std::to_string(intValue);
+    }
+
+    std::string strValue;
+    for (uint8_t i = 0; i < reg.size; i++)
+    {
+        auto value = buffer[startOffset + i];
+        strValue += static_cast<char>((value >> 8) & 0xFF);
+        strValue += static_cast<char>(value & 0xFF);
+    }
+    return strValue;
+}
+
 static auto fillAssetProperties(
     InventoryServer::AssetIntf::properties_t& properties,
     ProfileIntf::InventoryDataType type, std::string& value) -> void
@@ -263,16 +287,7 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
         {
             const auto& reg = config.profile.inventoryRegisters[idx];
             auto regStart = reg.offset - span.startOffset;
-            std::string strValue = "";
-
-            // Reswap bytes in each register for string conversion
-            for (uint8_t i = 0; i < reg.size; i++)
-            {
-                auto value = spanBuffer[regStart + i];
-                strValue += static_cast<char>((value >> 8) & 0xFF);
-                strValue += static_cast<char>(value & 0xFF);
-            }
-
+            auto strValue = registerToString(reg, spanBuffer, regStart);
             fillAssetProperties(assetProps, reg.type, strValue);
         }
     }

@@ -59,6 +59,12 @@ static const std::unordered_map<std::string, SensorFormat> sensorFormatMap = {
     {"Integer", SensorFormat::integer},
 };
 
+static const std::unordered_map<std::string, InventoryFormat>
+    inventoryFormatMap = {
+        {"String", InventoryFormat::string},
+        {"Integer", InventoryFormat::integer},
+};
+
 static const std::unordered_map<std::string, StatusType> statusTypeMap = {
     {"ControllerFailure", StatusType::controllerFailure},
     {"FanFailure", StatusType::fanFailure},
@@ -135,6 +141,11 @@ static void from_json(const json& j, InventoryRegister& r)
                         "Type");
     r.offset = j.at("Offset").get<uint16_t>();
     r.size = j.at("Size").get<uint8_t>();
+    if (j.contains("Format"))
+    {
+        r.format = lookupEnum(inventoryFormatMap,
+                              j.at("Format").get<std::string>(), "Format");
+    }
 }
 
 static void from_json(const json& j, SensorRegister& r)
