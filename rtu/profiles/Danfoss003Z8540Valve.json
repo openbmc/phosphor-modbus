@@ -75,6 +75,14 @@
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
+        },
+        {
+            "Name": "Supply_Temperature",
+            "Type": "Temperature",
+            "Offset": 33218,
+            "Size": 2,
+            "IsSigned": true,
+            "Format": "Integer"
         }
     ],
     "MetricRegisters": [
