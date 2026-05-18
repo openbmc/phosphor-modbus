@@ -4,29 +4,29 @@
     "Parity": "None",
     "BaudRate": 19200,
     "ProbeRegister": {
-        "Offset": 6604,
+        "Offset": "0x19CC",
         "Size": 8,
         "ExpectedValue": "RDF040DSS5193E0"
     },
     "InventoryRegisters": [
         {
             "Type": "Model",
-            "Offset": 6604,
+            "Offset": "0x19CC",
             "Size": 8
         },
         {
             "Type": "BuildDate",
-            "Offset": 6612,
+            "Offset": "0x19D4",
             "Size": 4
         },
         {
             "Type": "SerialNumber",
-            "Offset": 6616,
+            "Offset": "0x19D8",
             "Size": 8
         },
         {
             "Type": "SparePartNumber",
-            "Offset": 6652,
+            "Offset": "0x19FC",
             "Size": 4
         }
     ],
@@ -34,7 +34,7 @@
         {
             "Name": "RPU_Coolant_Inlet_Temp_C",
             "Type": "Temperature",
-            "Offset": 36866,
+            "Offset": "0x9002",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -45,7 +45,7 @@
         {
             "Name": "RPU_Coolant_Outlet_Temp_C",
             "Type": "Temperature",
-            "Offset": 36865,
+            "Offset": "0x9001",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -56,7 +56,7 @@
     ],
     "StatusRegisters": [
         {
-            "Offset": 37377,
+            "Offset": "0x9201",
             "Bits": [
                 {
                     "Name": "RPU_Coolant_Inlet_Temp_C",
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "Offset": 37376,
+            "Offset": "0x9200",
             "Bits": [
                 {
                     "Name": "RPU_Coolant_Inlet_Temp_C",
@@ -94,7 +94,7 @@
         {
             "Name": "RPU_PLC_FW_Revision",
             "Type": "Version",
-            "Offset": 6632,
+            "Offset": "0x19E8",
             "Size": 4
         }
     ]

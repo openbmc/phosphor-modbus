@@ -4,34 +4,34 @@
     "Parity": "None",
     "BaudRate": 19200,
     "ProbeRegister": {
-        "Offset": 33120,
+        "Offset": "0x8160",
         "Size": 25,
         "ExpectedValue": "Danfoss A/S"
     },
     "InventoryRegisters": [
         {
             "Type": "Model",
-            "Offset": 33056,
+            "Offset": "0x8120",
             "Size": 25
         },
         {
             "Type": "PartNumber",
-            "Offset": 33088,
+            "Offset": "0x8140",
             "Size": 25
         },
         {
             "Type": "Manufacturer",
-            "Offset": 33120,
+            "Offset": "0x8160",
             "Size": 25
         },
         {
             "Type": "SerialNumber",
-            "Offset": 33184,
+            "Offset": "0x81A0",
             "Size": 25
         },
         {
             "Type": "SparePartNumber",
-            "Offset": 33035,
+            "Offset": "0x810B",
             "Size": 1
         }
     ],
@@ -39,7 +39,7 @@
         {
             "Name": "Estimated_Flow_Rate",
             "Type": "Utilization",
-            "Offset": 34312,
+            "Offset": "0x8608",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -47,7 +47,7 @@
         {
             "Name": "Cooling_Design_Flow_Rate",
             "Type": "LiquidFlow",
-            "Offset": 32798,
+            "Offset": "0x801E",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -55,7 +55,7 @@
         {
             "Name": "Max_Value_Of_Design_Flow_Rate",
             "Type": "Utilization",
-            "Offset": 33028,
+            "Offset": "0x8104",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -63,7 +63,7 @@
         {
             "Name": "Actuator_Spindle_Position",
             "Type": "Utilization",
-            "Offset": 33302,
+            "Offset": "0x8216",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -71,7 +71,7 @@
         {
             "Name": "Voltage_On_Analog_Output",
             "Type": "Voltage",
-            "Offset": 33286,
+            "Offset": "0x8206",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -79,7 +79,7 @@
         {
             "Name": "Supply_Temperature",
             "Type": "Temperature",
-            "Offset": 33218,
+            "Offset": "0x81C2",
             "Size": 2,
             "IsSigned": true,
             "Format": "Integer"
@@ -89,7 +89,7 @@
         {
             "Name": "Minutes_Since_Fully_Closed",
             "Type": "ValveClosedDuration",
-            "Offset": 33812,
+            "Offset": "0x8414",
             "Size": 2,
             "Precision": 0,
             "Scale": 60.0,
@@ -100,7 +100,7 @@
         {
             "Name": "Minutes_Since_Fully_Open",
             "Type": "ValveOpenDuration",
-            "Offset": 33814,
+            "Offset": "0x8416",
             "Size": 2,
             "Precision": 0,
             "Scale": 60.0,
@@ -111,7 +111,7 @@
     ],
     "StatusRegisters": [
         {
-            "Offset": 33536,
+            "Offset": "0x8300",
             "Bits": [
                 {
                     "Name": "Temperature_Out_Of_Range",
@@ -146,7 +146,7 @@
             ]
         },
         {
-            "Offset": 33537,
+            "Offset": "0x8301",
             "Bits": [
                 {
                     "Name": "No_Control_Signal",
@@ -179,7 +179,7 @@
         {
             "Name": "SW_Version",
             "Type": "Version",
-            "Offset": 272,
+            "Offset": "0x110",
             "Size": 25
         }
     ]

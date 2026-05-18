@@ -4,34 +4,34 @@
     "Parity": "Even",
     "BaudRate": 115200,
     "ProbeRegister": {
-        "Offset": 8,
+        "Offset": "0x8",
         "Size": 8,
         "ExpectedValue": "Delta"
     },
     "InventoryRegisters": [
         {
             "Type": "SparePartNumber",
-            "Offset": 0,
+            "Offset": "0x0",
             "Size": 8
         },
         {
             "Type": "Manufacturer",
-            "Offset": 8,
+            "Offset": "0x8",
             "Size": 8
         },
         {
             "Type": "Model",
-            "Offset": 16,
+            "Offset": "0x10",
             "Size": 8
         },
         {
             "Type": "BuildDate",
-            "Offset": 24,
+            "Offset": "0x18",
             "Size": 8
         },
         {
             "Type": "SerialNumber",
-            "Offset": 32,
+            "Offset": "0x20",
             "Size": 16
         }
     ],
@@ -39,7 +39,7 @@
         {
             "Name": "BBU1_Temp1",
             "Type": "Temperature",
-            "Offset": 257,
+            "Offset": "0x101",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -50,7 +50,7 @@
         {
             "Name": "BBU1_Temp2",
             "Type": "Temperature",
-            "Offset": 258,
+            "Offset": "0x102",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -61,7 +61,7 @@
         {
             "Name": "BBU1_Temp3",
             "Type": "Temperature",
-            "Offset": 259,
+            "Offset": "0x103",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -72,7 +72,7 @@
         {
             "Name": "BBU1_Temp4",
             "Type": "Temperature",
-            "Offset": 260,
+            "Offset": "0x104",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -83,7 +83,7 @@
         {
             "Name": "BBU1_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 261,
+            "Offset": "0x105",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -94,7 +94,7 @@
         {
             "Name": "BBU1_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 262,
+            "Offset": "0x106",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -105,7 +105,7 @@
         {
             "Name": "BBU1_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 263,
+            "Offset": "0x107",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -116,7 +116,7 @@
         {
             "Name": "BBU1_Battery_Current",
             "Type": "Current",
-            "Offset": 264,
+            "Offset": "0x108",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -127,7 +127,7 @@
         {
             "Name": "BBU1_Average_Current",
             "Type": "Current",
-            "Offset": 265,
+            "Offset": "0x109",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -138,7 +138,7 @@
         {
             "Name": "BBU1_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 266,
+            "Offset": "0x10A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -149,7 +149,7 @@
         {
             "Name": "BBU1_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 267,
+            "Offset": "0x10B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -160,7 +160,7 @@
         {
             "Name": "BBU2_Temp1",
             "Type": "Temperature",
-            "Offset": 273,
+            "Offset": "0x111",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -171,7 +171,7 @@
         {
             "Name": "BBU2_Temp2",
             "Type": "Temperature",
-            "Offset": 274,
+            "Offset": "0x112",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -182,7 +182,7 @@
         {
             "Name": "BBU2_Temp3",
             "Type": "Temperature",
-            "Offset": 275,
+            "Offset": "0x113",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -193,7 +193,7 @@
         {
             "Name": "BBU2_Temp4",
             "Type": "Temperature",
-            "Offset": 276,
+            "Offset": "0x114",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -204,7 +204,7 @@
         {
             "Name": "BBU2_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 277,
+            "Offset": "0x115",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -215,7 +215,7 @@
         {
             "Name": "BBU2_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 278,
+            "Offset": "0x116",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -226,7 +226,7 @@
         {
             "Name": "BBU2_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 279,
+            "Offset": "0x117",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -237,7 +237,7 @@
         {
             "Name": "BBU2_Battery_Current",
             "Type": "Current",
-            "Offset": 280,
+            "Offset": "0x118",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -248,7 +248,7 @@
         {
             "Name": "BBU2_Average_Current",
             "Type": "Current",
-            "Offset": 281,
+            "Offset": "0x119",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -259,7 +259,7 @@
         {
             "Name": "BBU2_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 282,
+            "Offset": "0x11A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -270,7 +270,7 @@
         {
             "Name": "BBU2_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 283,
+            "Offset": "0x11B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -281,7 +281,7 @@
         {
             "Name": "BBU3_Temp1",
             "Type": "Temperature",
-            "Offset": 289,
+            "Offset": "0x121",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -292,7 +292,7 @@
         {
             "Name": "BBU3_Temp2",
             "Type": "Temperature",
-            "Offset": 290,
+            "Offset": "0x122",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -303,7 +303,7 @@
         {
             "Name": "BBU3_Temp3",
             "Type": "Temperature",
-            "Offset": 291,
+            "Offset": "0x123",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -314,7 +314,7 @@
         {
             "Name": "BBU3_Temp4",
             "Type": "Temperature",
-            "Offset": 292,
+            "Offset": "0x124",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -325,7 +325,7 @@
         {
             "Name": "BBU3_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 293,
+            "Offset": "0x125",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -336,7 +336,7 @@
         {
             "Name": "BBU3_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 294,
+            "Offset": "0x126",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -347,7 +347,7 @@
         {
             "Name": "BBU3_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 295,
+            "Offset": "0x127",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -358,7 +358,7 @@
         {
             "Name": "BBU3_Battery_Current",
             "Type": "Current",
-            "Offset": 296,
+            "Offset": "0x128",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -369,7 +369,7 @@
         {
             "Name": "BBU3_Average_Current",
             "Type": "Current",
-            "Offset": 297,
+            "Offset": "0x129",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -380,7 +380,7 @@
         {
             "Name": "BBU3_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 298,
+            "Offset": "0x12A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -391,7 +391,7 @@
         {
             "Name": "BBU3_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 299,
+            "Offset": "0x12B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -402,7 +402,7 @@
         {
             "Name": "BBU4_Temp1",
             "Type": "Temperature",
-            "Offset": 305,
+            "Offset": "0x131",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -413,7 +413,7 @@
         {
             "Name": "BBU4_Temp2",
             "Type": "Temperature",
-            "Offset": 306,
+            "Offset": "0x132",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -424,7 +424,7 @@
         {
             "Name": "BBU4_Temp3",
             "Type": "Temperature",
-            "Offset": 307,
+            "Offset": "0x133",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -435,7 +435,7 @@
         {
             "Name": "BBU4_Temp4",
             "Type": "Temperature",
-            "Offset": 308,
+            "Offset": "0x134",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -446,7 +446,7 @@
         {
             "Name": "BBU4_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 309,
+            "Offset": "0x135",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -457,7 +457,7 @@
         {
             "Name": "BBU4_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 310,
+            "Offset": "0x136",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -468,7 +468,7 @@
         {
             "Name": "BBU4_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 311,
+            "Offset": "0x137",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -479,7 +479,7 @@
         {
             "Name": "BBU4_Battery_Current",
             "Type": "Current",
-            "Offset": 312,
+            "Offset": "0x138",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -490,7 +490,7 @@
         {
             "Name": "BBU4_Average_Current",
             "Type": "Current",
-            "Offset": 313,
+            "Offset": "0x139",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -501,7 +501,7 @@
         {
             "Name": "BBU4_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 314,
+            "Offset": "0x13A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -512,7 +512,7 @@
         {
             "Name": "BBU4_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 315,
+            "Offset": "0x13B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -523,7 +523,7 @@
         {
             "Name": "BBU5_Temp1",
             "Type": "Temperature",
-            "Offset": 321,
+            "Offset": "0x141",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -534,7 +534,7 @@
         {
             "Name": "BBU5_Temp2",
             "Type": "Temperature",
-            "Offset": 322,
+            "Offset": "0x142",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -545,7 +545,7 @@
         {
             "Name": "BBU5_Temp3",
             "Type": "Temperature",
-            "Offset": 323,
+            "Offset": "0x143",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -556,7 +556,7 @@
         {
             "Name": "BBU5_Temp4",
             "Type": "Temperature",
-            "Offset": 324,
+            "Offset": "0x144",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -567,7 +567,7 @@
         {
             "Name": "BBU5_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 325,
+            "Offset": "0x145",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -578,7 +578,7 @@
         {
             "Name": "BBU5_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 326,
+            "Offset": "0x146",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -589,7 +589,7 @@
         {
             "Name": "BBU5_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 327,
+            "Offset": "0x147",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -600,7 +600,7 @@
         {
             "Name": "BBU5_Battery_Current",
             "Type": "Current",
-            "Offset": 328,
+            "Offset": "0x148",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -611,7 +611,7 @@
         {
             "Name": "BBU5_Average_Current",
             "Type": "Current",
-            "Offset": 329,
+            "Offset": "0x149",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -622,7 +622,7 @@
         {
             "Name": "BBU5_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 330,
+            "Offset": "0x14A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -633,7 +633,7 @@
         {
             "Name": "BBU5_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 331,
+            "Offset": "0x14B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -644,7 +644,7 @@
         {
             "Name": "BBU6_Temp1",
             "Type": "Temperature",
-            "Offset": 337,
+            "Offset": "0x151",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -655,7 +655,7 @@
         {
             "Name": "BBU6_Temp2",
             "Type": "Temperature",
-            "Offset": 338,
+            "Offset": "0x152",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -666,7 +666,7 @@
         {
             "Name": "BBU6_Temp3",
             "Type": "Temperature",
-            "Offset": 339,
+            "Offset": "0x153",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -677,7 +677,7 @@
         {
             "Name": "BBU6_Temp4",
             "Type": "Temperature",
-            "Offset": 340,
+            "Offset": "0x154",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.1,
@@ -688,7 +688,7 @@
         {
             "Name": "BBU6_Relative_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 341,
+            "Offset": "0x155",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -699,7 +699,7 @@
         {
             "Name": "BBU6_Absolute_State_Of_Charge",
             "Type": "Utilization",
-            "Offset": 342,
+            "Offset": "0x156",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -710,7 +710,7 @@
         {
             "Name": "BBU6_Battery_Voltage",
             "Type": "Voltage",
-            "Offset": 343,
+            "Offset": "0x157",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.001,
@@ -721,7 +721,7 @@
         {
             "Name": "BBU6_Battery_Current",
             "Type": "Current",
-            "Offset": 344,
+            "Offset": "0x158",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -732,7 +732,7 @@
         {
             "Name": "BBU6_Average_Current",
             "Type": "Current",
-            "Offset": 345,
+            "Offset": "0x159",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -743,7 +743,7 @@
         {
             "Name": "BBU6_Remaining_Capacity",
             "Type": "Charge",
-            "Offset": 346,
+            "Offset": "0x15A",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -754,7 +754,7 @@
         {
             "Name": "BBU6_Full_Charge_Capacity",
             "Type": "Charge",
-            "Offset": 347,
+            "Offset": "0x15B",
             "Size": 1,
             "Precision": 0,
             "Scale": 1.0,
@@ -767,7 +767,7 @@
         {
             "Name": "PMM_FW_Revision",
             "Type": "Version",
-            "Offset": 56,
+            "Offset": "0x38",
             "Size": 4
         }
     ]

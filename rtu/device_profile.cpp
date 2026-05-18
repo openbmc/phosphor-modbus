@@ -19,6 +19,12 @@ static constexpr auto defaultScale = 1.0;
 static constexpr auto defaultShift = 0.0;
 static constexpr auto defaultIsSigned = false;
 
+static auto parseHexOffset(const json& j, const std::string& field) -> uint16_t
+{
+    auto str = j.at(field).get<std::string>();
+    return static_cast<uint16_t>(std::stoul(str, nullptr, 16));
+}
+
 static const std::unordered_map<std::string, Parity> parityMap = {
     {"None", Parity::none},
     {"Even", Parity::even},
@@ -139,7 +145,7 @@ static void from_json(const json& j, InventoryRegister& r)
 {
     r.type = lookupEnum(inventoryDataTypeMap, j.at("Type").get<std::string>(),
                         "Type");
-    r.offset = j.at("Offset").get<uint16_t>();
+    r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
     if (j.contains("Format"))
     {
@@ -152,7 +158,7 @@ static void from_json(const json& j, SensorRegister& r)
 {
     r.name = j.at("Name").get<std::string>();
     r.type = lookupEnum(sensorTypeMap, j.at("Type").get<std::string>(), "Type");
-    r.offset = j.at("Offset").get<uint16_t>();
+    r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
     r.precision = j.value("Precision", defaultPrecision);
     r.scale = j.value("Scale", defaultScale);
@@ -191,7 +197,7 @@ static auto parseStatusRegisters(const json& j)
     std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
     for (const auto& reg : j)
     {
-        auto address = reg.at("Offset").get<uint16_t>();
+        auto address = parseHexOffset(reg, "Offset");
         auto bits = reg.at("Bits").get<std::vector<StatusBit>>();
         if (reg.contains("Name") && !reg.at("Name").get<std::string>().empty())
         {
@@ -211,7 +217,7 @@ static auto parseStatusRegisters(const json& j)
 
 static void from_json(const json& j, ProbeRegister& r)
 {
-    r.offset = j.at("Offset").get<uint16_t>();
+    r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
     const auto& expectedValue = j.at("ExpectedValue");
     if (expectedValue.is_string())
@@ -228,7 +234,7 @@ static void from_json(const json& j, MetricRegister& r)
 {
     r.name = j.at("Name").get<std::string>();
     r.type = lookupEnum(metricTypeMap, j.at("Type").get<std::string>(), "Type");
-    r.offset = j.at("Offset").get<uint16_t>();
+    r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
     r.precision = j.value("Precision", defaultPrecision);
     r.scale = j.value("Scale", defaultScale);
@@ -243,7 +249,7 @@ static void from_json(const json& j, FirmwareRegister& r)
     r.name = j.at("Name").get<std::string>();
     r.type = lookupEnum(firmwareRegisterTypeMap,
                         j.at("Type").get<std::string>(), "Type");
-    r.offset = j.at("Offset").get<uint16_t>();
+    r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
 }
 

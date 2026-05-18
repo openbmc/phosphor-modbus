@@ -4,14 +4,14 @@
     "Parity": "None",
     "BaudRate": 19200,
     "ProbeRegister": {
-        "Offset": 3,
+        "Offset": "0x3",
         "Size": 1,
         "ExpectedValue": 4
     },
     "InventoryRegisters": [
         {
             "Type": "PartNumber",
-            "Offset": 3,
+            "Offset": "0x3",
             "Size": 1,
             "Format": "Integer"
         }
@@ -20,7 +20,7 @@
         {
             "Name": "Sensor_Temperature",
             "Type": "Temperature",
-            "Offset": 13,
+            "Offset": "0xD",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -31,7 +31,7 @@
         {
             "Name": "Remote_Temperature",
             "Type": "Temperature",
-            "Offset": 19,
+            "Offset": "0x13",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -42,7 +42,7 @@
         {
             "Name": "Flowbody_Temperature",
             "Type": "Temperature",
-            "Offset": 21,
+            "Offset": "0x15",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -53,7 +53,7 @@
         {
             "Name": "Relative_Volumetric_Flow",
             "Type": "Utilization",
-            "Offset": 6,
+            "Offset": "0x6",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -64,7 +64,7 @@
         {
             "Name": "Absolute_Volumetric_Flow",
             "Type": "LiquidFlow",
-            "Offset": 8,
+            "Offset": "0x8",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.378541,
@@ -75,7 +75,7 @@
         {
             "Name": "Setpoint_Absolute_Volumetric_Flow",
             "Type": "LiquidFlow",
-            "Offset": 16,
+            "Offset": "0x10",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.378541,
@@ -86,7 +86,7 @@
         {
             "Name": "Minimum_Volumetric_Flow_Limit",
             "Type": "Utilization",
-            "Offset": 105,
+            "Offset": "0x69",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -97,7 +97,7 @@
         {
             "Name": "Maximum_Volumetric_Flow_Limit",
             "Type": "Utilization",
-            "Offset": 106,
+            "Offset": "0x6A",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -108,7 +108,7 @@
         {
             "Name": "Setpoint_Relative_Percentage",
             "Type": "Utilization",
-            "Offset": 0,
+            "Offset": "0x0",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -119,7 +119,7 @@
         {
             "Name": "Relative_Position",
             "Type": "Utilization",
-            "Offset": 4,
+            "Offset": "0x4",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -130,7 +130,7 @@
         {
             "Name": "Absolute_Position",
             "Type": "RotationalPosition",
-            "Offset": 5,
+            "Offset": "0x5",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.000174533,
@@ -141,7 +141,7 @@
         {
             "Name": "Setpoint_Analog",
             "Type": "Utilization",
-            "Offset": 11,
+            "Offset": "0xB",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -152,7 +152,7 @@
         {
             "Name": "Glycol_Concentration",
             "Type": "Utilization",
-            "Offset": 25,
+            "Offset": "0x19",
             "Size": 1,
             "Precision": 0,
             "Scale": 0.01,
@@ -163,7 +163,7 @@
     ],
     "StatusRegisters": [
         {
-            "Offset": 157,
+            "Offset": "0x9D",
             "Bits": [
                 {
                     "Name": "Communication_With_Actuator_Not_Possible",
@@ -264,7 +264,7 @@
             ]
         },
         {
-            "Offset": 158,
+            "Offset": "0x9E",
             "Bits": [
                 {
                     "Name": "No_Differential_Pressure_Detected",

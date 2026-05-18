@@ -15,19 +15,19 @@ static constexpr auto testProfileJson = R"({
     "Parity": "Even",
     "BaudRate": 9600,
     "ProbeRegister": {
-        "Offset": 50,
+        "Offset": "0x32",
         "Size": 2,
         "ExpectedValue": "TestDevice"
     },
     "InventoryRegisters": [
         {
             "Type": "Model",
-            "Offset": 100,
+            "Offset": "0x64",
             "Size": 4
         },
         {
             "Type": "SerialNumber",
-            "Offset": 200,
+            "Offset": "0xC8",
             "Size": 8
         }
     ],
@@ -35,7 +35,7 @@ static constexpr auto testProfileJson = R"({
         {
             "Name": "TestTemp",
             "Type": "Temperature",
-            "Offset": 300,
+            "Offset": "0x12C",
             "Size": 1,
             "Precision": 2,
             "Scale": 0.5,
@@ -46,14 +46,14 @@ static constexpr auto testProfileJson = R"({
         {
             "Name": "TestVoltage",
             "Type": "Voltage",
-            "Offset": 400,
+            "Offset": "0x190",
             "Size": 2,
             "Format": "Integer"
         }
     ],
     "StatusRegisters": [
         {
-            "Offset": 500,
+            "Offset": "0x1F4",
             "Bits": [
                 {
                     "Name": "TestTemp",
@@ -71,7 +71,7 @@ static constexpr auto testProfileJson = R"({
         },
         {
             "Name": "RPU",
-            "Offset": 501,
+            "Offset": "0x1F5",
             "Bits": [
                 {
                     "Name": "PumpFault",
@@ -86,7 +86,7 @@ static constexpr auto testProfileJson = R"({
         {
             "Name": "TestClosedDuration",
             "Type": "ValveClosedDuration",
-            "Offset": 700,
+            "Offset": "0x2BC",
             "Size": 2,
             "Precision": 0,
             "Scale": 60.0,
@@ -99,7 +99,7 @@ static constexpr auto testProfileJson = R"({
         {
             "Name": "TestFW",
             "Type": "Version",
-            "Offset": 600,
+            "Offset": "0x258",
             "Size": 2
         }
     ]

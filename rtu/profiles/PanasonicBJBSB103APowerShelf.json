@@ -4,34 +4,34 @@
     "Parity": "Even",
     "BaudRate": 115200,
     "ProbeRegister": {
-        "Offset": 392,
+        "Offset": "0x188",
         "Size": 8,
         "ExpectedValue": "Panasonic"
     },
     "InventoryRegisters": [
         {
             "Type": "Manufacturer",
-            "Offset": 392,
+            "Offset": "0x188",
             "Size": 8
         },
         {
             "Type": "SparePartNumber",
-            "Offset": 400,
+            "Offset": "0x190",
             "Size": 8
         },
         {
             "Type": "Model",
-            "Offset": 408,
+            "Offset": "0x198",
             "Size": 8
         },
         {
             "Type": "SerialNumber",
-            "Offset": 424,
+            "Offset": "0x1A8",
             "Size": 16
         },
         {
             "Type": "BuildDate",
-            "Offset": 440,
+            "Offset": "0x1B8",
             "Size": 8
         }
     ]

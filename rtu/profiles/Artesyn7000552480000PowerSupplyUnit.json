@@ -4,29 +4,29 @@
     "Parity": "Even",
     "BaudRate": 115200,
     "ProbeRegister": {
-        "Offset": 8,
+        "Offset": "0x8",
         "Size": 8,
         "ExpectedValue": "700-037147-0000"
     },
     "InventoryRegisters": [
         {
             "Type": "SparePartNumber",
-            "Offset": 0,
+            "Offset": "0x0",
             "Size": 8
         },
         {
             "Type": "Model",
-            "Offset": 8,
+            "Offset": "0x8",
             "Size": 8
         },
         {
             "Type": "BuildDate",
-            "Offset": 16,
+            "Offset": "0x10",
             "Size": 8
         },
         {
             "Type": "SerialNumber",
-            "Offset": 24,
+            "Offset": "0x18",
             "Size": 16
         }
     ],
@@ -34,7 +34,7 @@
         {
             "Name": "PSU_FW_Revision",
             "Type": "Version",
-            "Offset": 48,
+            "Offset": "0x30",
             "Size": 4
         }
     ]

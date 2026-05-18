@@ -4,34 +4,34 @@
     "Parity": "Even",
     "BaudRate": 115200,
     "ProbeRegister": {
-        "Offset": 0,
+        "Offset": "0x0",
         "Size": 8,
         "ExpectedValue": "Panasonic"
     },
     "InventoryRegisters": [
         {
             "Type": "Manufacturer",
-            "Offset": 0,
+            "Offset": "0x0",
             "Size": 8
         },
         {
             "Type": "Model",
-            "Offset": 8,
+            "Offset": "0x8",
             "Size": 8
         },
         {
             "Type": "BuildDate",
-            "Offset": 16,
+            "Offset": "0x10",
             "Size": 8
         },
         {
             "Type": "SparePartNumber",
-            "Offset": 24,
+            "Offset": "0x18",
             "Size": 8
         },
         {
             "Type": "SerialNumber",
-            "Offset": 64,
+            "Offset": "0x40",
             "Size": 16
         }
     ],
@@ -39,7 +39,7 @@
         {
             "Name": "BBU_FW_Revision",
             "Type": "Version",
-            "Offset": 56,
+            "Offset": "0x38",
             "Size": 4
         }
     ]

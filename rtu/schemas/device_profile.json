@@ -60,7 +60,7 @@
             "required": ["Offset", "Size", "ExpectedValue"],
             "additionalProperties": false,
             "properties": {
-                "Offset": { "type": "integer" },
+                "Offset": { "type": "string", "pattern": "^0x[0-9A-Fa-f]+$" },
                 "Size": { "type": "integer" },
                 "ExpectedValue": {
                     "oneOf": [{ "type": "integer" }, { "type": "string" }]
@@ -85,7 +85,10 @@
                             "SparePartNumber"
                         ]
                     },
-                    "Offset": { "type": "integer" },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
                     "Size": { "type": "integer" },
                     "Format": {
                         "type": "string",
@@ -124,7 +127,10 @@
                             "RotationalPosition"
                         ]
                     },
-                    "Offset": { "type": "integer" },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
                     "Size": { "type": "integer" },
                     "Precision": { "type": "integer", "default": 0 },
                     "Scale": { "type": "number", "default": 1.0 },
@@ -145,7 +151,10 @@
                 "additionalProperties": false,
                 "properties": {
                     "Name": { "type": "string" },
-                    "Offset": { "type": "integer" },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
                     "Bits": {
                         "type": "array",
                         "items": {
@@ -194,7 +203,10 @@
                         "type": "string",
                         "enum": ["ValveClosedDuration", "ValveOpenDuration"]
                     },
-                    "Offset": { "type": "integer" },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
                     "Size": { "type": "integer" },
                     "Precision": { "type": "integer", "default": 0 },
                     "Scale": { "type": "number", "default": 1.0 },
@@ -219,7 +231,10 @@
                         "type": "string",
                         "enum": ["Version", "Update"]
                     },
-                    "Offset": { "type": "integer" },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
                     "Size": { "type": "integer" }
                 }
             }
