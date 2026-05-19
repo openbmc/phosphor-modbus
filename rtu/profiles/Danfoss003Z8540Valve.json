@@ -37,7 +37,7 @@
     ],
     "SensorRegisters": [
         {
-            "Name": "Estimated_Flow_Rate",
+            "Name": "ESTIMATED_FLOW_RATE",
             "Type": "Utilization",
             "Offset": "0x8608",
             "Size": 2,
@@ -45,7 +45,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "Cooling_Design_Flow_Rate",
+            "Name": "COOLING_DESIGN_FLOW_RATE",
             "Type": "LiquidFlow",
             "Offset": "0x801E",
             "Size": 2,
@@ -53,7 +53,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "Max_Value_Of_Design_Flow_Rate",
+            "Name": "MAX_VALUE_OF_DESIGN_FLOW_RATE",
             "Type": "Utilization",
             "Offset": "0x8104",
             "Size": 2,
@@ -61,7 +61,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "Actuator_Spindle_Position",
+            "Name": "ACTUATOR_SPINDLE_POSITION",
             "Type": "Utilization",
             "Offset": "0x8216",
             "Size": 2,
@@ -69,7 +69,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "Voltage_On_Analog_Output",
+            "Name": "VOLTAGE_ON_ANALOG_OUTPUT",
             "Type": "Voltage",
             "Offset": "0x8206",
             "Size": 2,
@@ -77,7 +77,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "Supply_Temperature",
+            "Name": "SUPPLY_TEMPERATURE",
             "Type": "Temperature",
             "Offset": "0x81C2",
             "Size": 2,
@@ -87,7 +87,7 @@
     ],
     "MetricRegisters": [
         {
-            "Name": "Minutes_Since_Fully_Closed",
+            "Name": "MINUTES_SINCE_FULLY_CLOSED",
             "Type": "ValveClosedDuration",
             "Offset": "0x8414",
             "Size": 2,
@@ -98,7 +98,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "Minutes_Since_Fully_Open",
+            "Name": "MINUTES_SINCE_FULLY_OPEN",
             "Type": "ValveOpenDuration",
             "Offset": "0x8416",
             "Size": 2,

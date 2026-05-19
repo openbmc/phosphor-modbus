@@ -37,7 +37,7 @@
     ],
     "SensorRegisters": [
         {
-            "Name": "BBU1_Temp1",
+            "Name": "BBU1_TEMP1",
             "Type": "Temperature",
             "Offset": "0x101",
             "Size": 1,
@@ -48,7 +48,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Temp2",
+            "Name": "BBU1_TEMP2",
             "Type": "Temperature",
             "Offset": "0x102",
             "Size": 1,
@@ -59,7 +59,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Temp3",
+            "Name": "BBU1_TEMP3",
             "Type": "Temperature",
             "Offset": "0x103",
             "Size": 1,
@@ -70,7 +70,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Temp4",
+            "Name": "BBU1_TEMP4",
             "Type": "Temperature",
             "Offset": "0x104",
             "Size": 1,
@@ -81,7 +81,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Relative_State_Of_Charge",
+            "Name": "BBU1_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x105",
             "Size": 1,
@@ -91,7 +91,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU1_Absolute_State_Of_Charge",
+            "Name": "BBU1_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x106",
             "Size": 1,
@@ -101,7 +101,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU1_Battery_Voltage",
+            "Name": "BBU1_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x107",
             "Size": 1,
@@ -112,7 +112,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Battery_Current",
+            "Name": "BBU1_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x108",
             "Size": 1,
@@ -123,7 +123,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Average_Current",
+            "Name": "BBU1_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x109",
             "Size": 1,
@@ -134,7 +134,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Remaining_Capacity",
+            "Name": "BBU1_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x10A",
             "Size": 1,
@@ -145,7 +145,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU1_Full_Charge_Capacity",
+            "Name": "BBU1_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x10B",
             "Size": 1,
@@ -156,7 +156,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Temp1",
+            "Name": "BBU2_TEMP1",
             "Type": "Temperature",
             "Offset": "0x111",
             "Size": 1,
@@ -167,7 +167,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Temp2",
+            "Name": "BBU2_TEMP2",
             "Type": "Temperature",
             "Offset": "0x112",
             "Size": 1,
@@ -178,7 +178,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Temp3",
+            "Name": "BBU2_TEMP3",
             "Type": "Temperature",
             "Offset": "0x113",
             "Size": 1,
@@ -189,7 +189,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Temp4",
+            "Name": "BBU2_TEMP4",
             "Type": "Temperature",
             "Offset": "0x114",
             "Size": 1,
@@ -200,7 +200,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Relative_State_Of_Charge",
+            "Name": "BBU2_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x115",
             "Size": 1,
@@ -210,7 +210,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU2_Absolute_State_Of_Charge",
+            "Name": "BBU2_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x116",
             "Size": 1,
@@ -220,7 +220,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU2_Battery_Voltage",
+            "Name": "BBU2_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x117",
             "Size": 1,
@@ -231,7 +231,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Battery_Current",
+            "Name": "BBU2_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x118",
             "Size": 1,
@@ -242,7 +242,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Average_Current",
+            "Name": "BBU2_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x119",
             "Size": 1,
@@ -253,7 +253,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Remaining_Capacity",
+            "Name": "BBU2_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x11A",
             "Size": 1,
@@ -264,7 +264,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU2_Full_Charge_Capacity",
+            "Name": "BBU2_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x11B",
             "Size": 1,
@@ -275,7 +275,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Temp1",
+            "Name": "BBU3_TEMP1",
             "Type": "Temperature",
             "Offset": "0x121",
             "Size": 1,
@@ -286,7 +286,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Temp2",
+            "Name": "BBU3_TEMP2",
             "Type": "Temperature",
             "Offset": "0x122",
             "Size": 1,
@@ -297,7 +297,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Temp3",
+            "Name": "BBU3_TEMP3",
             "Type": "Temperature",
             "Offset": "0x123",
             "Size": 1,
@@ -308,7 +308,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Temp4",
+            "Name": "BBU3_TEMP4",
             "Type": "Temperature",
             "Offset": "0x124",
             "Size": 1,
@@ -319,7 +319,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Relative_State_Of_Charge",
+            "Name": "BBU3_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x125",
             "Size": 1,
@@ -329,7 +329,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU3_Absolute_State_Of_Charge",
+            "Name": "BBU3_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x126",
             "Size": 1,
@@ -339,7 +339,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU3_Battery_Voltage",
+            "Name": "BBU3_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x127",
             "Size": 1,
@@ -350,7 +350,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Battery_Current",
+            "Name": "BBU3_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x128",
             "Size": 1,
@@ -361,7 +361,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Average_Current",
+            "Name": "BBU3_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x129",
             "Size": 1,
@@ -372,7 +372,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Remaining_Capacity",
+            "Name": "BBU3_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x12A",
             "Size": 1,
@@ -383,7 +383,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU3_Full_Charge_Capacity",
+            "Name": "BBU3_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x12B",
             "Size": 1,
@@ -394,7 +394,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Temp1",
+            "Name": "BBU4_TEMP1",
             "Type": "Temperature",
             "Offset": "0x131",
             "Size": 1,
@@ -405,7 +405,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Temp2",
+            "Name": "BBU4_TEMP2",
             "Type": "Temperature",
             "Offset": "0x132",
             "Size": 1,
@@ -416,7 +416,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Temp3",
+            "Name": "BBU4_TEMP3",
             "Type": "Temperature",
             "Offset": "0x133",
             "Size": 1,
@@ -427,7 +427,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Temp4",
+            "Name": "BBU4_TEMP4",
             "Type": "Temperature",
             "Offset": "0x134",
             "Size": 1,
@@ -438,7 +438,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Relative_State_Of_Charge",
+            "Name": "BBU4_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x135",
             "Size": 1,
@@ -448,7 +448,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU4_Absolute_State_Of_Charge",
+            "Name": "BBU4_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x136",
             "Size": 1,
@@ -458,7 +458,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU4_Battery_Voltage",
+            "Name": "BBU4_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x137",
             "Size": 1,
@@ -469,7 +469,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Battery_Current",
+            "Name": "BBU4_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x138",
             "Size": 1,
@@ -480,7 +480,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Average_Current",
+            "Name": "BBU4_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x139",
             "Size": 1,
@@ -491,7 +491,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Remaining_Capacity",
+            "Name": "BBU4_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x13A",
             "Size": 1,
@@ -502,7 +502,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU4_Full_Charge_Capacity",
+            "Name": "BBU4_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x13B",
             "Size": 1,
@@ -513,7 +513,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Temp1",
+            "Name": "BBU5_TEMP1",
             "Type": "Temperature",
             "Offset": "0x141",
             "Size": 1,
@@ -524,7 +524,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Temp2",
+            "Name": "BBU5_TEMP2",
             "Type": "Temperature",
             "Offset": "0x142",
             "Size": 1,
@@ -535,7 +535,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Temp3",
+            "Name": "BBU5_TEMP3",
             "Type": "Temperature",
             "Offset": "0x143",
             "Size": 1,
@@ -546,7 +546,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Temp4",
+            "Name": "BBU5_TEMP4",
             "Type": "Temperature",
             "Offset": "0x144",
             "Size": 1,
@@ -557,7 +557,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Relative_State_Of_Charge",
+            "Name": "BBU5_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x145",
             "Size": 1,
@@ -567,7 +567,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU5_Absolute_State_Of_Charge",
+            "Name": "BBU5_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x146",
             "Size": 1,
@@ -577,7 +577,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU5_Battery_Voltage",
+            "Name": "BBU5_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x147",
             "Size": 1,
@@ -588,7 +588,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Battery_Current",
+            "Name": "BBU5_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x148",
             "Size": 1,
@@ -599,7 +599,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Average_Current",
+            "Name": "BBU5_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x149",
             "Size": 1,
@@ -610,7 +610,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Remaining_Capacity",
+            "Name": "BBU5_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x14A",
             "Size": 1,
@@ -621,7 +621,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU5_Full_Charge_Capacity",
+            "Name": "BBU5_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x14B",
             "Size": 1,
@@ -632,7 +632,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Temp1",
+            "Name": "BBU6_TEMP1",
             "Type": "Temperature",
             "Offset": "0x151",
             "Size": 1,
@@ -643,7 +643,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Temp2",
+            "Name": "BBU6_TEMP2",
             "Type": "Temperature",
             "Offset": "0x152",
             "Size": 1,
@@ -654,7 +654,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Temp3",
+            "Name": "BBU6_TEMP3",
             "Type": "Temperature",
             "Offset": "0x153",
             "Size": 1,
@@ -665,7 +665,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Temp4",
+            "Name": "BBU6_TEMP4",
             "Type": "Temperature",
             "Offset": "0x154",
             "Size": 1,
@@ -676,7 +676,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Relative_State_Of_Charge",
+            "Name": "BBU6_RELATIVE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x155",
             "Size": 1,
@@ -686,7 +686,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU6_Absolute_State_Of_Charge",
+            "Name": "BBU6_ABSOLUTE_STATE_OF_CHARGE",
             "Type": "Utilization",
             "Offset": "0x156",
             "Size": 1,
@@ -696,7 +696,7 @@
             "Format": "Integer"
         },
         {
-            "Name": "BBU6_Battery_Voltage",
+            "Name": "BBU6_BATTERY_VOLTAGE",
             "Type": "Voltage",
             "Offset": "0x157",
             "Size": 1,
@@ -707,7 +707,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Battery_Current",
+            "Name": "BBU6_BATTERY_CURRENT",
             "Type": "Current",
             "Offset": "0x158",
             "Size": 1,
@@ -718,7 +718,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Average_Current",
+            "Name": "BBU6_AVERAGE_CURRENT",
             "Type": "Current",
             "Offset": "0x159",
             "Size": 1,
@@ -729,7 +729,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Remaining_Capacity",
+            "Name": "BBU6_REMAINING_CAPACITY",
             "Type": "Charge",
             "Offset": "0x15A",
             "Size": 1,
@@ -740,7 +740,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "BBU6_Full_Charge_Capacity",
+            "Name": "BBU6_FULL_CHARGE_CAPACITY",
             "Type": "Charge",
             "Offset": "0x15B",
             "Size": 1,

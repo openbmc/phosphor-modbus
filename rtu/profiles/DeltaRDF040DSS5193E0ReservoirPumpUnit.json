@@ -32,7 +32,7 @@
     ],
     "SensorRegisters": [
         {
-            "Name": "RPU_Coolant_Inlet_Temp_C",
+            "Name": "RPU_COOLANT_INLET_TEMP_C",
             "Type": "Temperature",
             "Offset": "0x9002",
             "Size": 1,
@@ -43,7 +43,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "RPU_Coolant_Outlet_Temp_C",
+            "Name": "RPU_COOLANT_OUTLET_TEMP_C",
             "Type": "Temperature",
             "Offset": "0x9001",
             "Size": 1,
