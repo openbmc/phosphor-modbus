@@ -54,6 +54,13 @@ option(
 )
 
 option(
+    'append-unit-suffix',
+    type: 'boolean',
+    value: true,
+    description: 'Append unit suffix (e.g. _C, _V, _PCT) to sensor and metric D-Bus object names based on register type.',
+)
+
+option(
     'device-cleanup-interval-seconds',
     type: 'integer',
     value: 3,

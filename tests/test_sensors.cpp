@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "device/device_utils.hpp"
 #include "modbus_rtu_config.hpp"
 #include "port/base_port.hpp"
 #include "test_base.hpp"
@@ -77,6 +78,11 @@ class SensorsTest : public BaseTest
                                  TestIntf::testDeviceAddress, portName);
 
         fullSensorName = std::format("{}_{}", deviceName, sensorName);
+        if constexpr (ModbusIntf::appendUnitSuffix)
+        {
+            fullSensorName +=
+                DeviceIntf::getUnitSuffix(ProfileIntf::SensorType::temperature);
+        }
 
         objectPath = std::format(
             "{}/{}/{}", SensorValueIntf::namespace_path::value,
@@ -86,9 +92,13 @@ class SensorsTest : public BaseTest
     auto getSensorObjectPath(const std::string& name, SensorTypeIntf sensorType)
         -> std::string
     {
-        return std::format(
-            "{}/{}/{}_{}", SensorValueIntf::namespace_path::value,
-            DeviceIntf::getPathSuffix(sensorType), deviceName, name);
+        auto sensorName = std::format("{}_{}", deviceName, name);
+        if constexpr (ModbusIntf::appendUnitSuffix)
+        {
+            sensorName += DeviceIntf::getUnitSuffix(sensorType);
+        }
+        return std::format("{}/{}/{}", SensorValueIntf::namespace_path::value,
+                           DeviceIntf::getPathSuffix(sensorType), sensorName);
     }
 
     SensorsTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)

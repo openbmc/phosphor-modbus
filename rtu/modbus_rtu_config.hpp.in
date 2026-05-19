@@ -24,4 +24,6 @@ inline constexpr uint16_t maxRegisterSpanLength =
 inline constexpr auto deviceCleanupInterval =
     std::chrono::seconds(@DEVICE_CLEANUP_INTERVAL_SECONDS@);
 
+inline constexpr bool appendUnitSuffix = @APPEND_UNIT_SUFFIX@;
+
 } // namespace phosphor::modbus::rtu

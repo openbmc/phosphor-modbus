@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "device/device_utils.hpp"
 #include "modbus_rtu_config.hpp"
 #include "modbus_server_tester.hpp"
 #include "port/base_port.hpp"
@@ -141,6 +142,11 @@ class DeviceEventsTest : public BaseTest
                                  TestIntf::testDeviceAddress, portName);
 
         fullSensorName = std::format("{}_{}", deviceName, sensorName);
+        if constexpr (ModbusIntf::appendUnitSuffix)
+        {
+            fullSensorName +=
+                DeviceIntf::getUnitSuffix(ProfileIntf::SensorType::temperature);
+        }
 
         objectPath = std::format(
             "{}/{}/{}", SensorValueIntf::namespace_path::value,

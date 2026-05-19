@@ -1,5 +1,6 @@
 #include "base_device.hpp"
 
+#include "device_utils.hpp"
 #include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -202,9 +203,13 @@ auto BaseDevice::createSensors() -> void
             std::numeric_limits<double>::quiet_NaN(),
             getUnit(sensorRegister.type)};
 
+        auto sensorName = config.name + "_" + sensorRegister.name;
+        if constexpr (appendUnitSuffix)
+        {
+            sensorName += getUnitSuffix(sensorRegister.type);
+        }
         auto sensorPath =
-            getObjectPath(getPathSuffix(sensorRegister.type),
-                          config.name + "_" + sensorRegister.name);
+            getObjectPath(getPathSuffix(sensorRegister.type), sensorName);
 
         auto sensor = std::make_unique<SensorIntf>(
             ctx, sensorPath.str.c_str(), initValue, initAvailability,
@@ -252,9 +257,13 @@ auto BaseDevice::createMetrics() -> void
             std::numeric_limits<double>::quiet_NaN(),
             getMetricUnit(metricRegister.type)};
 
-        auto metricPath =
-            getMetricObjectPath(getMetricPathSuffix(metricRegister.type),
-                                config.name + "_" + metricRegister.name);
+        auto metricName = config.name + "_" + metricRegister.name;
+        if constexpr (appendUnitSuffix)
+        {
+            metricName += getMetricUnitSuffix(metricRegister.type);
+        }
+        auto metricPath = getMetricObjectPath(
+            getMetricPathSuffix(metricRegister.type), metricName);
 
         auto metric = std::make_unique<MetricIntf>(ctx, metricPath.str.c_str(),
                                                    initValue, initAssociations);

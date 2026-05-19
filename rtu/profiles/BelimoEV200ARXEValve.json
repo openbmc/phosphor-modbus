@@ -18,7 +18,7 @@
     ],
     "SensorRegisters": [
         {
-            "Name": "SENSOR_TEMPERATURE",
+            "Name": "SENSOR_TEMP",
             "Type": "Temperature",
             "Offset": "0xD",
             "Size": 1,
@@ -29,7 +29,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "REMOTE_TEMPERATURE",
+            "Name": "REMOTE_TEMP",
             "Type": "Temperature",
             "Offset": "0x13",
             "Size": 1,
@@ -40,7 +40,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "FLOWBODY_TEMPERATURE",
+            "Name": "FLOWBODY_TEMP",
             "Type": "Temperature",
             "Offset": "0x15",
             "Size": 1,
@@ -51,7 +51,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "RELATIVE_VOLUMETRIC_FLOW",
+            "Name": "RELATIVE_VOLUMETRIC_FLOW_UTIL",
             "Type": "Utilization",
             "Offset": "0x6",
             "Size": 1,
@@ -62,7 +62,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "ABSOLUTE_VOLUMETRIC_FLOW",
+            "Name": "ABSOLUTE_VOLUMETRIC_RATE_LIQUIDFLOW",
             "Type": "LiquidFlow",
             "Offset": "0x8",
             "Size": 1,
@@ -73,7 +73,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "SETPOINT_ABSOLUTE_VOLUMETRIC_FLOW",
+            "Name": "SETPOINT_ABSOLUTE_VOLUMETRIC_RATE_LIQUIDFLOW",
             "Type": "LiquidFlow",
             "Offset": "0x10",
             "Size": 1,
@@ -84,7 +84,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "MINIMUM_VOLUMETRIC_FLOW_LIMIT",
+            "Name": "MINIMUM_VOLUMETRIC_FLOW_LIMIT_UTIL",
             "Type": "Utilization",
             "Offset": "0x69",
             "Size": 1,
@@ -95,7 +95,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "MAXIMUM_VOLUMETRIC_FLOW_LIMIT",
+            "Name": "MAXIMUM_VOLUMETRIC_FLOW_LIMIT_UTIL",
             "Type": "Utilization",
             "Offset": "0x6A",
             "Size": 1,
@@ -106,7 +106,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "SETPOINT_RELATIVE_PERCENTAGE",
+            "Name": "SETPOINT_RELATIVE_UTIL",
             "Type": "Utilization",
             "Offset": "0x0",
             "Size": 1,
@@ -117,7 +117,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "RELATIVE_POSITION",
+            "Name": "RELATIVE_POSITION_UTIL",
             "Type": "Utilization",
             "Offset": "0x4",
             "Size": 1,
@@ -128,7 +128,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "ABSOLUTE_POSITION",
+            "Name": "ABSOLUTE_ROTATIONALPOS",
             "Type": "RotationalPosition",
             "Offset": "0x5",
             "Size": 1,
@@ -139,7 +139,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "SETPOINT_ANALOG",
+            "Name": "SETPOINT_ANALOG_UTIL",
             "Type": "Utilization",
             "Offset": "0xB",
             "Size": 1,
@@ -150,7 +150,7 @@
             "Format": "FloatingPoint"
         },
         {
-            "Name": "GLYCOL_CONCENTRATION",
+            "Name": "GLYCOL_CONCENTRATION_UTIL",
             "Type": "Utilization",
             "Offset": "0x19",
             "Size": 1,

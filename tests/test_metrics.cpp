@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 #include "device/device_factory.hpp"
+#include "device/device_utils.hpp"
 #include "modbus_rtu_config.hpp"
 #include "port/base_port.hpp"
 #include "test_base.hpp"
@@ -64,6 +65,11 @@ class MetricsTest : public BaseTest
                                  TestIntf::testDeviceAddress, portName);
 
         fullMetricName = std::format("{}_{}", deviceName, metricName);
+        if constexpr (ModbusIntf::appendUnitSuffix)
+        {
+            fullMetricName += DeviceIntf::getMetricUnitSuffix(
+                ProfileIntf::MetricType::valveClosedDuration);
+        }
 
         objectPath =
             std::format("{}/{}/{}", MetricValueIntf::namespace_path::value,
@@ -74,9 +80,14 @@ class MetricsTest : public BaseTest
     auto getMetricObjectPath(const std::string& name, MetricTypeIntf metricType)
         -> std::string
     {
-        return std::format(
-            "{}/{}/{}_{}", MetricValueIntf::namespace_path::value,
-            DeviceIntf::getMetricPathSuffix(metricType), deviceName, name);
+        auto metricFullName = std::format("{}_{}", deviceName, name);
+        if constexpr (ModbusIntf::appendUnitSuffix)
+        {
+            metricFullName += DeviceIntf::getMetricUnitSuffix(metricType);
+        }
+        return std::format("{}/{}/{}", MetricValueIntf::namespace_path::value,
+                           DeviceIntf::getMetricPathSuffix(metricType),
+                           metricFullName);
     }
 
     auto createDevice(std::vector<ProfileIntf::MetricRegister> metricRegisters,

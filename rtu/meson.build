@@ -24,6 +24,10 @@ conf.set(
     'DEVICE_CLEANUP_INTERVAL_SECONDS',
     get_option('device-cleanup-interval-seconds'),
 )
+conf.set10(
+    'APPEND_UNIT_SUFFIX',
+    get_option('append-unit-suffix'),
+)
 configure_file(
     input: 'modbus_rtu_config.hpp.in',
     output: 'modbus_rtu_config.hpp',
@@ -67,6 +71,7 @@ profile_cpp_args = ['-DPROFILE_DIR="' + profile_dir + '"']
 device_src = files(
     'device/base_device.cpp',
     'device/device_factory.cpp',
+    'device/device_utils.cpp',
 )
 
 firmware_src = files('firmware/device_firmware.cpp')
