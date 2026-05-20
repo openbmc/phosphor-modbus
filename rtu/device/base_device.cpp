@@ -294,7 +294,8 @@ auto BaseDevice::findOrCreateBucket(std::chrono::seconds interval)
 
 auto BaseDevice::buildPollBuckets() -> void
 {
-    // Group sensor entries into buckets by poll interval.
+    auto& bucket = findOrCreateBucket(config.pollRate);
+
     for (const auto& reg : config.profile.sensorRegisters)
     {
         auto sensorIter = sensors.find(reg.name);
@@ -302,11 +303,9 @@ auto BaseDevice::buildPollBuckets() -> void
         {
             continue;
         }
-        auto& bucket = findOrCreateBucket(reg.pollInterval);
         bucket.entries.emplace_back(SensorEntry{reg, *(sensorIter->second)});
     }
 
-    // Group metric entries into buckets by poll interval.
     for (const auto& reg : config.profile.metricRegisters)
     {
         auto metricIter = metrics.find(reg.name);
@@ -314,14 +313,11 @@ auto BaseDevice::buildPollBuckets() -> void
         {
             continue;
         }
-        auto& bucket = findOrCreateBucket(reg.pollInterval);
         bucket.entries.emplace_back(MetricEntry{reg, *(metricIter->second)});
     }
 
-    // Add status entries to the default poll interval bucket.
     for (const auto& [address, statusBits] : config.profile.statusRegisters)
     {
-        auto& bucket = findOrCreateBucket(defaultSensorPollInterval);
         bucket.entries.emplace_back(StatusEntry{address, &statusBits});
     }
 

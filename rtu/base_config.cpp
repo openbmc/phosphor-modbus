@@ -57,6 +57,14 @@ static auto parseConfig(const ConfigMap& configMap,
 
         auto serialPort = getValue<std::string>(configMap, "SerialPort", name);
 
+        auto pollRate = defaultSensorPollInterval;
+        auto pollRateIter = configMap.find("PollRate");
+        if (pollRateIter != configMap.end())
+        {
+            pollRate =
+                std::chrono::seconds(std::get<uint64_t>(pollRateIter->second));
+        }
+
         return Config{
             .name = std::move(name),
             .type = std::move(type),
@@ -65,6 +73,7 @@ static auto parseConfig(const ConfigMap& configMap,
             .parentInventoryPath = objectPath.parent_path(),
             .inventoryPath = {},
             .profile = profile,
+            .pollRate = pollRate,
         };
     }
     catch (const std::exception& e)

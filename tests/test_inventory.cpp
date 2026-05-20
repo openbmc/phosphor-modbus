@@ -67,6 +67,7 @@ class InventoryTest : public BaseTest
                 std::string(DeviceIntf::chassisInventoryPath) + "/" +
                 deviceName),
             .profile = profile,
+            .pollRate = 1s,
         };
 
         auto mockPort =

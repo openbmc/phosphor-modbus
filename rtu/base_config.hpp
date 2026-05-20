@@ -4,6 +4,7 @@
 
 #include <sdbusplus/async.hpp>
 
+#include <chrono>
 #include <optional>
 #include <string>
 
@@ -24,6 +25,7 @@ struct Config
     sdbusplus::object_path parentInventoryPath;
     sdbusplus::object_path inventoryPath;
     const ProfileIntf::DeviceProfile& profile;
+    std::chrono::seconds pollRate;
 };
 
 /** @brief Reads entity-manager properties and looks up the device profile

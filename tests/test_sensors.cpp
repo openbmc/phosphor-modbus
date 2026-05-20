@@ -35,7 +35,6 @@ namespace DeviceConfigIntf = DeviceIntf::config;
 namespace EventIntf = phosphor::modbus::events;
 using DeviceIntf::DeviceFactory;
 using SensorTypeIntf = ProfileIntf::SensorType;
-constexpr auto testPollInterval = std::chrono::seconds(1);
 
 class MockPort : public PortIntf::BasePort
 {
@@ -162,6 +161,7 @@ class SensorsTest : public BaseTest
                     sdbusplus::object_path(deviceTestConfig.inventoryPath),
                 .inventoryPath = std::move(inventoryPath),
                 .profile = testProfile,
+                .pollRate = 1s,
             },
             deviceTestConfig.deviceType,
             deviceTestConfig.deviceModel,
@@ -246,7 +246,6 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = 1s,
     };
 
     ctx.spawn(
@@ -275,7 +274,6 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .isSigned = true,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = 1s,
     };
 
     // Convert expected hex value to a signed 16-bit integer for comparison
@@ -314,7 +312,6 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         .scale = 0.1,
         .shift = 50,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = 1s,
     };
 
     ctx.spawn(testSensorCreation(
@@ -344,7 +341,6 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = 1s,
     };
 
     ctx.spawn(
@@ -376,14 +372,12 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval},
+         .format = ProfileIntf::SensorFormat::floatingPoint},
         {.name = sensor2Name,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval}};
+         .format = ProfileIntf::SensorFormat::floatingPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -444,14 +438,12 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval},
+         .format = ProfileIntf::SensorFormat::floatingPoint},
         {.name = farName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval}};
+         .format = ProfileIntf::SensorFormat::floatingPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -497,60 +489,6 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
 // Sensors with different poll intervals should be placed in separate buckets.
 // The faster bucket (1s) should poll more often than the slower one (10s)
 // within the test window.
-TEST_F(SensorsTest, TestDifferentPollIntervalBuckets)
-{
-    setupDevice({
-        "ResorviorPumpUnit",
-        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        ProfileIntf::DeviceType::reservoirPumpUnit,
-        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
-    });
-
-    const std::string fastName = "FastSensor";
-    const std::string slowName = "SlowSensor";
-
-    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
-        {.name = fastName,
-         .type = SensorTypeIntf::temperature,
-         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
-         .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval},
-        {.name = slowName,
-         .type = SensorTypeIntf::temperature,
-         .offset = TestIntf::testReadHoldingRegisterDistantOffset,
-         .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = std::chrono::seconds(10)}};
-
-    EventIntf::Events events{ctx};
-    auto devPair = createDevice(sensorRegisters, events);
-    auto& device = devPair.second;
-    auto countBefore = serverTester->totalRequestCount.load();
-
-    // Spawn the poll loop and let it run for ~2.5s.
-    // Fast bucket (1s): polls at t=0, t=1, t=2 -> 3 requests
-    // Slow bucket (10s): polls at t=0 only     -> 1 request
-    // Total expected: 4
-    ctx.spawn(device->pollRegisters());
-
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 2500ms) |
-              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
-
-    ctx.run();
-
-    auto totalRequests = serverTester->totalRequestCount.load() - countBefore;
-
-    // The fast bucket (1s) should poll multiple times while the slow bucket
-    // (10s) polls only once. If both were in a single bucket they would
-    // always poll together, producing exactly 2 requests per iteration.
-    // With separate buckets we expect more than 2 total (fast polls extra)
-    // but fewer than if both polled every second (which would be ~6).
-    EXPECT_GT(totalRequests, 2) << "Fast bucket should poll more than once";
-    EXPECT_LE(totalRequests, 6)
-        << "Slow bucket should not poll more than once in 2.5s";
-}
-
 // Verify that calling requestStop() causes the sensor polling coroutine to
 // exit, sets isStopped() to true, and no further sensor polls occur.
 TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
@@ -568,7 +506,6 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = std::chrono::seconds(1),
     };
 
     EventIntf::Events events{ctx};
@@ -628,14 +565,12 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
          .type = SensorTypeIntf::temperature,
          .offset = validOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval},
+         .format = ProfileIntf::SensorFormat::floatingPoint},
         {.name = badSensorName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testIllegalDataAddressRegister,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint,
-         .pollInterval = testPollInterval}};
+         .format = ProfileIntf::SensorFormat::floatingPoint}};
 
     auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};

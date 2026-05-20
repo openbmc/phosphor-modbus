@@ -98,6 +98,7 @@ class FirmwareTest : public BaseTest
             .inventoryPath = sdbusplus::object_path(
                 "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
             .profile = testProfile,
+            .pollRate = 1s,
         };
 
         auto deviceFirmware =
