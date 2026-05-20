@@ -111,6 +111,7 @@ class MetricsTest : public BaseTest
                     "xyz/openbmc_project/Inventory/Valve"),
                 .inventoryPath = std::move(inventoryPath),
                 .profile = testProfile,
+                .pollRate = 1s,
             },
             ProfileIntf::DeviceType::valve,
             ProfileIntf::DeviceModel::BelimoEV200ARXE,
@@ -145,7 +146,6 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
         .format = ProfileIntf::SensorFormat::floatingPoint,
-        .pollInterval = 1s,
     };
 
     // Raw value 0x012C = 300, with scale=60 -> 300 * 60 = 18000 seconds
@@ -246,7 +246,6 @@ TEST_F(MetricsTest, TestMetricValueInteger)
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
         .format = ProfileIntf::SensorFormat::integer,
-        .pollInterval = 1s,
     };
 
     // Raw value 0x012C = 300, Integer format ignores scale -> 300

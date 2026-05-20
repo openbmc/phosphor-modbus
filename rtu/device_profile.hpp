@@ -82,7 +82,6 @@ struct SensorRegister
     double shift = 0.0;
     bool isSigned = false;
     SensorFormat format = SensorFormat::unknown;
-    std::chrono::seconds pollInterval = defaultSensorPollInterval;
 };
 
 enum class StatusType
@@ -126,7 +125,6 @@ struct MetricRegister
     double shift = 0.0;
     bool isSigned = false;
     SensorFormat format = SensorFormat::unknown;
-    std::chrono::seconds pollInterval = defaultSensorPollInterval;
 };
 
 enum class FirmwareRegisterType
