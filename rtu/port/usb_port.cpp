@@ -27,6 +27,7 @@ namespace config
 struct USBPortConfig : public PortFactoryConfig
 {
     std::string address = "unknown";
+    std::string location = "1";
     uint16_t port = 0;
     uint16_t interface = 0;
 
@@ -41,9 +42,9 @@ static auto getDevicePath(const config::PortFactoryConfig& inConfig)
     namespace fs = std::filesystem;
     auto config = static_cast<const config::USBPortConfig&>(inConfig);
 
-    std::regex pattern(
-        std::format("platform-{}\\.usb-usb.*{}-port{}", config.address,
-                    config.interface, config.port));
+    std::regex pattern(std::format(R"(platform-{}\.usb-usb.*:{}:1\.{}-port{}$)",
+                                   config.address, config.location,
+                                   config.interface, config.port));
     fs::path searchDir = "/dev/serial/by-path/";
 
     for (const auto& entry : fs::recursive_directory_iterator(searchDir))
@@ -92,6 +93,7 @@ auto USBPort::getConfig(sdbusplus::async::context& ctx,
     }
 
     config->address = properties.device_address;
+    config->location = properties.device_location;
     config->port = properties.port;
     config->interface = properties.device_interface;
     config->portType = config::PortType::usb;
