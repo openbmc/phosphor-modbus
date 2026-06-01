@@ -36,6 +36,12 @@
             "Type": "Version",
             "Offset": "0x30",
             "Size": 4
+        },
+        {
+            "Name": "PSU_FBL_FW_Revision",
+            "Type": "Version",
+            "Offset": "0x69",
+            "Size": 4
         }
     ],
     "SensorRegisters": [
