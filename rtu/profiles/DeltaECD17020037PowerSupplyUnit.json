@@ -37,5 +37,297 @@
             "Offset": "0x30",
             "Size": 4
         }
+    ],
+    "SensorRegisters": [
+        {
+            "Name": "INLET_SENSOR0_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x45",
+            "Size": 1,
+            "Precision": 7,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "OUTLET_SENSOR1_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x46",
+            "Size": 1,
+            "Precision": 7,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "OUTPUT_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x4F",
+            "Size": 1,
+            "Precision": 10,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "OUTPUT_CURR",
+            "Type": "Current",
+            "Offset": "0x50",
+            "Size": 1,
+            "Precision": 6,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "INPUT_AC_CURR",
+            "Type": "Current",
+            "Offset": "0x59",
+            "Size": 1,
+            "Precision": 10,
+            "Format": "FloatingPoint"
+        }
+    ],
+    "StatusRegisters": [
+        {
+            "Name": "GENERAL_ALARM",
+            "Offset": "0x3C",
+            "Bits": [
+                {
+                    "Name": "PFC",
+                    "Type": "PowerFault",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "DCDC",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "COMM_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "PFC_CONVERTER_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "DCDC_CONVERTER_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP_ALARM",
+                    "Type": "SensorFailure",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_ALARM",
+                    "Type": "FanFailure",
+                    "BitPosition": 11,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "PFC_ALARM",
+            "Offset": "0x3D",
+            "Bits": [
+                {
+                    "Name": "AC_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "AC_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "FREQ_LOW",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "FREQ_HIGH",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "AC_NOT_OK",
+                    "Type": "PowerFault",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "BULK_NOT_OK",
+                    "Type": "PowerFault",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "INPUT_RELAY_OFF",
+                    "Type": "PowerFault",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "PFC_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "AC_LOSS_SINGLE_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 12,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "DCDC_ALARM",
+            "Offset": "0x3E",
+            "Bits": [
+                {
+                    "Name": "MAIN_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "MAIN_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "MAIN_OVER_CURRENT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "MAIN_SHORT_CIRCUIT",
+                    "Type": "PowerFault",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "DCDC_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "SECONDARY_MCU_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "ORING_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 10,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "TEMP_ALARM",
+            "Offset": "0x3F",
+            "Bits": [
+                {
+                    "Name": "OUTLET",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "INLET",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "ORING",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "SYNC",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "LLC",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "PFC",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "BUS_CLIP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "BUS_CLIP_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "SENSOR_FAILURE",
+                    "Type": "SensorFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "COMM_ALARM",
+            "Offset": "0x40",
+            "Bits": [
+                {
+                    "Name": "PRIMARY_SECONDARY_MCU_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "SECONDARY_LOGIC_MCU_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                }
+            ]
+        }
     ]
 }
