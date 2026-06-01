@@ -42,5 +42,152 @@
             "Offset": "0x38",
             "Size": 4
         }
+    ],
+    "SensorRegisters": [],
+    "StatusRegisters": [
+        {
+            "Name": "GEN_ALARM",
+            "Offset": "0x59",
+            "Bits": [
+                {
+                    "Name": "MISSING_MODULES",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "SHELF_EEPROM_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE_MODBUS_COMM_ERR",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "PMM_MODBUS_COMM_ERR",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "SERIAL_LINK_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE_ALERTS",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "BB_OVER_TEMP_WARN",
+                    "Type": "SensorReadingWarning",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "BB_OVER_TEMP_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "ISHARE_CABLE_NOT_DETECTED",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 12,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "COMM_ALARM",
+            "Offset": "0x5D",
+            "Bits": [
+                {
+                    "Name": "RX_SERIAL_INPUT_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE1_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE2_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE3_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE4_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE5_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE6_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "SHELF_EEPROM_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE7_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE8_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE9_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE10_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "MODULE11_MODBUS_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 13,
+                    "Value": true
+                }
+            ]
+        }
     ]
 }
