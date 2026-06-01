@@ -592,27 +592,30 @@ static auto getObjectPath(const config::Config& config,
                           ProfileIntf::StatusType type, const std::string& name)
     -> sdbusplus::object_path
 {
+    auto fullName = config.name + "_" + name;
     switch (type)
     {
         case ProfileIntf::StatusType::sensorReadingCritical:
         case ProfileIntf::StatusType::sensorReadingWarning:
         case ProfileIntf::StatusType::sensorFailure:
             return sdbusplus::object_path(
-                std::string(SensorIntf::namespace_path::value) + "/" + name);
+                std::string(SensorIntf::namespace_path::value) + "/" +
+                fullName);
         case ProfileIntf::StatusType::controllerFailure:
-            return config.inventoryPath;
+            return sdbusplus::object_path(
+                "/xyz/openbmc_project/state/smc/" + fullName);
         case ProfileIntf::StatusType::pumpFailure:
             return sdbusplus::object_path(
-                "/xyz/openbmc_project/state/pump/" + name);
+                "/xyz/openbmc_project/state/pump/" + fullName);
         case ProfileIntf::StatusType::filterFailure:
             return sdbusplus::object_path(
-                "/xyz/openbmc_project/state/filter/" + name);
+                "/xyz/openbmc_project/state/filter/" + fullName);
         case ProfileIntf::StatusType::powerFault:
             return sdbusplus::object_path(
-                "/xyz/openbmc_project/state/power_rail/" + name);
+                "/xyz/openbmc_project/state/power_rail/" + fullName);
         case ProfileIntf::StatusType::fanFailure:
             return sdbusplus::object_path(
-                "/xyz/openbmc_project/state/fan/" + name);
+                "/xyz/openbmc_project/state/fan/" + fullName);
         case ProfileIntf::StatusType::leakDetectedCritical:
         case ProfileIntf::StatusType::leakDetectedWarning:
             using DetectorIntf =
@@ -620,7 +623,7 @@ static auto getObjectPath(const config::Config& config,
                     BaseDevice>;
             return sdbusplus::object_path(
                 std::string(DetectorIntf::namespace_path::value) + "/" +
-                DetectorIntf::namespace_path::detector + "/" + name);
+                DetectorIntf::namespace_path::detector + "/" + fullName);
         case ProfileIntf::StatusType::unknown:
             error("Unknown status type for {NAME}", "NAME", name);
     }
