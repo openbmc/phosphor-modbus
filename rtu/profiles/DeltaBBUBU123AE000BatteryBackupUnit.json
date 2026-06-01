@@ -41,6 +41,523 @@
             "Type": "Version",
             "Offset": "0x38",
             "Size": 4
+        },
+        {
+            "Name": "Battery_Pack_FW_Revision",
+            "Type": "Version",
+            "Offset": "0xB6",
+            "Size": 1
+        }
+    ],
+    "SensorRegisters": [
+        {
+            "Name": "LEAD_PLATE_SENSOR1_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x58",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "LEAD_PLATE_SENSOR2_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x59",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "SENSOR1_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x5A",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "SENSOR2_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x5B",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "SENSOR3_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x5C",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "SENSOR4_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x5D",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 0.1,
+            "Shift": -273.15,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "RELATIVE_STATE_OF_CHARGE_UTIL",
+            "Type": "Utilization",
+            "Offset": "0x5E",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "ABSOLUTE_STATE_OF_CHARGE_UTIL",
+            "Type": "Utilization",
+            "Offset": "0x5F",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "BATTERY_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x60",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "BATTERY_CURR",
+            "Type": "Current",
+            "Offset": "0x61",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 10.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "AVERAGE_CURR",
+            "Type": "Current",
+            "Offset": "0x62",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 10.0,
+            "IsSigned": true,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "REMAINING_CHARGE",
+            "Type": "Charge",
+            "Offset": "0x63",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "FULL_CHARGE",
+            "Type": "Charge",
+            "Offset": "0x64",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL1_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x6D",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL2_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x6E",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL3_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x6F",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL4_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x70",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL5_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x71",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL6_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x72",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL7_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x73",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL8_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x74",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL9_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x75",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL10_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x76",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL11_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x77",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL12_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x78",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CELL13_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x7A",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "RUN_TIME_TO_EMPTY_UTIL",
+            "Type": "Utilization",
+            "Offset": "0x85",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "AVG_TIME_TO_EMPTY_UTIL",
+            "Type": "Utilization",
+            "Offset": "0x86",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CHARGING_CURR",
+            "Type": "Current",
+            "Offset": "0x90",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CHARGING_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x91",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "DISCHARGE_CURR",
+            "Type": "Current",
+            "Offset": "0x92",
+            "Size": 1,
+            "Precision": 0,
+            "Scale": 10.0,
+            "Format": "FloatingPoint"
+        },
+        {
+            "Name": "SHELF_BUSBAR_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x93",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "INLET_AMBIENT_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x94",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "OUTLET_AMBIENT_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x95",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "CHARGE_BUCK_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x96",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "DISCHARGE_BUCK_TEMP",
+            "Type": "Temperature",
+            "Offset": "0x97",
+            "Size": 1,
+            "Format": "Integer"
+        },
+        {
+            "Name": "FAN_SPEED",
+            "Type": "FanTach",
+            "Offset": "0x98",
+            "Size": 1,
+            "Format": "Integer"
+        }
+    ],
+    "StatusRegisters": [
+        {
+            "Name": "STATUS",
+            "Offset": "0x68",
+            "Bits": [
+                {
+                    "Name": "CHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "AFE_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "MICRO_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_BALANCING_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "END_OF_LIFE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_CURR",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP_FAILURE",
+                    "Type": "SensorFailure",
+                    "BitPosition": 13,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "PERM_FAILURE",
+            "Offset": "0x69",
+            "Bits": [
+                {
+                    "Name": "CELL_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_BALANCING_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "AFE_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "MICRO_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_TIMEOUT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "OTHER_PERM_FAULTS",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP_SENSOR_FAILURE",
+                    "Type": "SensorFailure",
+                    "BitPosition": 12,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "BATTERY_STATUS",
+            "Offset": "0x6C",
+            "Bits": [
+                {
+                    "Name": "FULLY_DISCHARGED",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "REMAINING_TIME_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "REMAINING_CAPACITY_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "TERMINATE_DISCHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "OVER_TEMP_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "TERMINATE_CHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 14,
+                    "Value": true
+                },
+                {
+                    "Name": "OVER_CHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 15,
+                    "Value": true
+                }
+            ]
         }
     ]
 }
