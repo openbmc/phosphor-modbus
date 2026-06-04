@@ -46,6 +46,7 @@ struct InventoryRegister
 enum class SensorFormat
 {
     floatingPoint,
+    float32,
     integer,
     unknown
 };

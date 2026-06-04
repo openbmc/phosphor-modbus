@@ -7,6 +7,7 @@
 #include <xyz/openbmc_project/State/Leak/Detector/aserver.hpp>
 
 #include <algorithm>
+#include <bit>
 #include <numeric>
 #include <span>
 
@@ -411,6 +412,48 @@ static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
     return result;
 }
 
+static auto getFloat32FromRegister(std::span<const uint16_t> reg) -> double
+{
+    if (reg.size() != 2)
+    {
+        error("Float32 requires exactly 2 registers, got {SIZE}", "SIZE",
+              reg.size());
+        return 0.0;
+    }
+
+    uint32_t rawBits = (static_cast<uint32_t>(reg[0]) << 16) |
+                       static_cast<uint32_t>(reg[1]);
+
+    return static_cast<double>(std::bit_cast<float>(rawBits));
+}
+
+static auto convertRegisterValue(
+    std::span<const uint16_t> reg, ProfileIntf::SensorFormat format,
+    bool isSigned, uint8_t precision, double scale, double shift) -> double
+{
+    switch (format)
+    {
+        case ProfileIntf::SensorFormat::floatingPoint:
+        {
+            auto raw =
+                static_cast<double>(getRawIntegerFromRegister(reg, isSigned));
+
+            return shift + (scale * (raw / (1ULL << precision)));
+        }
+        case ProfileIntf::SensorFormat::float32:
+        {
+            auto raw = getFloat32FromRegister(reg);
+            return shift + (scale * (raw / (1ULL << precision)));
+        }
+        case ProfileIntf::SensorFormat::integer:
+            return static_cast<double>(
+                getRawIntegerFromRegister(reg, isSigned));
+        default:
+            error("Unknown sensor register format");
+            return 0.0;
+    }
+}
+
 auto BaseDevice::processSensorEntry(const SensorEntry& entry,
                                     std::span<const uint16_t> spanBuffer,
                                     uint16_t spanStartOffset) -> void
@@ -420,14 +463,9 @@ auto BaseDevice::processSensorEntry(const SensorEntry& entry,
     auto regSlice = std::span<const uint16_t>(spanBuffer.data() + regStart,
                                               sensorRegister.size);
 
-    double regVal = static_cast<double>(
-        getRawIntegerFromRegister(regSlice, sensorRegister.isSigned));
-    if (sensorRegister.format == ProfileIntf::SensorFormat::floatingPoint)
-    {
-        regVal = sensorRegister.shift +
-                 (sensorRegister.scale *
-                  (regVal / (1ULL << sensorRegister.precision)));
-    }
+    auto regVal = convertRegisterValue(
+        regSlice, sensorRegister.format, sensorRegister.isSigned,
+        sensorRegister.precision, sensorRegister.scale, sensorRegister.shift);
 
     sensor.value(regVal);
 }
@@ -441,14 +479,9 @@ auto BaseDevice::processMetricEntry(const MetricEntry& entry,
     auto regSlice = std::span<const uint16_t>(spanBuffer.data() + regStart,
                                               metricRegister.size);
 
-    double regVal = static_cast<double>(
-        getRawIntegerFromRegister(regSlice, metricRegister.isSigned));
-    if (metricRegister.format == ProfileIntf::SensorFormat::floatingPoint)
-    {
-        regVal = metricRegister.shift +
-                 (metricRegister.scale *
-                  (regVal / (1ULL << metricRegister.precision)));
-    }
+    auto regVal = convertRegisterValue(
+        regSlice, metricRegister.format, metricRegister.isSigned,
+        metricRegister.precision, metricRegister.scale, metricRegister.shift);
 
     metric.value(regVal);
 }

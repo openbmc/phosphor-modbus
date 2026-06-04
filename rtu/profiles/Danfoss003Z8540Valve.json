@@ -41,48 +41,66 @@
             "Type": "Utilization",
             "Offset": "0x8608",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         },
         {
             "Name": "COOLING_DESIGN_RATE_LIQUIDFLOW",
             "Type": "LiquidFlow",
             "Offset": "0x801E",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         },
         {
             "Name": "MAX_DESIGN_FLOW_RATE_UTIL",
             "Type": "Utilization",
             "Offset": "0x8104",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         },
         {
             "Name": "ACTUATOR_SPINDLE_POSITION_UTIL",
             "Type": "Utilization",
             "Offset": "0x8216",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         },
         {
             "Name": "ANALOG_OUTPUT_VOLT",
             "Type": "Voltage",
             "Offset": "0x8206",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         },
         {
             "Name": "SUPPLY_TEMP",
             "Type": "Temperature",
             "Offset": "0x81C2",
             "Size": 2,
-            "IsSigned": true,
-            "Format": "Integer"
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         }
     ],
     "MetricRegisters": [
