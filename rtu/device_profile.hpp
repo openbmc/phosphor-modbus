@@ -134,10 +134,18 @@ enum class FirmwareRegisterType
     unknown
 };
 
+enum class FirmwareFormat
+{
+    string,
+    integer,
+    unknown
+};
+
 struct FirmwareRegister
 {
     std::string name = "unknown";
     FirmwareRegisterType type = FirmwareRegisterType::unknown;
+    FirmwareFormat format = FirmwareFormat::string;
     uint16_t offset = 0;
     uint8_t size = 0;
 };

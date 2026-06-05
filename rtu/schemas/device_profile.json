@@ -231,6 +231,10 @@
                         "type": "string",
                         "enum": ["Version", "Update"]
                     },
+                    "Format": {
+                        "type": "string",
+                        "enum": ["String", "Integer"]
+                    },
                     "Offset": {
                         "type": "string",
                         "pattern": "^0x[0-9A-Fa-f]+$"

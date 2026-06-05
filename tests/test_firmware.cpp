@@ -128,12 +128,32 @@ TEST_F(FirmwareTest, TestFirmwareVersion)
     const ProfileIntf::FirmwareRegister firmwareRegister = {
         .name = "",
         .type = ProfileIntf::FirmwareRegisterType::version,
+        .format = ProfileIntf::FirmwareFormat::string,
         .offset = TestIntf::testReadHoldingRegisterFirmwareVersionOffset,
         .size = TestIntf::testReadHoldingRegisterFirmwareVersionCount};
 
     ctx.spawn(testFirmwareVersion(
         objectPath, firmwareRegister,
         TestIntf::testReadHoldingRegisterFirmwareVersionStr));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(FirmwareTest, TestFirmwareVersionInteger)
+{
+    const ProfileIntf::FirmwareRegister firmwareRegister = {
+        .name = "",
+        .type = ProfileIntf::FirmwareRegisterType::version,
+        .format = ProfileIntf::FirmwareFormat::integer,
+        .offset = TestIntf::testReadHoldingRegisterFirmwareIntVersionOffset,
+        .size = TestIntf::testReadHoldingRegisterFirmwareIntVersionCount};
+
+    ctx.spawn(testFirmwareVersion(
+        objectPath, firmwareRegister,
+        TestIntf::testReadHoldingRegisterFirmwareIntVersionStr));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
