@@ -96,6 +96,12 @@ static const std::unordered_map<std::string, FirmwareRegisterType>
         {"Update", FirmwareRegisterType::update},
 };
 
+static const std::unordered_map<std::string, FirmwareFormat> firmwareFormatMap =
+    {
+        {"String", FirmwareFormat::string},
+        {"Integer", FirmwareFormat::integer},
+};
+
 static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
     {"BatteryBackupUnit", DeviceType::batteryBackupUnit},
     {"CapacitorBankUnit", DeviceType::capacitorBankUnit},
@@ -252,6 +258,11 @@ static void from_json(const json& j, FirmwareRegister& r)
                         j.at("Type").get<std::string>(), "Type");
     r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
+    if (j.contains("Format"))
+    {
+        r.format = lookupEnum(firmwareFormatMap,
+                              j.at("Format").get<std::string>(), "Format");
+    }
 }
 
 struct DeviceProfileEntry

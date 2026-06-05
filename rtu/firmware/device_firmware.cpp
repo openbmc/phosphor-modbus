@@ -101,12 +101,24 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
         co_return;
     }
 
-    std::string strValue = "";
+    std::string strValue;
 
-    for (const auto& value : registers)
+    if (versionRegister.format == ProfileIntf::FirmwareFormat::integer)
     {
-        strValue += static_cast<char>((value >> 8) & 0xFF);
-        strValue += static_cast<char>(value & 0xFF);
+        uint64_t intValue = 0;
+        for (const auto& value : registers)
+        {
+            intValue = (intValue << 16) | value;
+        }
+        strValue = std::to_string(intValue);
+    }
+    else
+    {
+        for (const auto& value : registers)
+        {
+            strValue += static_cast<char>((value >> 8) & 0xFF);
+            strValue += static_cast<char>(value & 0xFF);
+        }
     }
 
     currentFirmware->version(strValue);
