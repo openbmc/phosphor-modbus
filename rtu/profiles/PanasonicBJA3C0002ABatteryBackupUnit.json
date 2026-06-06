@@ -41,6 +41,442 @@
             "Type": "Version",
             "Offset": "0x38",
             "Size": 4
+        },
+        {
+            "Name": "Battery_Pack_FW_Revision",
+            "Type": "Version",
+            "Format": "Integer",
+            "Offset": "0xB6",
+            "Size": 1
+        }
+    ],
+    "SensorRegisters": [],
+    "StatusRegisters": [
+        {
+            "Name": "STATUS",
+            "Offset": "0x68",
+            "Bits": [
+                {
+                    "Name": "CHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "AFE_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "MICRO_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_BALANCING_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "END_OF_LIFE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_CURR",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP_FAILURE",
+                    "Type": "SensorFailure",
+                    "BitPosition": 13,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "PERM_FAILURE",
+            "Offset": "0x69",
+            "Bits": [
+                {
+                    "Name": "CELL_OVER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_UNDER_VOLT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_BALANCING_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_FET_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "AFE_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "FUSE_FAILURE",
+                    "Type": "PowerFault",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "MICRO_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_TIMEOUT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "OTHER_PERM_FAULTS",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMP_SENSOR_FAILURE",
+                    "Type": "SensorFailure",
+                    "BitPosition": 12,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "BATTERY_STATUS",
+            "Offset": "0x6C",
+            "Bits": [
+                {
+                    "Name": "FULLY_DISCHARGED",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "REMAINING_TIME_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "REMAINING_CAPACITY_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "TERMINATE_DISCHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "OVER_TEMP_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "TERMINATE_CHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 14,
+                    "Value": true
+                },
+                {
+                    "Name": "OVER_CHARGE_ALARM",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 15,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "BBU_MODE",
+            "Offset": "0x6B",
+            "Bits": [
+                {
+                    "Name": "CANBUS_COMM_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "SMBUS_COMM_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_WORD",
+            "Offset": "0x99",
+            "Bits": [
+                {
+                    "Name": "TEMP_FAULT",
+                    "Type": "SensorFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "POWER_BOOST_CONVERTER_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "BUCK_CONVERTER_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGER_CONVERTER_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAULT",
+                    "Type": "FanFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "SYNC_START2_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "SYNC_START_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "RACK_SYNC_START2_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "RACK_SYNC_START_FAULT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 11,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_POWER_BOOST",
+            "Offset": "0x9A",
+            "Bits": [
+                {
+                    "Name": "SCP1",
+                    "Type": "PowerFault",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "OCP",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "OVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "SCP2",
+                    "Type": "PowerFault",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "UVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_BUCK_CONVERTER",
+            "Offset": "0x9B",
+            "Bits": [
+                {
+                    "Name": "OUTPUT_OVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_CHARGER",
+            "Offset": "0x9C",
+            "Bits": [
+                {
+                    "Name": "INPUT_OVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "INPUT_UVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "OUTPUT_OVP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "OUTPUT_OCP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "TIMEOUT",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_TEMP",
+            "Offset": "0x9D",
+            "Bits": [
+                {
+                    "Name": "INPUT_AMBIENT_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                },
+                {
+                    "Name": "OUTPUT_AMBIENT_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGER_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "BUCK_CONVERTER_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "POWER_BOOST_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "BATTERY_PACK_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 5,
+                    "Value": true
+                }
+            ]
         }
     ]
 }
