@@ -16,6 +16,24 @@
       "message": "I think this is an integer. You might need a similar schema for firmware registers as\n```\n                    \"Format\": {\n                        \"type\": \"string\",\n                        \"enum\": [\"String\", \"Integer\"],\n                        \"default\": \"String\"\n                    }\n```",
       "revId": "a651727405d0fa5740da8f0e5fc0d3e1b4e0e400",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "68fe37d3_029652b9",
+        "filename": "rtu/profiles/DeltaBBUBU123AE000BatteryBackupUnit.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-06-06T01:25:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "985d40be_b35ec483",
+      "revId": "a651727405d0fa5740da8f0e5fc0d3e1b4e0e400",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
