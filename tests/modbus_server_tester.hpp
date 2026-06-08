@@ -85,6 +85,13 @@ const std::vector<uint16_t> testReadHoldingRegisterFirmwareIntVersion = {
     0x0001, 0x0002};
 constexpr std::string testReadHoldingRegisterFirmwareIntVersionStr = "65538";
 
+// Device Float32 Sensor Testing Constants
+constexpr uint16_t testReadHoldingRegisterFloat32Offset = 0x0119;
+constexpr uint16_t testReadHoldingRegisterFloat32Count = 0x2;
+const std::vector<uint16_t> testReadHoldingRegisterFloat32 = {
+    0x422A, 0x0000}; // IEEE-754 float32: 42.5
+constexpr double testReadHoldingRegisterFloat32Value = 42.5;
+
 // Device Event Testing Constants
 constexpr uint16_t testReadHoldingRegisterEventCount = 0x1;
 constexpr uint16_t testReadHoldingRegisterEventOffset = 0x0116;
@@ -119,6 +126,8 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
         {testReadHoldingRegisterFirmwareIntVersionOffset,
          {testReadHoldingRegisterFirmwareIntVersionCount,
           testReadHoldingRegisterFirmwareIntVersion}},
+        {testReadHoldingRegisterFloat32Offset,
+         {testReadHoldingRegisterFloat32Count, testReadHoldingRegisterFloat32}},
         {testReadHoldingRegisterEventOffset,
          {testReadHoldingRegisterEventCount, testReadHoldingRegisterEvent}},
         {testReadHoldingRegisterNullPaddedOffset,

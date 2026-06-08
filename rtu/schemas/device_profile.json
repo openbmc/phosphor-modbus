@@ -140,6 +140,12 @@
                         "type": "string",
                         "enum": ["FloatingPoint", "Float32", "Integer"]
                     }
+                },
+                "if": {
+                    "properties": { "Format": { "const": "Float32" } }
+                },
+                "then": {
+                    "properties": { "Size": { "const": 2 } }
                 }
             }
         },
@@ -216,6 +222,12 @@
                         "type": "string",
                         "enum": ["FloatingPoint", "Float32", "Integer"]
                     }
+                },
+                "if": {
+                    "properties": { "Format": { "const": "Float32" } }
+                },
+                "then": {
+                    "properties": { "Size": { "const": 2 } }
                 }
             }
         },

@@ -353,6 +353,33 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
     ctx.run();
 }
 
+TEST_F(SensorsTest, TestSensorValueFloat32)
+{
+    setupDevice({
+        "Valve",
+        "xyz/openbmc_project/Inventory/Valve",
+        ProfileIntf::DeviceType::valve,
+        ProfileIntf::DeviceModel::Danfoss003Z8540,
+    });
+
+    const ProfileIntf::SensorRegister sensorRegister = {
+        .name = sensorName,
+        .type = SensorTypeIntf::temperature,
+        .offset = TestIntf::testReadHoldingRegisterFloat32Offset,
+        .size = TestIntf::testReadHoldingRegisterFloat32Count,
+        .format = ProfileIntf::SensorFormat::float32,
+    };
+
+    ctx.spawn(
+        testSensorCreation(objectPath, sensorRegister,
+                           TestIntf::testReadHoldingRegisterFloat32Value));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
 // Two contiguous registers (0x0120, 0x0121) should be merged into a single
 // span and read in one Modbus transaction.
 TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)

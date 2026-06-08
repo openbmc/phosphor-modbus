@@ -161,6 +161,16 @@ static void from_json(const json& j, InventoryRegister& r)
     }
 }
 
+static void validateFormatSize(SensorFormat format, uint8_t size,
+                               const std::string& name)
+{
+    if (format == SensorFormat::float32 && size != 2)
+    {
+        throw std::invalid_argument(
+            "Float32 format requires Size 2 for " + name);
+    }
+}
+
 static void from_json(const json& j, SensorRegister& r)
 {
     r.name = j.at("Name").get<std::string>();
@@ -173,6 +183,7 @@ static void from_json(const json& j, SensorRegister& r)
     r.isSigned = j.value("IsSigned", defaultIsSigned);
     r.format = lookupEnum(sensorFormatMap, j.at("Format").get<std::string>(),
                           "Format");
+    validateFormatSize(r.format, r.size, r.name);
 }
 
 static void from_json(const json& j, StatusBit& b)
@@ -249,6 +260,7 @@ static void from_json(const json& j, MetricRegister& r)
     r.isSigned = j.value("IsSigned", defaultIsSigned);
     r.format = lookupEnum(sensorFormatMap, j.at("Format").get<std::string>(),
                           "Format");
+    validateFormatSize(r.format, r.size, r.name);
 }
 
 static void from_json(const json& j, FirmwareRegister& r)

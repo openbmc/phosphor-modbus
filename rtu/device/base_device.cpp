@@ -414,13 +414,6 @@ static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
 
 static auto getFloat32FromRegister(std::span<const uint16_t> reg) -> double
 {
-    if (reg.size() != 2)
-    {
-        error("Float32 requires exactly 2 registers, got {SIZE}", "SIZE",
-              reg.size());
-        return 0.0;
-    }
-
     uint32_t rawBits = (static_cast<uint32_t>(reg[0]) << 16) |
                        static_cast<uint32_t>(reg[1]);
 
