@@ -45,7 +45,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_SENSOR2_TEMP",
@@ -56,7 +56,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_SENSOR3_TEMP",
@@ -67,7 +67,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_SENSOR4_TEMP",
@@ -78,7 +78,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -109,7 +109,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_SUPERCAP_PACK_CURR",
@@ -120,7 +120,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_AVERAGE_CURR",
@@ -131,7 +131,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_REMAINING_ENERGY",
@@ -142,7 +142,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU1_FULL_ENERGY",
@@ -153,7 +153,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_SENSOR1_TEMP",
@@ -164,7 +164,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_SENSOR2_TEMP",
@@ -175,7 +175,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_SENSOR3_TEMP",
@@ -186,7 +186,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_SENSOR4_TEMP",
@@ -197,7 +197,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -228,7 +228,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_SUPERCAP_PACK_CURR",
@@ -239,7 +239,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_AVERAGE_CURR",
@@ -250,7 +250,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_REMAINING_ENERGY",
@@ -261,7 +261,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU2_FULL_ENERGY",
@@ -272,7 +272,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_SENSOR1_TEMP",
@@ -283,7 +283,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_SENSOR2_TEMP",
@@ -294,7 +294,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_SENSOR3_TEMP",
@@ -305,7 +305,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_SENSOR4_TEMP",
@@ -316,7 +316,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -347,7 +347,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_SUPERCAP_PACK_CURR",
@@ -358,7 +358,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_AVERAGE_CURR",
@@ -369,7 +369,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_REMAINING_ENERGY",
@@ -380,7 +380,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU3_FULL_ENERGY",
@@ -391,7 +391,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_SENSOR1_TEMP",
@@ -402,7 +402,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_SENSOR2_TEMP",
@@ -413,7 +413,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_SENSOR3_TEMP",
@@ -424,7 +424,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_SENSOR4_TEMP",
@@ -435,7 +435,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -466,7 +466,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_SUPERCAP_PACK_CURR",
@@ -477,7 +477,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_AVERAGE_CURR",
@@ -488,7 +488,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_REMAINING_ENERGY",
@@ -499,7 +499,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU4_FULL_ENERGY",
@@ -510,7 +510,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_SENSOR1_TEMP",
@@ -521,7 +521,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_SENSOR2_TEMP",
@@ -532,7 +532,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_SENSOR3_TEMP",
@@ -543,7 +543,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_SENSOR4_TEMP",
@@ -554,7 +554,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -585,7 +585,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_SUPERCAP_PACK_CURR",
@@ -596,7 +596,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_AVERAGE_CURR",
@@ -607,7 +607,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_REMAINING_ENERGY",
@@ -618,7 +618,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU5_FULL_ENERGY",
@@ -629,7 +629,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_SENSOR1_TEMP",
@@ -640,7 +640,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_SENSOR2_TEMP",
@@ -651,7 +651,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_SENSOR3_TEMP",
@@ -662,7 +662,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_SENSOR4_TEMP",
@@ -673,7 +673,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -704,7 +704,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_SUPERCAP_PACK_CURR",
@@ -715,7 +715,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_AVERAGE_CURR",
@@ -726,7 +726,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_REMAINING_ENERGY",
@@ -737,7 +737,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "CBU6_FULL_ENERGY",
@@ -748,7 +748,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ]
 }

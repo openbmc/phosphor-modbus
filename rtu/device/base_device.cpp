@@ -426,7 +426,7 @@ static auto convertRegisterValue(
 {
     switch (format)
     {
-        case ProfileIntf::SensorFormat::floatingPoint:
+        case ProfileIntf::SensorFormat::fixedPoint:
         {
             auto raw =
                 static_cast<double>(getRawIntegerFromRegister(reg, isSigned));

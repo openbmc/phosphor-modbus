@@ -221,7 +221,7 @@ class DeviceEventsTest : public BaseTest
                 .type = ProfileIntf::SensorType::temperature,
                 .offset = sensorOffset,
                 .size = TestIntf::testReadHoldingRegisterTempCount,
-                .format = ProfileIntf::SensorFormat::floatingPoint,
+                .format = ProfileIntf::SensorFormat::fixedPoint,
             }},
             .statusRegisters = {{statusOffset, {statusBit}}},
             .metricRegisters = {},

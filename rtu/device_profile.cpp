@@ -61,7 +61,7 @@ static const std::unordered_map<std::string, SensorType> sensorTypeMap = {
 };
 
 static const std::unordered_map<std::string, SensorFormat> sensorFormatMap = {
-    {"FloatingPoint", SensorFormat::floatingPoint},
+    {"FixedPoint", SensorFormat::fixedPoint},
     {"Float32", SensorFormat::float32},
     {"Integer", SensorFormat::integer},
 };

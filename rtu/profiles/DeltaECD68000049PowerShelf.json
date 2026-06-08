@@ -45,7 +45,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU1_INPUT_AC_CURR",
@@ -56,7 +56,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU2_INPUT_AC_VOLT",
@@ -67,7 +67,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU2_INPUT_AC_CURR",
@@ -78,7 +78,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU3_INPUT_AC_VOLT",
@@ -89,7 +89,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU3_INPUT_AC_CURR",
@@ -100,7 +100,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU4_INPUT_AC_VOLT",
@@ -111,7 +111,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU4_INPUT_AC_CURR",
@@ -122,7 +122,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU5_INPUT_AC_VOLT",
@@ -133,7 +133,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU5_INPUT_AC_CURR",
@@ -144,7 +144,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU6_INPUT_AC_VOLT",
@@ -155,7 +155,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "PSU6_INPUT_AC_CURR",
@@ -166,7 +166,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ]
 }

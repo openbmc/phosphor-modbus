@@ -41,7 +41,7 @@ static constexpr auto testProfileJson = R"({
             "Scale": 0.5,
             "Shift": 10.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "TestVoltage",
@@ -92,7 +92,7 @@ static constexpr auto testProfileJson = R"({
             "Scale": 60.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ],
     "FirmwareRegisters": [
@@ -153,7 +153,7 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_DOUBLE_EQ(temp.scale, 0.5);
     EXPECT_DOUBLE_EQ(temp.shift, 10.0);
     EXPECT_TRUE(temp.isSigned);
-    EXPECT_EQ(temp.format, SensorFormat::floatingPoint);
+    EXPECT_EQ(temp.format, SensorFormat::fixedPoint);
 
     const auto& voltage = profile.sensorRegisters[1];
     EXPECT_EQ(voltage.name, "TestVoltage");
@@ -200,7 +200,7 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_DOUBLE_EQ(metric.scale, 60.0);
     EXPECT_DOUBLE_EQ(metric.shift, 0.0);
     EXPECT_TRUE(metric.isSigned);
-    EXPECT_EQ(metric.format, SensorFormat::floatingPoint);
+    EXPECT_EQ(metric.format, SensorFormat::fixedPoint);
 
     // Firmware registers
     ASSERT_EQ(profile.firmwareRegisters.size(), 1U);

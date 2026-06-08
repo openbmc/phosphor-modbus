@@ -245,7 +245,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     ctx.spawn(
@@ -273,7 +273,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
         .offset = TestIntf::testReadHoldingRegisterTempSignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
         .isSigned = true,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     // Convert expected hex value to a signed 16-bit integer for comparison
@@ -311,7 +311,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         .precision = 2,
         .scale = 0.1,
         .shift = 50,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     ctx.spawn(testSensorCreation(
@@ -340,7 +340,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     ctx.spawn(
@@ -399,12 +399,12 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor1Offset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint},
+         .format = ProfileIntf::SensorFormat::fixedPoint},
         {.name = sensor2Name,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterSpanSensor2Offset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint}};
+         .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -465,12 +465,12 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint},
+         .format = ProfileIntf::SensorFormat::fixedPoint},
         {.name = farName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testReadHoldingRegisterDistantOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint}};
+         .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};
@@ -532,7 +532,7 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
         .type = SensorTypeIntf::temperature,
         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
         .size = TestIntf::testReadHoldingRegisterTempCount,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     EventIntf::Events events{ctx};
@@ -592,12 +592,12 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
          .type = SensorTypeIntf::temperature,
          .offset = validOffset,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint},
+         .format = ProfileIntf::SensorFormat::fixedPoint},
         {.name = badSensorName,
          .type = SensorTypeIntf::temperature,
          .offset = TestIntf::testIllegalDataAddressRegister,
          .size = 1,
-         .format = ProfileIntf::SensorFormat::floatingPoint}};
+         .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
         EventIntf::Events events{ctx};

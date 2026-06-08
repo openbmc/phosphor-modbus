@@ -138,7 +138,7 @@
                     "IsSigned": { "type": "boolean", "default": false },
                     "Format": {
                         "type": "string",
-                        "enum": ["FloatingPoint", "Float32", "Integer"]
+                        "enum": ["FixedPoint", "Float32", "Integer"]
                     }
                 },
                 "if": {
@@ -220,7 +220,7 @@
                     "IsSigned": { "type": "boolean", "default": false },
                     "Format": {
                         "type": "string",
-                        "enum": ["FloatingPoint", "Float32", "Integer"]
+                        "enum": ["FixedPoint", "Float32", "Integer"]
                     }
                 },
                 "if": {

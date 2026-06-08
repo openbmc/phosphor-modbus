@@ -113,7 +113,7 @@
             "Scale": 60.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "FULLY_OPEN_DURATION",
@@ -124,7 +124,7 @@
             "Scale": 60.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ],
     "StatusRegisters": [

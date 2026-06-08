@@ -45,7 +45,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_SENSOR2_TEMP",
@@ -56,7 +56,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_SENSOR3_TEMP",
@@ -67,7 +67,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_SENSOR4_TEMP",
@@ -78,7 +78,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -109,7 +109,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_BATTERY_CURR",
@@ -120,7 +120,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_AVERAGE_CURR",
@@ -131,7 +131,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_REMAINING_CHARGE",
@@ -142,7 +142,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU1_FULL_CHARGE",
@@ -153,7 +153,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_SENSOR1_TEMP",
@@ -164,7 +164,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_SENSOR2_TEMP",
@@ -175,7 +175,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_SENSOR3_TEMP",
@@ -186,7 +186,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_SENSOR4_TEMP",
@@ -197,7 +197,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -228,7 +228,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_BATTERY_CURR",
@@ -239,7 +239,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_AVERAGE_CURR",
@@ -250,7 +250,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_REMAINING_CHARGE",
@@ -261,7 +261,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU2_FULL_CHARGE",
@@ -272,7 +272,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_SENSOR1_TEMP",
@@ -283,7 +283,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_SENSOR2_TEMP",
@@ -294,7 +294,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_SENSOR3_TEMP",
@@ -305,7 +305,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_SENSOR4_TEMP",
@@ -316,7 +316,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -347,7 +347,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_BATTERY_CURR",
@@ -358,7 +358,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_AVERAGE_CURR",
@@ -369,7 +369,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_REMAINING_CHARGE",
@@ -380,7 +380,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU3_FULL_CHARGE",
@@ -391,7 +391,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_SENSOR1_TEMP",
@@ -402,7 +402,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_SENSOR2_TEMP",
@@ -413,7 +413,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_SENSOR3_TEMP",
@@ -424,7 +424,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_SENSOR4_TEMP",
@@ -435,7 +435,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -466,7 +466,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_BATTERY_CURR",
@@ -477,7 +477,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_AVERAGE_CURR",
@@ -488,7 +488,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_REMAINING_CHARGE",
@@ -499,7 +499,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU4_FULL_CHARGE",
@@ -510,7 +510,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_SENSOR1_TEMP",
@@ -521,7 +521,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_SENSOR2_TEMP",
@@ -532,7 +532,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_SENSOR3_TEMP",
@@ -543,7 +543,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_SENSOR4_TEMP",
@@ -554,7 +554,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -585,7 +585,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_BATTERY_CURR",
@@ -596,7 +596,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_AVERAGE_CURR",
@@ -607,7 +607,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_REMAINING_CHARGE",
@@ -618,7 +618,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU5_FULL_CHARGE",
@@ -629,7 +629,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_SENSOR1_TEMP",
@@ -640,7 +640,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_SENSOR2_TEMP",
@@ -651,7 +651,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_SENSOR3_TEMP",
@@ -662,7 +662,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_SENSOR4_TEMP",
@@ -673,7 +673,7 @@
             "Scale": 0.1,
             "Shift": -273.15,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_RELATIVE_STATE_OF_CHARGE_UTIL",
@@ -704,7 +704,7 @@
             "Scale": 0.001,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_BATTERY_CURR",
@@ -715,7 +715,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_AVERAGE_CURR",
@@ -726,7 +726,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_REMAINING_CHARGE",
@@ -737,7 +737,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "BBU6_FULL_CHARGE",
@@ -748,7 +748,7 @@
             "Scale": 1.0,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ]
 }

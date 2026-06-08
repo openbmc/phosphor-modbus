@@ -145,7 +145,7 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
         .offset = TestIntf::testReadHoldingRegisterMetricOffset,
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     // Raw value 0x012C = 300, with scale=60 -> 300 * 60 = 18000 seconds
@@ -190,7 +190,7 @@ TEST_F(MetricsTest, TestMetricAssociations)
         .offset = TestIntf::testReadHoldingRegisterMetricOffset,
         .size = TestIntf::testReadHoldingRegisterMetricCount,
         .scale = 60.0,
-        .format = ProfileIntf::SensorFormat::floatingPoint,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
     auto testAssociations = [&]() -> sdbusplus::async::task<void> {

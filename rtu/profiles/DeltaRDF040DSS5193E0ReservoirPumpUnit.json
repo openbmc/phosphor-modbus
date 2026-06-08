@@ -40,7 +40,7 @@
             "Scale": 0.1,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "RPU_COOLANT_OUTLET_TEMP",
@@ -51,7 +51,7 @@
             "Scale": 0.1,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ],
     "StatusRegisters": [

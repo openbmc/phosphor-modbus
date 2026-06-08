@@ -26,7 +26,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "REMOTE_TEMP",
@@ -37,7 +37,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "FLOWBODY_TEMP",
@@ -48,7 +48,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": true,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "RELATIVE_VOLUMETRIC_FLOW_UTIL",
@@ -59,7 +59,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "ABSOLUTE_VOLUMETRIC_RATE_LIQUIDFLOW",
@@ -70,7 +70,7 @@
             "Scale": 0.378541,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "SETPOINT_ABSOLUTE_VOLUMETRIC_RATE_LIQUIDFLOW",
@@ -81,7 +81,7 @@
             "Scale": 0.378541,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "MINIMUM_VOLUMETRIC_FLOW_LIMIT_UTIL",
@@ -92,7 +92,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "MAXIMUM_VOLUMETRIC_FLOW_LIMIT_UTIL",
@@ -103,7 +103,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "SETPOINT_RELATIVE_UTIL",
@@ -114,7 +114,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "RELATIVE_POSITION_UTIL",
@@ -125,7 +125,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "ABSOLUTE_ROTATIONALPOS",
@@ -136,7 +136,7 @@
             "Scale": 0.000174533,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "SETPOINT_ANALOG_UTIL",
@@ -147,7 +147,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         },
         {
             "Name": "GLYCOL_CONCENTRATION_UTIL",
@@ -158,7 +158,7 @@
             "Scale": 0.01,
             "Shift": 0.0,
             "IsSigned": false,
-            "Format": "FloatingPoint"
+            "Format": "FixedPoint"
         }
     ],
     "StatusRegisters": [
