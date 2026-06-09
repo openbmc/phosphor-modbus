@@ -42,5 +42,104 @@
             "Offset": "0x38",
             "Size": 4
         }
+    ],
+    "SensorRegisters": [],
+    "StatusRegisters": [
+        {
+            "Name": "STATUS",
+            "Offset": "0x68",
+            "Bits": [
+                {
+                    "Name": "DISCHARGE_NOT_ALLOWED",
+                    "Type": "PowerFault",
+                    "BitPosition": 15,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_NOT_ALLOWED",
+                    "Type": "PowerFault",
+                    "BitPosition": 14,
+                    "Value": true
+                },
+                {
+                    "Name": "EOL",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_FAILURE",
+                    "Type": "FanFailure",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_BALANCING_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_WORD",
+            "Offset": "0x99",
+            "Bits": [
+                {
+                    "Name": "BUCK_MODE_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "BOOST_MODE_FAULT",
+                    "Type": "PowerFault",
+                    "BitPosition": 1,
+                    "Value": true
+                },
+                {
+                    "Name": "TEMPERATURE_FAULT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_TEMP",
+            "Offset": "0x9D",
+            "Bits": [
+                {
+                    "Name": "BUSBAR_CLIP_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "INPUT_AMBIENT_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "HW_SIGNAL",
+            "Offset": "0xA4",
+            "Bits": [
+                {
+                    "Name": "DAISY_CHAIN_FAILURE",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "ISHARE_CABLE_NOT_DETECTED",
+                    "Type": "ControllerFailure",
+                    "BitPosition": 0,
+                    "Value": true
+                }
+            ]
+        }
     ]
 }
