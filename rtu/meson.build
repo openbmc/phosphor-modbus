@@ -63,10 +63,16 @@ base_config_src = files('base_config.cpp')
 
 inventory_src = files('inventory/modbus_inventory.cpp')
 
+allowed_devices_src = files('config/allowed_devices.cpp')
+
 profile_dir = get_option('prefix') / get_option('datadir') / 'phosphor-modbus' / 'profiles'
+config_dir = get_option('config-dir')
 
 profile_src = files('device_profile.cpp')
-profile_cpp_args = ['-DPROFILE_DIR="' + profile_dir + '"']
+rtu_cpp_args = [
+    '-DPROFILE_DIR="' + profile_dir + '"',
+    '-DCONFIG_DIR="' + config_dir + '"',
+]
 
 device_src = files(
     'device/base_device.cpp',
@@ -80,13 +86,14 @@ executable(
     'phosphor-modbus-rtu',
     [
         'device_manager.cpp',
+        'config/allowed_devices.cpp',
         base_config_src,
         inventory_src,
         profile_src,
         device_src,
         firmware_src,
     ],
-    cpp_args: profile_cpp_args,
+    cpp_args: rtu_cpp_args,
     include_directories: ['.', common_include],
     dependencies: [default_deps],
     link_with: [modbus_common_lib, modbus_rtu_lib, modbus_rtu_port_lib],

@@ -2,6 +2,7 @@
 
 #include "base_config.hpp"
 #include "common/register_span.hpp"
+#include "config/allowed_devices.hpp"
 #include "port/base_port.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -74,7 +75,8 @@ class Device
 
     explicit Device(
         sdbusplus::async::context& ctx, const config::Config& config,
-        SerialPortIntf& port, ProbeCallback probeCallback = nullptr,
+        SerialPortIntf& port, const config::AllowedDevices& allowedDevices,
+        ProbeCallback probeCallback = nullptr,
         std::chrono::seconds dormantPeriod = std::chrono::seconds(0));
 
     /** @brief Starts continuously probing the device at a fixed interval
@@ -146,6 +148,7 @@ class Device
 
     sdbusplus::async::context& ctx;
     SerialPortIntf& port;
+    const config::AllowedDevices& allowedDevices;
     ProbeCallback probeCallback;
     std::unique_ptr<InventoryServer> inventoryServer;
     /** @brief Duration to skip probing after failure */
