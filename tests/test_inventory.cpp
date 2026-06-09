@@ -1,3 +1,4 @@
+#include "config/connected_devices.hpp"
 #include "device/device_factory.hpp"
 #include "inventory/modbus_inventory.hpp"
 #include "modbus_server_tester.hpp"
@@ -42,8 +43,11 @@ class InventoryTest : public BaseTest
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
     PortConfigIntf::Config portConfig;
+    ModbusIntf::config::ConnectedDevices connectedDevices;
 
-    InventoryTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
+    InventoryTest() :
+        BaseTest(clientPathPrefix, serverPathPrefix, serviceName),
+        connectedDevices(ctx)
     {
         portConfig.name = "TestPort1";
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
@@ -74,7 +78,8 @@ class InventoryTest : public BaseTest
             std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
 
         auto device = std::make_unique<InventoryIntf::Device>(
-            ctx, baseConfig, *mockPort, nullptr, dormantPeriod);
+            ctx, baseConfig, *mockPort, connectedDevices, nullptr,
+            dormantPeriod);
 
         return {std::move(mockPort), std::move(device)};
     }

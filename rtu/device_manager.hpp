@@ -2,6 +2,7 @@
 
 #include "common/entity_manager_interface.hpp"
 #include "common/events.hpp"
+#include "config/connected_devices.hpp"
 #include "device/base_device.hpp"
 #include "device/device_factory.hpp"
 #include "inventory/modbus_inventory.hpp"
@@ -77,6 +78,7 @@ class DeviceManager
     sdbusplus::async::context& ctx;
     entity_manager::EntityManagerInterface entityManager;
     EventIntf::Events events;
+    config::ConnectedDevices connectedDevices;
     inventory_device_map_t inventoryDevices;
     port_map_t ports;
     device_map_t devices; // Modbus devices

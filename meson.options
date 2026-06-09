@@ -61,6 +61,13 @@ option(
 )
 
 option(
+    'config-dir',
+    type: 'string',
+    value: '/var/lib/phosphor-modbus',
+    description: 'Directory for runtime configuration files such as connected-devices.json.',
+)
+
+option(
     'device-cleanup-interval-seconds',
     type: 'integer',
     value: 3,
