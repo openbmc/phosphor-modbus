@@ -58,7 +58,8 @@ auto BasePort::readHoldingRegisters(
 
     debug(
         "Reading holding registers from device {ADDRESS} {PORT} at offset {OFFSET}",
-        "ADDRESS", deviceAddress, "PORT", name, "OFFSET", registerOffset);
+        "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
+        registerOffset);
 
     auto ret = co_await modbus->readHoldingRegisters(deviceAddress,
                                                      registerOffset, registers);
@@ -67,7 +68,8 @@ auto BasePort::readHoldingRegisters(
         error(
             "Failed to read holding registers from device {ADDRESS} {PORT} at offset "
             "{OFFSET}",
-            "ADDRESS", deviceAddress, "PORT", name, "OFFSET", registerOffset);
+            "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET",
+            lg2::hex, registerOffset);
     }
 
     co_return ret;
