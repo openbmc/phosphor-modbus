@@ -134,7 +134,8 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
 
         debug(
             "Sending read holding registers request for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
-            "REGISTER_OFFSET", registerOffset, "DEVICE_ADDRESS", deviceAddress);
+            "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+            lg2::hex, deviceAddress);
 
         if (!co_await writeRequest(deviceAddress, request))
         {
@@ -143,7 +144,8 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
 
         debug(
             "Waiting for read holding registers response for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
-            "REGISTER_OFFSET", registerOffset, "DEVICE_ADDRESS", deviceAddress);
+            "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+            lg2::hex, deviceAddress);
 
         if (!co_await readResponse(deviceAddress, response,
                                    request.functionCode))
@@ -157,7 +159,7 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
     {
         error(
             "Failed to read holding registers for {DEVICE_ADDRESS} with {ERROR}",
-            "DEVICE_ADDRESS", deviceAddress, "ERROR", e);
+            "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
         co_return false;
     }
 
@@ -175,7 +177,8 @@ auto Modbus::writeRequest(uint8_t deviceAddress, Message& request)
     if ((size_t)ret != request.len)
     {
         error("Failed to send request to device {DEVICE_ADDRESS} with {ERROR}",
-              "DEVICE_ADDRESS", deviceAddress, "ERROR", strerror(errno));
+              "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR",
+              strerror(errno));
         co_return false;
     }
 
@@ -191,7 +194,8 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
     do
     {
         debug("Waiting for response for {DEVICE_ADDRESS} with {EXPECTED} bytes",
-              "DEVICE_ADDRESS", deviceAddress, "EXPECTED", expectedLen);
+              "DEVICE_ADDRESS", lg2::hex, deviceAddress, "EXPECTED",
+              expectedLen);
         co_await fdioInstance.next();
         // TODO: Handle FD timeout in case of no response
         auto ret = read(fd, response.raw.data() + response.len - expectedLen,
@@ -200,12 +204,13 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
         {
             error(
                 "Failed to read response for device {DEVICE_ADDRESS} with {ERROR}",
-                "DEVICE_ADDRESS", deviceAddress, "ERROR", strerror(errno));
+                "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR",
+                strerror(errno));
             co_return false;
         }
 
         debug("Received response for {DEVICE_ADDRESS} with {SIZE}",
-              "DEVICE_ADDRESS", deviceAddress, "SIZE", ret);
+              "DEVICE_ADDRESS", lg2::hex, deviceAddress, "SIZE", ret);
 
         printMessage(response.raw.data() + response.len - expectedLen, ret);
 
@@ -215,7 +220,8 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
         {
             debug(
                 "Read response for device {DEVICE_ADDRESS} with {EXPECTED} bytes remaining",
-                "DEVICE_ADDRESS", deviceAddress, "EXPECTED", expectedLen);
+                "DEVICE_ADDRESS", lg2::hex, deviceAddress, "EXPECTED",
+                expectedLen);
         }
         if (ret >= 2 && response.functionCode != expectedResponseCode)
         {
@@ -223,7 +229,8 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
             // message size
             response.len = ret;
             error("Received error response {CODE} for device {DEVICE_ADDRESS}",
-                  "CODE", response.raw[1], "DEVICE_ADDRESS", deviceAddress);
+                  "CODE", response.raw[1], "DEVICE_ADDRESS", lg2::hex,
+                  deviceAddress);
             co_return false;
         }
     } while (expectedLen > 0);

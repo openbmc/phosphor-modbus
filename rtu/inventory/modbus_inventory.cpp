@@ -139,7 +139,8 @@ Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
 auto Device::startProbing() -> sdbusplus::async::task<void>
 {
     debug("Probing device {NAME} at address {ADDRESS} on port {PORT}", "NAME",
-          config.name, "ADDRESS", config.address, "PORT", config.serialPort);
+          config.name, "ADDRESS", lg2::hex, config.address, "PORT",
+          config.serialPort);
     while (isRunning())
     {
         co_await probeDevice();
@@ -197,7 +198,7 @@ auto Device::handleProbeFailed() -> sdbusplus::async::task<void>
     if (inventoryServer)
     {
         warning("Device {NAME} removed at {ADDRESS} due to probe failure",
-                "NAME", config.name, "ADDRESS", config.address);
+                "NAME", config.name, "ADDRESS", lg2::hex, config.address);
         inventoryServer->emit_removed();
         inventoryServer.reset();
         if (probeCallback)
@@ -210,7 +211,7 @@ auto Device::handleProbeFailed() -> sdbusplus::async::task<void>
         dormant = true;
         dormantSince = std::chrono::steady_clock::now();
         debug("Device {NAME} at {ADDRESS} marked dormant", "NAME", config.name,
-              "ADDRESS", config.address);
+              "ADDRESS", lg2::hex, config.address);
     }
 }
 
@@ -219,7 +220,7 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     if (checkAndClearDormant())
     {
         debug("Device {NAME} at {ADDRESS} is dormant, skipping", "NAME",
-              config.name, "ADDRESS", config.address);
+              config.name, "ADDRESS", lg2::hex, config.address);
         co_return;
     }
 
@@ -245,7 +246,7 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
         {
             warning("Device {NAME} at {ADDRESS} probe value mismatch, "
                     "expected device not present",
-                    "NAME", config.name, "ADDRESS", config.address);
+                    "NAME", config.name, "ADDRESS", lg2::hex, config.address);
             mismatchLogged = true;
         }
         dormant = true;
@@ -256,7 +257,7 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     if (!inventoryServer)
     {
         debug("Device {NAME} found at {ADDRESS}", "NAME", config.name,
-              "ADDRESS", config.address);
+              "ADDRESS", lg2::hex, config.address);
         mismatchLogged = false;
         co_await addInventoryServer();
         if (probeCallback)
@@ -283,8 +284,9 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
             {
                 error(
                     "Failed to read holding register at offset {OFFSET} for {DEVICE_ADDRESS}",
-                    "OFFSET", config.profile.inventoryRegisters[idx].offset,
-                    "DEVICE_ADDRESS", config.address);
+                    "OFFSET", lg2::hex,
+                    config.profile.inventoryRegisters[idx].offset,
+                    "DEVICE_ADDRESS", lg2::hex, config.address);
             }
             continue;
         }
