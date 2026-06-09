@@ -41,10 +41,11 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
     entityManager(ctx, getInterfaces(),
                   std::bind_front(&DeviceManager::processConfigAdded, this),
                   std::bind_front(&DeviceManager::processConfigRemoved, this)),
-    events(ctx)
+    events(ctx), allowedDevices(ctx)
 {
     ctx.spawn(entityManager.handleInventoryGet());
     ctx.spawn(cleanupStoppedDevices());
+    allowedDevices.startWatching();
     info("DeviceManager created successfully");
 }
 
@@ -155,7 +156,8 @@ auto DeviceManager::processInventoryAdded(
     try
     {
         auto inventoryDevice = std::make_unique<InventoryIntf::Device>(
-            ctx, *config, *(portIter->second), std::move(callback));
+            ctx, *config, *(portIter->second), allowedDevices,
+            std::move(callback));
         ctx.spawn(inventoryDevice->startProbing());
         variants[config->type] = std::move(inventoryDevice);
     }

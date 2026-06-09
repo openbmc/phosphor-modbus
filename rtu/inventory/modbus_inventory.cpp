@@ -99,9 +99,11 @@ static auto matchesProbeValue(std::span<const uint16_t> readBuffer,
 }
 
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
-               SerialPortIntf& port, ProbeCallback probeCallback,
+               SerialPortIntf& port,
+               const config::AllowedDevices& allowedDevices,
+               ProbeCallback probeCallback,
                std::chrono::seconds dormantPeriod) :
-    config(config), ctx(ctx), port(port),
+    config(config), ctx(ctx), port(port), allowedDevices(allowedDevices),
     probeCallback(std::move(probeCallback)), dormantPeriod([&]() {
         if (dormantPeriod > std::chrono::seconds(0))
         {
@@ -173,6 +175,10 @@ auto Device::isRunning() const -> bool
 
 auto Device::checkAndClearDormant() -> bool
 {
+    if (!allowedDevices.isAllowed(config.name))
+    {
+        return true;
+    }
     if (!dormant)
     {
         return false;
