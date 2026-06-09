@@ -490,7 +490,8 @@ auto BaseDevice::handleSpanReadFailure(PollBucket& bucket,
                    sensor] = std::get<SensorEntry>(bucket.entries[idx]);
             error(
                 "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                "NAME", sensorRegister.name, "DEVICE_ADDRESS", config.address);
+                "NAME", sensorRegister.name, "DEVICE_ADDRESS", lg2::hex,
+                config.address);
             sensor.value(std::numeric_limits<double>::quiet_NaN());
             sensor.functional(false);
         }
@@ -500,13 +501,14 @@ auto BaseDevice::handleSpanReadFailure(PollBucket& bucket,
                    metric] = std::get<MetricEntry>(bucket.entries[idx]);
             error(
                 "Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-                "NAME", metricRegister.name, "DEVICE_ADDRESS", config.address);
+                "NAME", metricRegister.name, "DEVICE_ADDRESS", lg2::hex,
+                config.address);
             metric.value(std::numeric_limits<double>::quiet_NaN());
         }
         else
         {
             error("Failed to read status registers for {DEVICE_ADDRESS}",
-                  "DEVICE_ADDRESS", config.address);
+                  "DEVICE_ADDRESS", lg2::hex, config.address);
         }
     }
 }

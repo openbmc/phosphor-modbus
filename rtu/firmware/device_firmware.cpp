@@ -97,7 +97,8 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
     if (!ret)
     {
         error("Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
-              "NAME", versionRegister.name, "DEVICE_ADDRESS", config.address);
+              "NAME", versionRegister.name, "DEVICE_ADDRESS", lg2::hex,
+              config.address);
         co_return;
     }
 
@@ -129,7 +130,8 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
     currentFirmware->associations(associationList);
 
     info("Firmware version {VERSION} for {NAME} at {DEVICE_ADDRESS}", "VERSION",
-         strValue, "NAME", config.name, "DEVICE_ADDRESS", config.address);
+         strValue, "NAME", config.name, "DEVICE_ADDRESS", lg2::hex,
+         config.address);
 }
 
 } // namespace phosphor::modbus::rtu::device
