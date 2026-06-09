@@ -18,6 +18,24 @@
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "10dd2543_2c6ab533",
+        "filename": "rtu/config/allowed_devices.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-06-09T22:47:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "632c6db5_e0cab117",
+      "revId": "bb3d56e449dd1bad1db75269686a95d99d0af169",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b401c507_85be0dab",
