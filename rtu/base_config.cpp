@@ -112,9 +112,10 @@ auto getConfig(sdbusplus::async::context& ctx,
             .path(InventoryIntf::namespace_path)
             .interface("org.freedesktop.DBus.ObjectManager");
 
-    for (const auto& [path, interfaces] :
-         co_await entityManager.call<ManagedObjectType>(ctx,
-                                                        "GetManagedObjects"))
+    const auto managedObjects = co_await entityManager.call<ManagedObjectType>(
+        ctx, "GetManagedObjects");
+
+    for (const auto& [path, interfaces] : managedObjects)
     {
         if (path.str != objectPath.str)
         {
