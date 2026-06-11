@@ -58,9 +58,10 @@ auto EntityManagerInterface::handleInventoryGet(
             .path(InventoryIntf::namespace_path)
             .interface("org.freedesktop.DBus.ObjectManager");
 
-    for (const auto& [objectPath, interfaceConfig] :
-         co_await entityManager.call<ManagedObjectType>(ctx,
-                                                        "GetManagedObjects"))
+    const auto managedObjects = co_await entityManager.call<ManagedObjectType>(
+        ctx, "GetManagedObjects");
+
+    for (const auto& [objectPath, interfaceConfig] : managedObjects)
     {
         for (const auto& interfaceName : filterInterfaces)
         {
