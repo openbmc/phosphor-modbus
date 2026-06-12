@@ -106,6 +106,54 @@
             ]
         },
         {
+            "Name": "STATUS_POWER_CHARGER",
+            "Offset": "0x9A",
+            "Bits": [
+                {
+                    "Name": "DISCHARGE_INPUT_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_OUTPUT_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_OUTPUT_OVER_CURRENT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                }
+            ]
+        },
+        {
+            "Name": "STATUS_POWER_DISCHARGER",
+            "Offset": "0x9B",
+            "Bits": [
+                {
+                    "Name": "CHARGE_OUTPUT_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_INPUT_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "CHARGE_OUTPUT_OVER_CURRENT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 0,
+                    "Value": true
+                }
+            ]
+        },
+        {
             "Name": "STATUS_TEMP",
             "Offset": "0x9D",
             "Bits": [
@@ -127,6 +175,12 @@
             "Name": "HW_SIGNAL",
             "Offset": "0xA4",
             "Bits": [
+                {
+                    "Name": "AC_LOSS_DETECTED",
+                    "Type": "PowerFault",
+                    "BitPosition": 10,
+                    "Value": true
+                },
                 {
                     "Name": "DAISY_CHAIN_FAILURE",
                     "Type": "ControllerFailure",
