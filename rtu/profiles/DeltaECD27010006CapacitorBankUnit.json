@@ -62,6 +62,42 @@
                     "Value": true
                 },
                 {
+                    "Name": "TEMPERATURE_FAILURE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 13,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_CURRENT",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 12,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_UNDER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "CELL_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "PACK_OVER_VOLTAGE",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
                     "Name": "EOL",
                     "Type": "ControllerFailure",
                     "BitPosition": 7,
@@ -85,6 +121,24 @@
             "Name": "STATUS_WORD",
             "Offset": "0x99",
             "Bits": [
+                {
+                    "Name": "FAN_3_FAULT",
+                    "Type": "FanFailure",
+                    "BitPosition": 5,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_2_FAULT",
+                    "Type": "FanFailure",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "FAN_1_FAULT",
+                    "Type": "FanFailure",
+                    "BitPosition": 3,
+                    "Value": true
+                },
                 {
                     "Name": "BUCK_MODE_FAULT",
                     "Type": "PowerFault",
@@ -157,6 +211,30 @@
             "Name": "STATUS_TEMP",
             "Offset": "0x9D",
             "Bits": [
+                {
+                    "Name": "SUPERCAP_PACK_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 4,
+                    "Value": true
+                },
+                {
+                    "Name": "DCDC_MODULE2_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 3,
+                    "Value": true
+                },
+                {
+                    "Name": "DCDC_MODULE1_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 2,
+                    "Value": true
+                },
+                {
+                    "Name": "OUTPUT_AMBIENT_OVER_TEMP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 1,
+                    "Value": true
+                },
                 {
                     "Name": "BUSBAR_CLIP_OVER_TEMP",
                     "Type": "SensorReadingCritical",
