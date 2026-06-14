@@ -196,8 +196,11 @@ class InventoryTest : public BaseTest
         // Start probing in a concurrent coroutine
         ctx.spawn(inventoryDevice->startProbing());
 
-        // Wait for the first probe to complete and create the D-Bus object
-        co_await sdbusplus::async::sleep_for(ctx, 1s);
+        // Poll until the inventory D-Bus object is created
+        while (!(co_await checkInventoryObjectExists(objPath)))
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 100ms);
+        }
 
         // Read back Asset properties from D-Bus
         auto assetProps = co_await AssetClientIntf(ctx)
