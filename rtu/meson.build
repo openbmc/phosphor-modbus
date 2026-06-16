@@ -24,6 +24,10 @@ conf.set(
     'DEVICE_CLEANUP_INTERVAL_SECONDS',
     get_option('device-cleanup-interval-seconds'),
 )
+conf.set(
+    'MODBUS_RTU_RETRIES',
+    get_option('modbus-rtu-retries'),
+)
 conf.set10(
     'APPEND_UNIT_SUFFIX',
     get_option('append-unit-suffix'),
