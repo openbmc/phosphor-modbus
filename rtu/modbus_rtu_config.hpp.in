@@ -9,6 +9,8 @@ namespace phosphor::modbus::rtu
 inline constexpr auto modbusRTUTimeout =
     std::chrono::microseconds(@MODBUS_RTU_TIMEOUT_MICROSECONDS@);
 
+inline constexpr uint8_t modbusRTURetries = @MODBUS_RTU_RETRIES@;
+
 inline constexpr auto defaultSensorPollInterval =
     std::chrono::seconds(@SENSOR_POLL_INTERVAL_SECONDS@);
 
