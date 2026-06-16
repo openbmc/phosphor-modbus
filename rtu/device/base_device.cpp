@@ -461,6 +461,7 @@ auto BaseDevice::processSensorEntry(const SensorEntry& entry,
         sensorRegister.precision, sensorRegister.scale, sensorRegister.shift);
 
     sensor.value(regVal);
+    sensor.functional(true);
 }
 
 auto BaseDevice::processMetricEntry(const MetricEntry& entry,
