@@ -124,46 +124,49 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
                                   std::span<uint16_t> registers)
     -> sdbusplus::async::task<bool>
 {
-    try
+    for (uint8_t attempt = 0; attempt <= modbusRTURetries; ++attempt)
     {
-        ReadHoldingRegistersRequest request(deviceAddress, registerOffset,
-                                            registers.size());
-        ReadHoldingRegistersResponse response(deviceAddress, registers);
-
-        request.encode();
-
-        debug(
-            "Sending read holding registers request for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
-            "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
-            lg2::hex, deviceAddress);
-
-        if (!co_await writeRequest(deviceAddress, request))
+        try
         {
-            co_return false;
+            ReadHoldingRegistersRequest request(deviceAddress, registerOffset,
+                                                registers.size());
+            ReadHoldingRegistersResponse response(deviceAddress, registers);
+
+            request.encode();
+
+            debug(
+                "Sending read holding registers request for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
+                "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+                lg2::hex, deviceAddress);
+
+            if (!co_await writeRequest(deviceAddress, request))
+            {
+                continue;
+            }
+
+            debug(
+                "Waiting for read holding registers response for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
+                "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+                lg2::hex, deviceAddress);
+
+            if (!co_await readResponse(deviceAddress, response,
+                                       request.functionCode))
+            {
+                continue;
+            }
+
+            response.decode();
+            co_return true;
         }
-
-        debug(
-            "Waiting for read holding registers response for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
-            "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
-            lg2::hex, deviceAddress);
-
-        if (!co_await readResponse(deviceAddress, response,
-                                   request.functionCode))
+        catch (std::exception& e)
         {
-            co_return false;
+            error(
+                "Failed to read holding registers for {DEVICE_ADDRESS} with {ERROR}",
+                "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
         }
-
-        response.decode();
-    }
-    catch (std::exception& e)
-    {
-        error(
-            "Failed to read holding registers for {DEVICE_ADDRESS} with {ERROR}",
-            "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
-        co_return false;
     }
 
-    co_return true;
+    co_return false;
 }
 
 auto Modbus::writeRequest(uint8_t deviceAddress, Message& request)
@@ -197,7 +200,6 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
               "DEVICE_ADDRESS", lg2::hex, deviceAddress, "EXPECTED",
               expectedLen);
         co_await fdioInstance.next();
-        // TODO: Handle FD timeout in case of no response
         auto ret = read(fd, response.raw.data() + response.len - expectedLen,
                         expectedLen);
         if (ret < 0)

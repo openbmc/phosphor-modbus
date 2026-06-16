@@ -21,8 +21,15 @@ option('tests', type: 'feature', description: 'Build tests.')
 option(
     'modbus-rtu-timeout-microseconds',
     type: 'integer',
-    value: 300000,
+    value: 100000,
     description: 'Modbus RTU client timeout in microseconds.',
+)
+
+option(
+    'modbus-rtu-retries',
+    type: 'integer',
+    value: 3,
+    description: 'Number of retries for a failed Modbus RTU read before returning failure.',
 )
 
 option(
