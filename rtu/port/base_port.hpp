@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modbus/modbus.hpp"
+#include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
@@ -32,6 +33,7 @@ struct Config
     PortMode portMode = PortMode::unknown;
     uint32_t baudRate = 0;
     uint16_t rtsDelay = 0;
+    std::chrono::microseconds timeout = modbusRTUTimeout;
 
     virtual ~Config() = default;
 };

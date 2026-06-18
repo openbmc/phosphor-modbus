@@ -60,6 +60,7 @@ class InventoryTest : public BaseTest
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
         portConfig.baudRate = 115200;
         portConfig.rtsDelay = 1;
+        portConfig.timeout = std::chrono::microseconds(300000);
     }
 
     void TearDown() override

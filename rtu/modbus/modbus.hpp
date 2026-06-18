@@ -21,7 +21,7 @@ class Modbus
 {
   public:
     explicit Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
-                    uint16_t rtsDelay);
+                    uint16_t rtsDelay, std::chrono::microseconds timeout);
 
     auto setProperties(uint32_t inBaudRate, Parity inParity) -> bool;
 

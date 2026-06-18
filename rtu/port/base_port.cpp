@@ -31,7 +31,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
     try
     {
         modbus = std::make_unique<ModbusIntf>(ctx, fd, config.baudRate,
-                                              config.rtsDelay);
+                                              config.rtsDelay, config.timeout);
     }
     catch (...)
     {
