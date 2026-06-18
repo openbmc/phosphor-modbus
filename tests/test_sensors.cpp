@@ -106,6 +106,7 @@ class SensorsTest : public BaseTest
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
         portConfig.baudRate = baudRate;
         portConfig.rtsDelay = 1;
+        portConfig.timeout = std::chrono::microseconds(300000);
     }
 
     auto checkInventoryAssociations(const std::string& parentInventoryPath,

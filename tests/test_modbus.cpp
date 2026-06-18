@@ -19,7 +19,8 @@ class ModbusTest : public BaseTest
 
     ModbusTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName)
     {
-        modbus = std::make_unique<ModbusIntf>(ctx, fdClient, 115200, 0);
+        modbus = std::make_unique<ModbusIntf>(ctx, fdClient, 115200, 0,
+                                                std::chrono::microseconds(300000));
     }
 
     auto TestHoldingRegisters(uint16_t registerOffset, bool res)
