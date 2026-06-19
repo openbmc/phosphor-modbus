@@ -14,7 +14,7 @@ namespace entity_manager
 
 PHOSPHOR_LOG2_USING;
 
-namespace rules_intf = sdbusplus::bus::match::rules;
+namespace rules_intf = sdbusplus::match_rules;
 
 using BasicVariantType =
     std::variant<std::vector<std::string>, std::vector<uint8_t>, std::string,
