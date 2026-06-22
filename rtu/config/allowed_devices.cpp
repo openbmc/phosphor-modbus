@@ -14,11 +14,11 @@ PHOSPHOR_LOG2_USING;
 
 using json = nlohmann::json;
 
-static constexpr auto configDir = CONFIG_DIR;
 static constexpr auto configFileName = "allowed-devices.json";
 
-AllowedDevices::AllowedDevices(sdbusplus::async::context& ctx) :
-    ctx(ctx),
+AllowedDevices::AllowedDevices(sdbusplus::async::context& ctx,
+                               const std::string& configDir) :
+    ctx(ctx), configDir(configDir),
     notifyWatch(ctx, configDir,
                 std::bind_front(&AllowedDevices::configUpdateHandler, this))
 {

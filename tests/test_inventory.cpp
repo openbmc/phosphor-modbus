@@ -5,8 +5,13 @@
 #include "port/base_port.hpp"
 #include "test_base.hpp"
 
+#include <unistd.h>
+
 #include <xyz/openbmc_project/Inventory/Decorator/Asset/client.hpp>
 #include <xyz/openbmc_project/Inventory/Item/Chassis/client.hpp>
+
+#include <filesystem>
+#include <string>
 
 #include <gtest/gtest.h>
 
@@ -43,16 +48,24 @@ class InventoryTest : public BaseTest
     static constexpr const auto deviceName = "Test1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusRTU";
     PortConfigIntf::Config portConfig;
+    const std::string allowedDevicesDir =
+        "/tmp/phosphor-modbus-test-inventory-" + std::to_string(getpid());
     ModbusIntf::config::AllowedDevices allowedDevices;
 
     InventoryTest() :
         BaseTest(clientPathPrefix, serverPathPrefix, serviceName),
-        allowedDevices(ctx)
+        allowedDevices(ctx, allowedDevicesDir)
     {
         portConfig.name = "TestPort1";
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
         portConfig.baudRate = 115200;
         portConfig.rtsDelay = 1;
+    }
+
+    void TearDown() override
+    {
+        std::filesystem::remove_all(allowedDevicesDir);
+        BaseTest::TearDown();
     }
 
     auto createDevice(

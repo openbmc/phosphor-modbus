@@ -14,7 +14,8 @@ namespace phosphor::modbus::rtu::config
 class AllowedDevices
 {
   public:
-    explicit AllowedDevices(sdbusplus::async::context& ctx);
+    AllowedDevices(sdbusplus::async::context& ctx,
+                   const std::string& configDir);
 
     auto isAllowed(const std::string& deviceName) const -> bool;
 
@@ -26,6 +27,7 @@ class AllowedDevices
     auto loadConfig() -> void;
 
     sdbusplus::async::context& ctx;
+    std::string configDir;
     std::optional<std::unordered_set<std::string>> allowlist;
     NotifyWatch notifyWatch;
 };
