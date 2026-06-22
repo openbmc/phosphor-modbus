@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ac7a4d73_6359efc1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-06-22T16:32:48Z",
+      "side": 1,
+      "message": "Can you please add a tested section which shows the dbus sensor sensor value for this new register ?",
+      "revId": "d1416c9437cac14d37b5978905c09477480cfc8c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "2af03480_b1ff0a92",
         "filename": "rtu/profiles/Danfoss003Z8540Valve.json",
         "patchSetId": 1
