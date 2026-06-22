@@ -72,7 +72,7 @@
         {
             "Name": "ACTUATOR_SPINDLE_POSITION_UTIL",
             "Type": "Utilization",
-            "Offset": "0x8216",
+            "Offset": "0x860E",
             "Size": 2,
             "Precision": 0,
             "Scale": 1.0,
