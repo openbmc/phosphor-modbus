@@ -61,9 +61,7 @@ test(
 )
 
 test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
-test_config_dir = '/tmp/phosphor-modbus-test'
 test_profile_cpp_args = ['-DPROFILE_DIR="' + test_profile_dir + '"']
-test_config_cpp_args = ['-DCONFIG_DIR="' + test_config_dir + '"']
 
 test(
     'test_allowed_devices',
@@ -71,7 +69,6 @@ test(
         'test_allowed_devices',
         'test_allowed_devices.cpp',
         allowed_devices_src,
-        cpp_args: test_config_cpp_args,
         link_with: [modbus_common_lib],
         dependencies: [gtest_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
@@ -86,7 +83,6 @@ test(
         'modbus_server_tester.cpp',
         inventory_src,
         allowed_devices_src,
-        cpp_args: test_config_cpp_args,
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],

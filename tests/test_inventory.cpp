@@ -47,7 +47,7 @@ class InventoryTest : public BaseTest
 
     InventoryTest() :
         BaseTest(clientPathPrefix, serverPathPrefix, serviceName),
-        allowedDevices(ctx)
+        allowedDevices(ctx, "/tmp/phosphor-modbus-test-inventory")
     {
         portConfig.name = "TestPort1";
         portConfig.portMode = PortConfigIntf::PortMode::rs485;
