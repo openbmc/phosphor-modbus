@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2af03480_b1ff0a92",
+        "filename": "rtu/profiles/Danfoss003Z8540Valve.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-06-22T16:31:33Z",
+      "side": 1,
+      "message": "Whats the unit for new register, does it still show the data as a percentage ?",
+      "revId": "d1416c9437cac14d37b5978905c09477480cfc8c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
