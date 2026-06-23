@@ -16,6 +16,24 @@
       "message": "Ideally you\u0027d use a tmpfile()-like API to create unique files for each test execution.  This works as-is but it is still not ideal if we run tests outside of Docker (which naturally create a separate /tmp per container) because two independent Jenkins jobs could end up colliding.\n\nYou could also do something like `+ std::to_string(std::this_thread::thread_id())`",
       "revId": "ba740618b728c6455ea6b3b0392881e4708ca6b4",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c1dd2edd_efd988e9",
+        "filename": "tests/test_allowed_devices.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-06-23T00:49:29Z",
+      "side": 1,
+      "message": "Update to use getPid as threadIds can overlap across CI jobs.",
+      "parentUuid": "8baebdf2_56a14f83",
+      "revId": "ba740618b728c6455ea6b3b0392881e4708ca6b4",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
