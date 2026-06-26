@@ -16,6 +16,24 @@
       "message": "@Michael.Kao@quantatw.com Are u expecting more changes to this ?",
       "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "230a0a00_732dc0cf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002532
+      },
+      "writtenOn": "2026-06-26T06:21:52Z",
+      "side": 1,
+      "message": "Yes, I\u0027m waiting for Danfoss to confirm some mismatched registers.",
+      "parentUuid": "e0298e2f_9d66599f",
+      "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
