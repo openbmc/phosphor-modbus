@@ -254,6 +254,27 @@
                     "Size": { "type": "integer" }
                 }
             }
+        },
+        "ConfigRegisters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["Type", "Offset", "Size"],
+                "additionalProperties": false,
+                "properties": {
+                    "Name": { "type": "string" },
+                    "Type": {
+                        "type": "string",
+                        "enum": ["UnixTime"]
+                    },
+                    "Offset": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-Fa-f]+$"
+                    },
+                    "Size": { "type": "integer" },
+                    "Period": { "type": "integer" }
+                }
+            }
         }
     }
 }

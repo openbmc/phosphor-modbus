@@ -102,6 +102,10 @@ static const std::unordered_map<std::string, FirmwareFormat> firmwareFormatMap =
         {"Integer", FirmwareFormat::integer},
 };
 
+static const std::unordered_map<std::string, ConfigType> configTypeMap = {
+    {"UnixTime", ConfigType::unixTime},
+};
+
 static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
     {"BatteryBackupUnit", DeviceType::batteryBackupUnit},
     {"CapacitorBankUnit", DeviceType::capacitorBankUnit},
@@ -277,6 +281,21 @@ static void from_json(const json& j, FirmwareRegister& r)
     }
 }
 
+static void from_json(const json& j, ConfigRegister& r)
+{
+    if (j.contains("Name"))
+    {
+        r.name = j.at("Name").get<std::string>();
+    }
+    r.type = lookupEnum(configTypeMap, j.at("Type").get<std::string>(), "Type");
+    r.offset = parseHexOffset(j, "Offset");
+    r.size = j.at("Size").get<uint8_t>();
+    if (j.contains("Period"))
+    {
+        r.period = j.at("Period").get<uint32_t>();
+    }
+}
+
 struct DeviceProfileEntry
 {
     DeviceType deviceType;
@@ -285,6 +304,43 @@ struct DeviceProfileEntry
 };
 
 static std::unordered_map<std::string, DeviceProfileEntry> deviceProfiles;
+
+static void parseRegisterSections(DeviceProfile& profile, const json& j)
+{
+    if (j.contains("InventoryRegisters"))
+    {
+        profile.inventoryRegisters =
+            j["InventoryRegisters"].get<std::vector<InventoryRegister>>();
+    }
+    if (j.contains("SensorRegisters"))
+    {
+        profile.sensorRegisters =
+            j["SensorRegisters"].get<std::vector<SensorRegister>>();
+        validateUniqueNames(profile.sensorRegisters, "sensor register name",
+                            [](const SensorRegister& r) { return r.name; });
+    }
+    if (j.contains("StatusRegisters"))
+    {
+        profile.statusRegisters = parseStatusRegisters(j["StatusRegisters"]);
+    }
+    if (j.contains("MetricRegisters"))
+    {
+        profile.metricRegisters =
+            j["MetricRegisters"].get<std::vector<MetricRegister>>();
+        validateUniqueNames(profile.metricRegisters, "metric register name",
+                            [](const MetricRegister& r) { return r.name; });
+    }
+    if (j.contains("FirmwareRegisters"))
+    {
+        profile.firmwareRegisters =
+            j["FirmwareRegisters"].get<std::vector<FirmwareRegister>>();
+    }
+    if (j.contains("ConfigRegisters"))
+    {
+        profile.configRegisters =
+            j["ConfigRegisters"].get<std::vector<ConfigRegister>>();
+    }
+}
 
 static auto parseProfileEntry(const std::filesystem::path& path)
     -> DeviceProfileEntry
@@ -309,37 +365,7 @@ static auto parseProfileEntry(const std::filesystem::path& path)
         lookupEnum(parityMap, j.at("Parity").get<std::string>(), "Parity");
     entry.profile.baudRate = j.at("BaudRate").get<uint32_t>();
 
-    if (j.contains("InventoryRegisters"))
-    {
-        entry.profile.inventoryRegisters =
-            j["InventoryRegisters"].get<std::vector<InventoryRegister>>();
-    }
-    if (j.contains("SensorRegisters"))
-    {
-        entry.profile.sensorRegisters =
-            j["SensorRegisters"].get<std::vector<SensorRegister>>();
-        validateUniqueNames(entry.profile.sensorRegisters,
-                            "sensor register name",
-                            [](const SensorRegister& r) { return r.name; });
-    }
-    if (j.contains("StatusRegisters"))
-    {
-        entry.profile.statusRegisters =
-            parseStatusRegisters(j["StatusRegisters"]);
-    }
-    if (j.contains("MetricRegisters"))
-    {
-        entry.profile.metricRegisters =
-            j["MetricRegisters"].get<std::vector<MetricRegister>>();
-        validateUniqueNames(entry.profile.metricRegisters,
-                            "metric register name",
-                            [](const MetricRegister& r) { return r.name; });
-    }
-    if (j.contains("FirmwareRegisters"))
-    {
-        entry.profile.firmwareRegisters =
-            j["FirmwareRegisters"].get<std::vector<FirmwareRegister>>();
-    }
+    parseRegisterSections(entry.profile, j);
 
     return entry;
 }

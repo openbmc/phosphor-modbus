@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -151,6 +152,22 @@ struct FirmwareRegister
     uint8_t size = 0;
 };
 
+enum class ConfigType
+{
+    unixTime,
+    unknown
+};
+
+struct ConfigRegister
+{
+    std::string name = "unknown";
+    ConfigType type = ConfigType::unknown;
+    uint16_t offset = 0;
+    uint8_t size = 0;
+    // Seconds between writes; nullopt means write once on bring-up
+    std::optional<uint32_t> period;
+};
+
 enum class DeviceType
 {
     batteryBackupUnit,
@@ -205,6 +222,7 @@ struct DeviceProfile
     std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
     std::vector<MetricRegister> metricRegisters;
     std::vector<FirmwareRegister> firmwareRegisters;
+    std::vector<ConfigRegister> configRegisters{};
 };
 
 /** @brief Returns the device profile for a given device type.
