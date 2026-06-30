@@ -102,6 +102,21 @@ static constexpr auto testProfileJson = R"({
             "Offset": "0x258",
             "Size": 2
         }
+    ],
+    "ConfigRegisters": [
+        {
+            "Name": "TestSyncTime",
+            "Type": "UnixTime",
+            "Offset": "0x320",
+            "Size": 2,
+            "Period": 3600
+        },
+        {
+            "Name": "TestOneShot",
+            "Type": "UnixTime",
+            "Offset": "0x321",
+            "Size": 2
+        }
     ]
 })";
 
@@ -208,6 +223,22 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(profile.firmwareRegisters[0].type, FirmwareRegisterType::version);
     EXPECT_EQ(profile.firmwareRegisters[0].offset, 600U);
     EXPECT_EQ(profile.firmwareRegisters[0].size, 2U);
+
+    // Config registers — first is periodic, second is one-shot (no Period)
+    ASSERT_EQ(profile.configRegisters.size(), 2U);
+    const auto& periodic = profile.configRegisters[0];
+    EXPECT_EQ(periodic.name, "TestSyncTime");
+    EXPECT_EQ(periodic.type, ConfigType::unixTime);
+    EXPECT_EQ(periodic.offset, 800U);
+    EXPECT_EQ(periodic.size, 2U);
+    EXPECT_EQ(periodic.period, std::optional<uint32_t>{3600U});
+
+    const auto& oneShot = profile.configRegisters[1];
+    EXPECT_EQ(oneShot.name, "TestOneShot");
+    EXPECT_EQ(oneShot.type, ConfigType::unixTime);
+    EXPECT_EQ(oneShot.offset, 801U);
+    EXPECT_EQ(oneShot.size, 2U);
+    EXPECT_FALSE(oneShot.period.has_value());
 }
 
 TEST_F(DeviceProfileTest, CachesProfile)
