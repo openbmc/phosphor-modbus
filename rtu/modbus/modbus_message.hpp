@@ -22,6 +22,16 @@ class Message
     Message& operator<<(uint16_t d);
     Message& operator<<(uint32_t d);
 
+    template <typename T>
+    Message& operator<<(std::span<T> d)
+    {
+        for (const auto& v : d)
+        {
+            *this << v;
+        }
+        return *this;
+    }
+
     // Pop from the end of raw message
     Message& operator>>(uint8_t& d);
     Message& operator>>(uint16_t& d);

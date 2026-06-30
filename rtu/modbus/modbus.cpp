@@ -171,6 +171,60 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
     co_return false;
 }
 
+auto Modbus::writeMultipleRegisters(uint8_t deviceAddress,
+                                    uint16_t registerOffset,
+                                    std::span<const uint16_t> registers)
+    -> sdbusplus::async::task<bool>
+{
+    for (uint8_t attempt = 0; attempt <= modbusRTURetries; ++attempt)
+    {
+        try
+        {
+            WriteMultipleRegistersRequest request(deviceAddress, registerOffset,
+                                                  registers);
+            WriteMultipleRegistersResponse response(
+                deviceAddress, registerOffset, registers.size());
+
+            request.encode();
+
+            debug(
+                "Sending write multiple registers request for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
+                "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+                lg2::hex, deviceAddress);
+
+            if (!co_await writeRequest(deviceAddress, request))
+            {
+                continue;
+            }
+
+            debug(
+                "Waiting for write multiple registers response for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
+                "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+                lg2::hex, deviceAddress);
+
+            if (!co_await readResponse(deviceAddress, response,
+                                       request.functionCode))
+            {
+                continue;
+            }
+
+            response.decode();
+            co_return true;
+        }
+        catch (std::exception& e)
+        {
+            if (attempt == modbusRTURetries)
+            {
+                error(
+                    "Failed to write multiple registers for {DEVICE_ADDRESS} with {ERROR}",
+                    "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
+            }
+        }
+    }
+
+    co_return false;
+}
+
 auto Modbus::writeRequest(uint8_t deviceAddress, Message& request)
     -> sdbusplus::async::task<bool>
 {

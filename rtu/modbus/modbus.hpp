@@ -29,6 +29,10 @@ class Modbus
                               std::span<uint16_t> registers)
         -> sdbusplus::async::task<bool>;
 
+    auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
+                                std::span<const uint16_t> registers)
+        -> sdbusplus::async::task<bool>;
+
   private:
     auto writeRequest(uint8_t deviceAddress, Message& request)
         -> sdbusplus::async::task<bool>;
