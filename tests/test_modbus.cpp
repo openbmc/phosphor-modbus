@@ -49,6 +49,20 @@ class ModbusTest : public BaseTest
 
         co_return;
     }
+
+    auto TestWriteMultipleRegisters(uint16_t registerOffset, bool res)
+        -> sdbusplus::async::task<void>
+    {
+        std::cout << "TestWriteMultipleRegisters() start" << std::endl;
+
+        auto ret = co_await modbus->writeMultipleRegisters(
+            TestIntf::testDeviceAddress, registerOffset,
+            TestIntf::testWriteMultipleRegistersData);
+
+        EXPECT_EQ(ret, res) << "Failed to write multiple registers";
+
+        co_return;
+    }
 };
 
 TEST_F(ModbusTest, TestReadHoldingRegisterSuccess)
@@ -88,6 +102,40 @@ TEST_F(ModbusTest, TestReadHoldingRegisterIllegalDataAddress)
 {
     ctx.spawn(
         TestHoldingRegisters(TestIntf::testIllegalDataAddressRegister, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ModbusTest, TestWriteMultipleRegistersSuccess)
+{
+    ctx.spawn(TestWriteMultipleRegisters(
+        TestIntf::testSuccessWriteMultipleRegistersOffset, true));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ModbusTest, TestWriteMultipleRegistersFailure)
+{
+    ctx.spawn(TestWriteMultipleRegisters(
+        TestIntf::testFailureWriteMultipleRegistersOffset, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ModbusTest, TestWriteMultipleRegistersFlaky)
+{
+    // First attempt fails, retry succeeds
+    ctx.spawn(TestWriteMultipleRegisters(
+        TestIntf::testFlakyWriteMultipleRegistersOffset, true));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));

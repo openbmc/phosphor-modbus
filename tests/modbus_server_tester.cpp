@@ -19,6 +19,8 @@ using namespace std::literals;
 
 constexpr uint8_t readHoldingRegistersFunctionCode = 0x3;
 constexpr uint8_t readHoldingRegistersErrorFunctionCode = 0x83;
+constexpr uint8_t writeMultipleRegistersFunctionCode = 0x10;
+constexpr uint8_t writeMultipleRegistersErrorFunctionCode = 0x90;
 
 ServerTester::ServerTester(sdbusplus::async::context& ctx, int fd) :
     fd(fd), fdioInstance(ctx, fd), mutex("TestMutex")
@@ -119,6 +121,9 @@ void ServerTester::processMessage(MessageIntf& request, size_t requestSize,
             processReadHoldingRegisters(request, requestSize, response,
                                         segmentedResponse);
             break;
+        case writeMultipleRegistersFunctionCode:
+            processWriteMultipleRegisters(request, requestSize, response);
+            break;
         default:
             FAIL() << "Server received unknown request function code "
                    << request.functionCode;
@@ -206,6 +211,62 @@ void ServerTester::processSuccessfulRead(
 
     segmentedResponse =
         (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
+}
+
+void ServerTester::processWriteMultipleRegisters(
+    MessageIntf& request, size_t requestSize, MessageIntf& response)
+{
+    // NOTE: This code deliberately avoids using any packing helpers from
+    // message.hpp. This ensures that message APIs are tested as intended on the
+    // client side.
+    uint16_t registerOffset = request.raw[2] << 8 | request.raw[3];
+    uint16_t registerCount = request.raw[4] << 8 | request.raw[5];
+    uint8_t byteCount = request.raw[6];
+
+    // addr(1), func(1), offset(2), count(2), bytecount(1), data, crc(2)
+    const size_t expectedRequestSize = 9 + (2 * registerCount);
+    checkRequestSize(requestSize, expectedRequestSize);
+    EXPECT_EQ(byteCount, 2 * registerCount) << "Invalid byte count";
+
+    if (registerOffset == testFailureWriteMultipleRegistersOffset)
+    {
+        response << request.raw[0]
+                 << (uint8_t)writeMultipleRegistersErrorFunctionCode
+                 << uint8_t(RTUIntf::ModbusExceptionCode::illegalDataAddress);
+        response.appendCRC();
+        return;
+    }
+
+    if (registerOffset == testFlakyWriteMultipleRegistersOffset)
+    {
+        flakyWriteRequestCount++;
+        if (flakyWriteRequestCount % 2 == 1)
+        {
+            // Odd (first) requests fail, retry succeeds
+            response << request.raw[0]
+                     << (uint8_t)writeMultipleRegistersErrorFunctionCode
+                     << uint8_t(
+                            RTUIntf::ModbusExceptionCode::illegalFunctionCode);
+            response.appendCRC();
+            return;
+        }
+    }
+    else
+    {
+        // Verify the streamed register data matches what the client encoded
+        for (size_t i = 0; i < registerCount; i++)
+        {
+            uint16_t value = request.raw[7 + (2 * i)] << 8 |
+                             request.raw[8 + (2 * i)];
+            EXPECT_EQ(value, testWriteMultipleRegistersData[i])
+                << "Invalid register data at index " << i;
+        }
+    }
+
+    // Success: echo back addr, func, offset and count
+    response << request.raw[0] << request.raw[1] << request.raw[2]
+             << request.raw[3] << request.raw[4] << request.raw[5];
+    response.appendCRC();
 }
 
 void ServerTester::processFlakyRegister(

@@ -27,6 +27,13 @@ constexpr uint16_t testIllegalDataAddressRegister = 0x0108;
 constexpr uint16_t testFlakyReadHoldingRegisterOffset = 0x0106;
 constexpr uint16_t testFlakyReadHoldingRegisterCount = 0x1;
 
+// Write Multiple Registers Testing Constants
+constexpr uint16_t testSuccessWriteMultipleRegistersOffset = 0x0500;
+constexpr uint16_t testSuccessWriteMultipleRegistersCount = 0x2;
+const std::vector<uint16_t> testWriteMultipleRegistersData = {0x1122, 0x3344};
+constexpr uint16_t testFailureWriteMultipleRegistersOffset = 0x0501;
+constexpr uint16_t testFlakyWriteMultipleRegistersOffset = 0x0502;
+
 // Device Inventory Testing Constants
 constexpr uint16_t testReadHoldingRegisterModelOffset = 0x0112;
 constexpr uint16_t testReadHoldingRegisterModelCount = 0x8;
@@ -156,6 +163,9 @@ class ServerTester
                                      MessageIntf& response,
                                      bool& segmentedResponse) -> void;
 
+    auto processWriteMultipleRegisters(MessageIntf& request, size_t requestSize,
+                                       MessageIntf& response) -> void;
+
     auto processFlakyRegister(MessageIntf& request, uint16_t registerCount,
                               MessageIntf& response) -> void;
 
@@ -171,5 +181,6 @@ class ServerTester
     sdbusplus::async::fdio fdioInstance;
     sdbusplus::async::mutex mutex;
     uint32_t flakyRegisterRequestCount = 0;
+    uint32_t flakyWriteRequestCount = 0;
 };
 } // namespace phosphor::modbus::test

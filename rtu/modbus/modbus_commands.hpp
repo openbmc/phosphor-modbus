@@ -33,6 +33,34 @@ class ReadHoldingRegistersRequest : public Message
     const uint16_t registerCount;
 };
 
+static constexpr uint8_t WriteMultipleRegistersFunctionCode = 0x10;
+
+class WriteMultipleRegistersRequest : public Message
+{
+  public:
+    WriteMultipleRegistersRequest() = delete;
+    WriteMultipleRegistersRequest(const WriteMultipleRegistersRequest&) =
+        delete;
+    WriteMultipleRegistersRequest& operator=(
+        const WriteMultipleRegistersRequest&) = delete;
+    WriteMultipleRegistersRequest(WriteMultipleRegistersRequest&&) = delete;
+    WriteMultipleRegistersRequest& operator=(WriteMultipleRegistersRequest&&) =
+        delete;
+
+    explicit WriteMultipleRegistersRequest(uint8_t deviceAddress,
+                                           uint16_t registerOffset,
+                                           std::span<const uint16_t> registers);
+
+    auto encode() -> void;
+
+  private:
+    static constexpr uint8_t commandCode = WriteMultipleRegistersFunctionCode;
+    const uint8_t deviceAddress;
+    const uint16_t registerOffset;
+    // The values to write are held in the registers span
+    std::span<const uint16_t> registers;
+};
+
 class Response : public Message
 {
   public:
@@ -61,6 +89,31 @@ class ReadHoldingRegistersResponse : public Response
     const uint8_t expectedDeviceAddress;
     // The returned response is stored in the registers span
     std::span<uint16_t> registers;
+};
+
+class WriteMultipleRegistersResponse : public Response
+{
+  public:
+    WriteMultipleRegistersResponse() = delete;
+    WriteMultipleRegistersResponse(const WriteMultipleRegistersResponse&) =
+        delete;
+    WriteMultipleRegistersResponse& operator=(
+        const WriteMultipleRegistersResponse&) = delete;
+    WriteMultipleRegistersResponse(WriteMultipleRegistersResponse&&) = delete;
+    WriteMultipleRegistersResponse& operator=(
+        WriteMultipleRegistersResponse&&) = delete;
+
+    explicit WriteMultipleRegistersResponse(
+        uint8_t deviceAddress, uint16_t registerOffset, uint16_t registerCount);
+
+    auto decode() -> void;
+
+  private:
+    static constexpr uint8_t expectedCommandCode =
+        WriteMultipleRegistersFunctionCode;
+    const uint8_t expectedDeviceAddress;
+    const uint16_t expectedRegisterOffset;
+    const uint16_t expectedRegisterCount;
 };
 
 } // namespace phosphor::modbus::rtu
