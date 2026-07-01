@@ -52,6 +52,24 @@
       "parentUuid": "230a0a00_732dc0cf",
       "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "196e1c6e_d7947316",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002532
+      },
+      "writtenOn": "2026-07-01T01:24:47Z",
+      "side": 1,
+      "message": "@paligill@gmail.com Danfoss hasn\u0027t replied yet. I think we can close this for now. I\u0027ll provide an update later if needed.",
+      "parentUuid": "78b37de5_61694a76",
+      "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
