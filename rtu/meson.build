@@ -80,6 +80,7 @@ rtu_cpp_args = [
 
 device_src = files(
     'device/base_device.cpp',
+    'device/device_config.cpp',
     'device/device_factory.cpp',
     'device/device_utils.cpp',
 )

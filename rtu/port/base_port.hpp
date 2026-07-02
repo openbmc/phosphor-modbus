@@ -108,6 +108,11 @@ class BasePort
                               std::span<uint16_t> registers)
         -> sdbusplus::async::task<bool>;
 
+    auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
+                                uint32_t baudRate, Parity parity,
+                                std::span<const uint16_t> registers)
+        -> sdbusplus::async::task<bool>;
+
     bool probeInProgress = false;
 
   private:
