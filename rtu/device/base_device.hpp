@@ -3,6 +3,7 @@
 #include "base_config.hpp"
 #include "common/events.hpp"
 #include "common/register_span.hpp"
+#include "device_config.hpp"
 #include "firmware/device_firmware.hpp"
 #include "port/base_port.hpp"
 
@@ -148,6 +149,11 @@ class BaseDevice
     /** @brief Read and process all spans in a single poll bucket. */
     auto pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>;
 
+    /** @brief Sleep until the next poll is due, waking periodically to check
+     *  for stop requests. */
+    auto sleepUntilNextPoll(std::chrono::steady_clock::time_point nextPoll)
+        -> sdbusplus::async::task<void>;
+
     /** @brief Mark entries as failed when a span read fails. */
     auto handleSpanReadFailure(PollBucket& bucket, const RegisterSpan& span)
         -> void;
@@ -182,6 +188,7 @@ class BaseDevice
     const config::Config config;
     PortIntf& serialPort;
     EventIntf::Events& events;
+    DeviceConfig deviceConfig;
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
     metrics_map_t metrics;

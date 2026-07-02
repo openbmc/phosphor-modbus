@@ -34,6 +34,10 @@ const std::vector<uint16_t> testWriteMultipleRegistersData = {0x1122, 0x3344};
 constexpr uint16_t testFailureWriteMultipleRegistersOffset = 0x0501;
 constexpr uint16_t testFlakyWriteMultipleRegistersOffset = 0x0502;
 
+// Config register write testing (device writes UnixTime here)
+constexpr uint16_t testConfigWriteRegisterOffset = 0x0503;
+constexpr uint16_t testConfigWriteRegisterCount = 0x2;
+
 // Device Inventory Testing Constants
 constexpr uint16_t testReadHoldingRegisterModelOffset = 0x0112;
 constexpr uint16_t testReadHoldingRegisterModelCount = 0x8;
@@ -152,6 +156,7 @@ class ServerTester
     auto processRequests() -> void;
 
     std::atomic<uint32_t> totalRequestCount{0};
+    std::atomic<uint32_t> writeRequestCount{0};
 
   private:
     auto processMessage(MessageIntf& request, size_t requestSize,
