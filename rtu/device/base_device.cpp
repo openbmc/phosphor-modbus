@@ -130,7 +130,8 @@ auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit
 BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
                        const config::Config& config, PortIntf& serialPort,
                        EventIntf::Events& events) :
-    ctx(ctx), config(config), serialPort(serialPort), events(events)
+    ctx(ctx), config(config), serialPort(serialPort), events(events),
+    deviceConfig(this->config, serialPort)
 {
     createSensors();
     createMetrics();
@@ -567,6 +568,10 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
 //   t=5: poll 5s    -> sleep 1s  (2s bucket due at t=6)
 auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
 {
+    co_await deviceConfig.writeInitial();
+
+    auto configNextWrite = std::chrono::steady_clock::now();
+
     while (!ctx.stop_requested() && !stopRequested)
     {
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
@@ -586,35 +591,43 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
             earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
         }
 
-        auto sleepDuration =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                earliestNextPoll - std::chrono::steady_clock::now());
-        if (sleepDuration > std::chrono::milliseconds(0))
+        if (std::chrono::steady_clock::now() >= configNextWrite)
         {
-            // Sleep in short intervals so we can respond to stop
-            // requests promptly instead of blocking for the full
-            // poll interval.
-            constexpr auto stopCheckInterval = std::chrono::milliseconds(3000);
-            for (auto elapsed = std::chrono::milliseconds(0);
-                 elapsed < sleepDuration && !ctx.stop_requested() &&
-                 !stopRequested;)
-            {
-                auto sleepTime =
-                    std::min(sleepDuration - elapsed, stopCheckInterval);
-                co_await sdbusplus::async::sleep_for(ctx, sleepTime);
-                elapsed += sleepTime;
-            }
+            configNextWrite = co_await deviceConfig.writePeriodic();
         }
-        else
-        {
-            debug(
-                "No idle time between poll cycles for {NAME}, check poll interval configuration",
-                "NAME", config.name);
-        }
+        earliestNextPoll = std::min(earliestNextPoll, configNextWrite);
+
+        co_await sleepUntilNextPoll(earliestNextPoll);
         debug("Polling sensors for {NAME}", "NAME", config.name);
     }
 
     stopped = true;
+}
+
+auto BaseDevice::sleepUntilNextPoll(
+    std::chrono::steady_clock::time_point nextPoll)
+    -> sdbusplus::async::task<void>
+{
+    auto sleepDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        nextPoll - std::chrono::steady_clock::now());
+    if (sleepDuration <= std::chrono::milliseconds(0))
+    {
+        debug(
+            "No idle time between poll cycles for {NAME}, check poll interval configuration",
+            "NAME", config.name);
+        co_return;
+    }
+
+    // Sleep in short intervals so we can respond to stop requests promptly
+    // instead of blocking for the full poll interval.
+    constexpr auto stopCheckInterval = std::chrono::milliseconds(3000);
+    for (auto elapsed = std::chrono::milliseconds(0);
+         elapsed < sleepDuration && !ctx.stop_requested() && !stopRequested;)
+    {
+        auto sleepTime = std::min(sleepDuration - elapsed, stopCheckInterval);
+        co_await sdbusplus::async::sleep_for(ctx, sleepTime);
+        elapsed += sleepTime;
+    }
 }
 
 static auto getObjectPath(const config::Config& config,

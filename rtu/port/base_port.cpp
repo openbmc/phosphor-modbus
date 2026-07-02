@@ -75,4 +75,27 @@ auto BasePort::readHoldingRegisters(
     co_return ret;
 }
 
+auto BasePort::writeMultipleRegisters(
+    uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
+    Parity parity, std::span<const uint16_t> registers)
+    -> sdbusplus::async::task<bool>
+{
+    sdbusplus::async::lock_guard lg{mutex};
+    co_await lg.lock();
+
+    if (!modbus->setProperties(baudRate, parity))
+    {
+        error("Failed to set serial port properties");
+        co_return false;
+    }
+
+    debug(
+        "Writing multiple registers to device {ADDRESS} {PORT} at offset {OFFSET}",
+        "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
+        registerOffset);
+
+    co_return co_await modbus->writeMultipleRegisters(
+        deviceAddress, registerOffset, registers);
+}
+
 } // namespace phosphor::modbus::rtu::port

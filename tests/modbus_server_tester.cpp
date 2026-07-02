@@ -228,6 +228,8 @@ void ServerTester::processWriteMultipleRegisters(
     checkRequestSize(requestSize, expectedRequestSize);
     EXPECT_EQ(byteCount, 2 * registerCount) << "Invalid byte count";
 
+    writeRequestCount++;
+
     if (registerOffset == testFailureWriteMultipleRegistersOffset)
     {
         response << request.raw[0]
@@ -251,7 +253,7 @@ void ServerTester::processWriteMultipleRegisters(
             return;
         }
     }
-    else
+    else if (registerOffset == testSuccessWriteMultipleRegistersOffset)
     {
         // Verify the streamed register data matches what the client encoded
         for (size_t i = 0; i < registerCount; i++)
