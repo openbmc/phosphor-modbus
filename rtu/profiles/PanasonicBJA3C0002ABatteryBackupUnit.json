@@ -478,5 +478,14 @@
                 }
             ]
         }
+    ],
+    "ConfigRegisters": [
+        {
+            "Name": "SyncTime",
+            "Type": "UnixTime",
+            "Offset": "0x65",
+            "Size": 2,
+            "Period": 3600
+        }
     ]
 }
