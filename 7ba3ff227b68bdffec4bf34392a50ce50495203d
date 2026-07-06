@@ -87,6 +87,24 @@
       "message": "In the recent Feedback from Danfoss i see they mentioned that 0x8216 is the right register to read ePARAM_POSITION_FEEDBACK_PCT_NOMINAL, then why are we making this change ?",
       "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "557a8713_d26f2ffb",
+        "filename": "rtu/profiles/Danfoss003Z8540Valve.json",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-06T17:59:33Z",
+      "side": 1,
+      "message": "Danfoss said 0x8216 is available in later fw releases (after 2.50.1A) but 0x860E is available on versions prior to it, so 0x860E is fine to use.",
+      "parentUuid": "6070180d_2a24f5d3",
+      "revId": "7ba3ff227b68bdffec4bf34392a50ce50495203d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
