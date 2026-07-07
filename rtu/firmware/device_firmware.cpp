@@ -61,7 +61,7 @@ DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
     currentFirmware->Activation::emit_added();
     currentFirmware->Definitions::emit_added();
 
-    info("Device firmware {NAME} created successfully", "NAME", config.name);
+    debug("Device firmware {NAME} created successfully", "NAME", config.name);
 }
 
 DeviceFirmware::~DeviceFirmware()
@@ -129,9 +129,9 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
             {"running", "ran_on", config.inventoryPath}};
     currentFirmware->associations(associationList);
 
-    info("Firmware version {VERSION} for {NAME} at {DEVICE_ADDRESS}", "VERSION",
-         strValue, "NAME", config.name, "DEVICE_ADDRESS", lg2::hex,
-         config.address);
+    debug("Firmware version {VERSION} for {NAME} at {DEVICE_ADDRESS}",
+          "VERSION", strValue, "NAME", config.name, "DEVICE_ADDRESS", lg2::hex,
+          config.address);
 }
 
 } // namespace phosphor::modbus::rtu::device
