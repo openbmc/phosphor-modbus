@@ -113,8 +113,6 @@ class BasePort
                                 std::span<const uint16_t> registers)
         -> sdbusplus::async::task<bool>;
 
-    bool probeInProgress = false;
-
   private:
     std::string name;
     int fd = -1;
