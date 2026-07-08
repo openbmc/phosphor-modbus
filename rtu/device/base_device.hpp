@@ -158,6 +158,10 @@ class BaseDevice
     auto handleSpanReadFailure(PollBucket& bucket, const RegisterSpan& span)
         -> void;
 
+    /** @brief Mark the span's sensors unavailable and blank their reading
+     *  when the port is busy. */
+    auto handleSpanBusy(PollBucket& bucket, const RegisterSpan& span) -> void;
+
     /** @brief Convert raw register data and update a sensor value. */
     auto processSensorEntry(const SensorEntry& entry,
                             std::span<const uint16_t> spanBuffer,

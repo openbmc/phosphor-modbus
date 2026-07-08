@@ -64,6 +64,10 @@ class SensorsTest : public BaseTest
         "xyz.openbmc_project.TestModbusRTUSensors";
     static constexpr auto sensorName = "OutletTemperature";
 
+    // Polling for a D-Bus property to reach an expected state.
+    static constexpr int propertyWaitRetries = 50;
+    static constexpr auto propertyWaitInterval = std::chrono::milliseconds(100);
+
     PortConfigIntf::Config portConfig;
     DeviceTestConfig deviceTestConfig;
     std::string deviceName;
@@ -221,6 +225,104 @@ class SensorsTest : public BaseTest
         co_return;
     }
 
+    auto waitForAvailability(const std::string& path, bool want)
+        -> sdbusplus::async::task<bool>
+    {
+        for (int i = 0; i < propertyWaitRetries; i++)
+        {
+            auto props = co_await AvailabilityIntf(ctx)
+                             .service(serviceName)
+                             .path(path)
+                             .properties();
+            if (props.available == want)
+            {
+                co_return true;
+            }
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return false;
+    }
+
+    auto waitForValue(const std::string& path, double want)
+        -> sdbusplus::async::task<bool>
+    {
+        for (int i = 0; i < propertyWaitRetries; i++)
+        {
+            auto props = co_await SensorValueIntf(ctx)
+                             .service(serviceName)
+                             .path(path)
+                             .properties();
+            if (props.value == want)
+            {
+                co_return true;
+            }
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return false;
+    }
+
+    // Sensor is unavailable with a blanked (NaN) reading, but not faulted.
+    auto verifyUnavailableWhileBusy(const std::string& path)
+        -> sdbusplus::async::task<void>
+    {
+        EXPECT_TRUE(co_await waitForAvailability(path, false));
+        auto op = co_await OperationalStatusIntf(ctx)
+                      .service(serviceName)
+                      .path(path)
+                      .properties();
+        EXPECT_TRUE(op.functional) << "busy must not fault the sensor";
+        auto val = co_await SensorValueIntf(ctx)
+                       .service(serviceName)
+                       .path(path)
+                       .properties();
+        EXPECT_TRUE(std::isnan(val.value))
+            << "reading should be NaN while busy";
+        co_return;
+    }
+
+    // Let the polling coroutine exit before the device is destroyed.
+    auto stopDevice(DeviceIntf::BaseDevice& device)
+        -> sdbusplus::async::task<void>
+    {
+        device.requestStop();
+        while (!device.isStopped())
+        {
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return;
+    }
+
+    auto testPortBusy(std::string objectPath,
+                      ProfileIntf::SensorRegister sensorRegister,
+                      double expectedValue) -> sdbusplus::async::task<void>
+    {
+        EventIntf::Events events{ctx};
+        auto devPair = createDevice({sensorRegister}, events);
+        auto& mockPort = devPair.first;
+        auto& device = devPair.second;
+
+        ctx.spawn(device->pollRegisters());
+
+        // First poll succeeds: sensor reads its value and is available.
+        EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
+
+        // Reserve the port; subsequent polls return busy.
+        auto lock = mockPort->acquireExclusive();
+        EXPECT_TRUE(lock.has_value());
+
+        co_await verifyUnavailableWhileBusy(objectPath);
+
+        // Release the port; sensor recovers availability and its value.
+        lock.reset();
+        EXPECT_TRUE(co_await waitForAvailability(objectPath, true));
+        EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
+
+        co_await stopDevice(*device);
+
+        ctx.request_stop();
+        co_return;
+    }
+
     ProfileIntf::DeviceProfile testProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = baudRate,
@@ -256,6 +358,29 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(SensorsTest, TestPortBusyMarksSensorUnavailable)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        ProfileIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+    });
+
+    const ProfileIntf::SensorRegister sensorRegister = {
+        .name = sensorName,
+        .type = SensorTypeIntf::temperature,
+        .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+        .size = TestIntf::testReadHoldingRegisterTempCount,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
+    };
+
+    ctx.spawn(testPortBusy(objectPath, sensorRegister,
+                           TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.run();
 }

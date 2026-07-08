@@ -463,6 +463,7 @@ auto BaseDevice::processSensorEntry(const SensorEntry& entry,
 
     sensor.value(regVal);
     sensor.functional(true);
+    sensor.available(true);
 }
 
 auto BaseDevice::processMetricEntry(const MetricEntry& entry,
@@ -515,6 +516,23 @@ auto BaseDevice::handleSpanReadFailure(PollBucket& bucket,
     }
 }
 
+auto BaseDevice::handleSpanBusy(PollBucket& bucket, const RegisterSpan& span)
+    -> void
+{
+    // The port is in use (e.g. firmware update), so the read was not
+    // attempted. Mark sensors unavailable and blank the reading to signal
+    // transient unavailability, without faulting them (functional untouched).
+    for (auto idx : span.registerIndices)
+    {
+        if (std::holds_alternative<SensorEntry>(bucket.entries[idx]))
+        {
+            auto& sensor = std::get<SensorEntry>(bucket.entries[idx]).sensor;
+            sensor.value(std::numeric_limits<double>::quiet_NaN());
+            sensor.available(false);
+        }
+    }
+}
+
 auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
 {
     for (const auto& span : bucket.spans)
@@ -524,6 +542,11 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
         auto ret = co_await serialPort.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
             config.profile.parity, spanBuffer);
+        if (ret == port::OperationStatus::busy)
+        {
+            handleSpanBusy(bucket, span);
+            continue;
+        }
         if (ret != port::OperationStatus::success)
         {
             handleSpanReadFailure(bucket, span);
