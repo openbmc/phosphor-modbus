@@ -71,6 +71,32 @@ DeviceFirmware::~DeviceFirmware()
     currentFirmware->Definitions::emit_removed();
 }
 
+static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,
+                          const std::vector<uint16_t>& registers) -> std::string
+{
+    std::string strValue;
+
+    if (reg.format == ProfileIntf::FirmwareFormat::integer)
+    {
+        uint64_t intValue = 0;
+        for (const auto& value : registers)
+        {
+            intValue = (intValue << 16) | value;
+        }
+        strValue = std::to_string(intValue);
+    }
+    else
+    {
+        for (const auto& value : registers)
+        {
+            strValue += static_cast<char>((value >> 8) & 0xFF);
+            strValue += static_cast<char>(value & 0xFF);
+        }
+    }
+
+    return strValue;
+}
+
 auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
 {
     const auto it =
@@ -94,6 +120,10 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
     auto ret = co_await serialPort.readHoldingRegisters(
         config.address, versionRegister.offset, config.profile.baudRate,
         config.profile.parity, registers);
+    if (ret == port::OperationStatus::busy)
+    {
+        co_return;
+    }
     if (ret != port::OperationStatus::success)
     {
         error("Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
@@ -102,25 +132,7 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
         co_return;
     }
 
-    std::string strValue;
-
-    if (versionRegister.format == ProfileIntf::FirmwareFormat::integer)
-    {
-        uint64_t intValue = 0;
-        for (const auto& value : registers)
-        {
-            intValue = (intValue << 16) | value;
-        }
-        strValue = std::to_string(intValue);
-    }
-    else
-    {
-        for (const auto& value : registers)
-        {
-            strValue += static_cast<char>((value >> 8) & 0xFF);
-            strValue += static_cast<char>(value & 0xFF);
-        }
-    }
+    auto strValue = formatVersion(versionRegister, registers);
 
     currentFirmware->version(strValue);
     currentFirmware->activation(FirmwareIntf::Activation::Activations::Active);
