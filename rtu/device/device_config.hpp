@@ -51,7 +51,7 @@ class DeviceConfig
 
     /** @brief Write a single config register to the device. */
     auto writeRegister(const ProfileIntf::ConfigRegister& reg)
-        -> sdbusplus::async::task<bool>;
+        -> sdbusplus::async::task<port::OperationStatus>;
 
     const config::Config& config;
     PortIntf& serialPort;

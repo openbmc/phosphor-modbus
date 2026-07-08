@@ -64,7 +64,8 @@ class PortTest : public BaseTest
             TestIntf::testDeviceAddress, registerOffset, config.baudRate,
             RTUIntf::Parity::none, registers);
 
-        EXPECT_EQ(ret, res) << "Failed to read holding registers";
+        EXPECT_EQ(ret == PortIntf::OperationStatus::success, res)
+            << "Failed to read holding registers";
 
         if (!res)
         {
