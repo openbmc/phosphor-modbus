@@ -45,7 +45,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
 auto BasePort::readHoldingRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
     Parity parity, std::span<uint16_t> registers)
-    -> sdbusplus::async::task<bool>
+    -> sdbusplus::async::task<OperationStatus>
 {
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
@@ -53,7 +53,7 @@ auto BasePort::readHoldingRegisters(
     if (!modbus->setProperties(baudRate, parity))
     {
         error("Failed to set serial port properties");
-        co_return false;
+        co_return OperationStatus::failure;
     }
 
     debug(
@@ -70,15 +70,16 @@ auto BasePort::readHoldingRegisters(
             "{OFFSET}",
             "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET",
             lg2::hex, registerOffset);
+        co_return OperationStatus::failure;
     }
 
-    co_return ret;
+    co_return OperationStatus::success;
 }
 
 auto BasePort::writeMultipleRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
     Parity parity, std::span<const uint16_t> registers)
-    -> sdbusplus::async::task<bool>
+    -> sdbusplus::async::task<OperationStatus>
 {
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
@@ -86,7 +87,7 @@ auto BasePort::writeMultipleRegisters(
     if (!modbus->setProperties(baudRate, parity))
     {
         error("Failed to set serial port properties");
-        co_return false;
+        co_return OperationStatus::failure;
     }
 
     debug(
@@ -94,8 +95,10 @@ auto BasePort::writeMultipleRegisters(
         "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
         registerOffset);
 
-    co_return co_await modbus->writeMultipleRegisters(
-        deviceAddress, registerOffset, registers);
+    co_return co_await modbus->writeMultipleRegisters(deviceAddress,
+                                                      registerOffset, registers)
+        ? OperationStatus::success
+        : OperationStatus::failure;
 }
 
 } // namespace phosphor::modbus::rtu::port

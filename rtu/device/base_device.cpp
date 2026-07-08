@@ -524,7 +524,7 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
         auto ret = co_await serialPort.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
             config.profile.parity, spanBuffer);
-        if (!ret)
+        if (ret != port::OperationStatus::success)
         {
             handleSpanReadFailure(bucket, span);
             continue;

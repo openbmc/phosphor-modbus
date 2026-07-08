@@ -94,7 +94,7 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
     auto ret = co_await serialPort.readHoldingRegisters(
         config.address, versionRegister.offset, config.profile.baudRate,
         config.profile.parity, registers);
-    if (!ret)
+    if (ret != port::OperationStatus::success)
     {
         error("Failed to read holding registers {NAME} for {DEVICE_ADDRESS}",
               "NAME", versionRegister.name, "DEVICE_ADDRESS", lg2::hex,
