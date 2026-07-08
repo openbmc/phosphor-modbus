@@ -8,6 +8,7 @@
 #include <xyz/openbmc_project/Configuration/USBPort/client.hpp>
 
 #include <concepts>
+#include <optional>
 
 namespace phosphor::modbus::rtu::port
 {
@@ -105,6 +106,26 @@ auto updateBaseConfig(BaseConfig& config, const BaseProperties& properties)
 
 } // namespace config
 
+class BasePort;
+
+/** @brief RAII handle for an exclusive reservation of a serial port.
+ *  While held, normal port operations return OperationStatus::busy; the
+ *  holder passes it to read/write to bypass that gate. */
+class ExclusiveLock
+{
+  public:
+    ExclusiveLock(const ExclusiveLock&) = delete;
+    ExclusiveLock& operator=(const ExclusiveLock&) = delete;
+    ExclusiveLock(ExclusiveLock&& other) noexcept;
+    ExclusiveLock& operator=(ExclusiveLock&&) = delete;
+    ~ExclusiveLock();
+
+  private:
+    friend class BasePort;
+    explicit ExclusiveLock(BasePort& port);
+    BasePort* port;
+};
+
 class BasePort
 {
   public:
@@ -114,19 +135,28 @@ class BasePort
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
-                              std::span<uint16_t> registers)
+                              std::span<uint16_t> registers,
+                              ExclusiveLock* lock = nullptr)
         -> sdbusplus::async::task<OperationStatus>;
 
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                                 uint32_t baudRate, Parity parity,
-                                std::span<const uint16_t> registers)
+                                std::span<const uint16_t> registers,
+                                ExclusiveLock* lock = nullptr)
         -> sdbusplus::async::task<OperationStatus>;
 
+    /** @brief Reserve the port exclusively (e.g. for a firmware update).
+     *  @return A lock on success, or nullopt if the port is already
+     *          reserved. */
+    auto acquireExclusive() -> std::optional<ExclusiveLock>;
+
   private:
+    friend class ExclusiveLock;
     std::string name;
     int fd = -1;
     std::unique_ptr<ModbusIntf> modbus;
     sdbusplus::async::mutex mutex;
+    bool busy = false;
 };
 
 } // namespace phosphor::modbus::rtu::port
