@@ -234,6 +234,10 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
     auto ret = co_await port.readHoldingRegisters(
         config.address, probe.offset, config.profile.baudRate,
         config.profile.parity, registers);
+    if (ret == ModbusIntf::port::OperationStatus::busy)
+    {
+        co_return;
+    }
     if (ret != ModbusIntf::port::OperationStatus::success)
     {
         co_await handleProbeFailed();
@@ -278,6 +282,10 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
         auto ret = co_await port.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
             config.profile.parity, spanBuffer);
+        if (ret == ModbusIntf::port::OperationStatus::busy)
+        {
+            continue;
+        }
         if (ret != ModbusIntf::port::OperationStatus::success)
         {
             for (auto idx : span.registerIndices)
