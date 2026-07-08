@@ -40,7 +40,7 @@ auto DeviceConfig::produceValue(ProfileIntf::ConfigType type)
 }
 
 auto DeviceConfig::writeRegister(const ProfileIntf::ConfigRegister& reg)
-    -> sdbusplus::async::task<bool>
+    -> sdbusplus::async::task<port::OperationStatus>
 {
     auto values = produceValue(reg.type);
     co_return co_await serialPort.writeMultipleRegisters(

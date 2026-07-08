@@ -14,6 +14,15 @@ namespace phosphor::modbus::rtu::port
 
 using ModbusIntf = phosphor::modbus::rtu::Modbus;
 
+/** @brief Outcome of a Modbus operation on a serial port. */
+enum class OperationStatus
+{
+    success, // Operation completed and response validated.
+    failure, // Operation attempted but failed (no/invalid response, CRC,
+             // exception, or retries exhausted).
+    busy,    // Port in use (e.g. for firmware update); operation not attempted.
+};
+
 namespace config
 {
 
@@ -106,12 +115,12 @@ class BasePort
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
                               std::span<uint16_t> registers)
-        -> sdbusplus::async::task<bool>;
+        -> sdbusplus::async::task<OperationStatus>;
 
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                                 uint32_t baudRate, Parity parity,
                                 std::span<const uint16_t> registers)
-        -> sdbusplus::async::task<bool>;
+        -> sdbusplus::async::task<OperationStatus>;
 
   private:
     std::string name;
