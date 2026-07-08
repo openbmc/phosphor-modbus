@@ -81,6 +81,51 @@ class PortTest : public BaseTest
         co_return;
     }
 
+    auto ReadStatus(PortConfigIntf::Config& config, MockPort& port)
+        -> sdbusplus::async::task<PortIntf::OperationStatus>
+    {
+        std::vector<uint16_t> registers(
+            TestIntf::testSuccessReadHoldingRegisterCount);
+        co_return co_await port.readHoldingRegisters(
+            TestIntf::testDeviceAddress,
+            TestIntf::testSuccessReadHoldingRegisterOffset, config.baudRate,
+            RTUIntf::Parity::none, registers);
+    }
+
+    auto TestExclusiveLock(PortConfigIntf::Config& config, MockPort& port)
+        -> sdbusplus::async::task<void>
+    {
+        auto lock = port.acquireExclusive();
+        EXPECT_TRUE(lock.has_value()) << "Failed to acquire exclusive lock";
+        if (!lock)
+        {
+            co_return;
+        }
+
+        // While reserved, an unlocked read is rejected as busy.
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::busy);
+
+        // A second acquire on the same port fails.
+        EXPECT_FALSE(port.acquireExclusive().has_value());
+
+        // The lock holder can still read by passing the lock.
+        std::vector<uint16_t> registers(
+            TestIntf::testSuccessReadHoldingRegisterCount);
+        auto held = co_await port.readHoldingRegisters(
+            TestIntf::testDeviceAddress,
+            TestIntf::testSuccessReadHoldingRegisterOffset, config.baudRate,
+            RTUIntf::Parity::none, registers, &*lock);
+        EXPECT_EQ(held, PortIntf::OperationStatus::success);
+
+        // Releasing the lock re-enables normal reads.
+        lock.reset();
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::success);
+
+        co_return;
+    }
+
     template <typename Config, typename Properties>
     static inline void VerifyConfig(const Config& config,
                                     const Properties& property)
@@ -211,6 +256,22 @@ TEST_F(PortTest, TestReadHoldingRegisterFailure)
 
     ctx.spawn(TestHoldingRegisters(
         config, port, TestIntf::testFailureReadHoldingRegister, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(PortTest, TestExclusiveLock)
+{
+    PortConfigIntf::Config config = {};
+    auto res = PortConfigIntf::updateBaseConfig(config, properties);
+    EXPECT_TRUE(res) << "Failed to update config";
+
+    MockPort port(ctx, config, clientDevicePath);
+
+    ctx.spawn(TestExclusiveLock(config, port));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
