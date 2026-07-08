@@ -42,11 +42,42 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
     info("Serial port {NAME} created successfully", "NAME", config.name);
 }
 
+ExclusiveLock::ExclusiveLock(BasePort& port) : port(&port) {}
+
+ExclusiveLock::ExclusiveLock(ExclusiveLock&& other) noexcept : port(other.port)
+{
+    other.port = nullptr;
+}
+
+ExclusiveLock::~ExclusiveLock()
+{
+    if (port != nullptr)
+    {
+        port->busy = false;
+    }
+}
+
+auto BasePort::acquireExclusive() -> std::optional<ExclusiveLock>
+{
+    // No co_await between check and set, so only one caller wins.
+    if (busy)
+    {
+        return std::nullopt;
+    }
+    busy = true;
+    return ExclusiveLock(*this);
+}
+
 auto BasePort::readHoldingRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
-    Parity parity, std::span<uint16_t> registers)
+    Parity parity, std::span<uint16_t> registers, ExclusiveLock* lock)
     -> sdbusplus::async::task<OperationStatus>
 {
+    if (lock == nullptr && busy)
+    {
+        co_return OperationStatus::busy;
+    }
+
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
 
@@ -78,9 +109,14 @@ auto BasePort::readHoldingRegisters(
 
 auto BasePort::writeMultipleRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
-    Parity parity, std::span<const uint16_t> registers)
+    Parity parity, std::span<const uint16_t> registers, ExclusiveLock* lock)
     -> sdbusplus::async::task<OperationStatus>
 {
+    if (lock == nullptr && busy)
+    {
+        co_return OperationStatus::busy;
+    }
+
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
 
