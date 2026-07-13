@@ -126,6 +126,29 @@ class PortTest : public BaseTest
         co_return;
     }
 
+    auto TestMonitoringEnabled(PortConfigIntf::Config& config, MockPort& port)
+        -> sdbusplus::async::task<void>
+    {
+        // Monitoring is enabled by default, so reads succeed.
+        EXPECT_TRUE(port.monitoring_enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::success);
+
+        // Disabling monitoring reserves the port; reads return busy.
+        port.monitoring_enabled(false);
+        EXPECT_FALSE(port.monitoring_enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::busy);
+
+        // Re-enabling monitoring releases the port; reads succeed again.
+        port.monitoring_enabled(true);
+        EXPECT_TRUE(port.monitoring_enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::success);
+
+        co_return;
+    }
+
     template <typename Config, typename Properties>
     static inline void VerifyConfig(const Config& config,
                                     const Properties& property)
@@ -272,6 +295,22 @@ TEST_F(PortTest, TestExclusiveLock)
     MockPort port(ctx, config, clientDevicePath);
 
     ctx.spawn(TestExclusiveLock(config, port));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(PortTest, TestMonitoringEnabled)
+{
+    PortConfigIntf::Config config = {};
+    auto res = PortConfigIntf::updateBaseConfig(config, properties);
+    EXPECT_TRUE(res) << "Failed to update config";
+
+    MockPort port(ctx, config, clientDevicePath);
+
+    ctx.spawn(TestMonitoringEnabled(config, port));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
