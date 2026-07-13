@@ -126,6 +126,29 @@ class PortTest : public BaseTest
         co_return;
     }
 
+    auto TestPortEnabled(PortConfigIntf::Config& config, MockPort& port)
+        -> sdbusplus::async::task<void>
+    {
+        // The port is enabled by default, so reads succeed.
+        EXPECT_TRUE(port.enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::success);
+
+        // Disabling the port reserves it; reads return busy.
+        port.enabled(false);
+        EXPECT_FALSE(port.enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::busy);
+
+        // Re-enabling the port releases it; reads succeed again.
+        port.enabled(true);
+        EXPECT_TRUE(port.enabled());
+        EXPECT_EQ(co_await ReadStatus(config, port),
+                  PortIntf::OperationStatus::success);
+
+        co_return;
+    }
+
     template <typename Config, typename Properties>
     static inline void VerifyConfig(const Config& config,
                                     const Properties& property)
@@ -272,6 +295,22 @@ TEST_F(PortTest, TestExclusiveLock)
     MockPort port(ctx, config, clientDevicePath);
 
     ctx.spawn(TestExclusiveLock(config, port));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(PortTest, TestPortEnabled)
+{
+    PortConfigIntf::Config config = {};
+    auto res = PortConfigIntf::updateBaseConfig(config, properties);
+    EXPECT_TRUE(res) << "Failed to update config";
+
+    MockPort port(ctx, config, clientDevicePath);
+
+    ctx.spawn(TestPortEnabled(config, port));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
