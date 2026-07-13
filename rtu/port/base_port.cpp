@@ -11,6 +11,7 @@
 #include <format>
 #include <optional>
 #include <regex>
+#include <utility>
 
 namespace phosphor::modbus::rtu::port
 {
@@ -19,6 +20,10 @@ PHOSPHOR_LOG2_USING;
 
 BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
                    const std::string& devicePath) :
+    PortControlIntf(ctx, sdbusplus::object_path(
+                             sdbusplus::common::xyz::openbmc_project::control::
+                                 Port::namespace_path) /
+                             config.name),
     name(config.name), mutex(config.name)
 {
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
@@ -39,7 +44,36 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
         throw std::runtime_error("Failed to create Modbus interface");
     }
 
+    emit_added();
+
     info("Serial port {NAME} created successfully", "NAME", config.name);
+}
+
+BasePort::~BasePort()
+{
+    emit_removed();
+}
+
+auto BasePort::set_property(monitoring_enabled_t, bool enabled) -> bool
+{
+    if (enabled)
+    {
+        monitoringLock.reset();
+    }
+    else if (!monitoringLock)
+    {
+        if (auto lock = acquireExclusive())
+        {
+            monitoringLock.emplace(std::move(*lock));
+        }
+    }
+
+    // Monitoring is enabled only when the port is not reserved, so a failed
+    // reservation leaves the property unchanged.
+    bool monitoringEnabled = !monitoringLock.has_value();
+    bool changed = (monitoringEnabled != monitoring_enabled_);
+    monitoring_enabled_ = monitoringEnabled;
+    return changed;
 }
 
 ExclusiveLock::ExclusiveLock(BasePort& port) : port(&port) {}

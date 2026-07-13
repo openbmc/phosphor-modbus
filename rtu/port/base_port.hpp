@@ -6,6 +6,7 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <xyz/openbmc_project/Configuration/USBPort/client.hpp>
+#include <xyz/openbmc_project/Control/Port/aserver.hpp>
 
 #include <concepts>
 #include <optional>
@@ -126,12 +127,24 @@ class ExclusiveLock
     BasePort* port;
 };
 
-class BasePort
+class BasePort;
+
+using PortControlIntf = sdbusplus::async::server_t<
+    BasePort, sdbusplus::aserver::xyz::openbmc_project::control::Port>;
+
+class BasePort : public PortControlIntf
 {
   public:
     explicit BasePort(sdbusplus::async::context& ctx,
                       const config::Config& config,
                       const std::string& devicePath);
+    ~BasePort();
+
+    /** @brief Handle a client write of the Control.Port MonitoringEnabled
+     *  property: reserve the port (stop monitoring) when disabled, release it
+     *  when enabled.
+     *  @return Whether the stored property value changed. */
+    auto set_property(monitoring_enabled_t, bool enabled) -> bool;
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
@@ -157,6 +170,8 @@ class BasePort
     std::unique_ptr<ModbusIntf> modbus;
     sdbusplus::async::mutex mutex;
     bool busy = false;
+    // Held while monitoring is disabled via Control.Port; reset to resume.
+    std::optional<ExclusiveLock> monitoringLock;
 };
 
 } // namespace phosphor::modbus::rtu::port

@@ -7,6 +7,7 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <sdbusplus/server/manager.hpp>
+#include <xyz/openbmc_project/Control/Port/client.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 #include <xyz/openbmc_project/Metric/Value/client.hpp>
 #include <xyz/openbmc_project/Sensor/Value/client.hpp>
@@ -307,6 +308,8 @@ auto main() -> int
     using MetricIntf = sdbusplus::client::xyz::openbmc_project::metric::Value<>;
     using SoftwareIntf =
         sdbusplus::client::xyz::openbmc_project::software::Version<>;
+    using PortControlIntf =
+        sdbusplus::client::xyz::openbmc_project::control::Port<>;
     sdbusplus::server::manager_t sensorManager{
         ctx, SensorIntf::namespace_path::value};
     sdbusplus::server::manager_t metricManager{
@@ -315,6 +318,8 @@ auto main() -> int
         ctx, InventoryIntf::namespace_path};
     sdbusplus::server::manager_t softwareManager{ctx,
                                                  SoftwareIntf::namespace_path};
+    sdbusplus::server::manager_t portControlManager{
+        ctx, PortControlIntf::namespace_path};
 
     info("Creating Modbus device manager");
     phosphor::modbus::rtu::DeviceManager deviceManager{ctx};
