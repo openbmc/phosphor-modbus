@@ -6,6 +6,8 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 #include <xyz/openbmc_project/Configuration/USBPort/client.hpp>
+#include <xyz/openbmc_project/Inventory/Item/Connector/aserver.hpp>
+#include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
 #include <concepts>
 #include <optional>
@@ -136,12 +138,25 @@ struct OperationOptions
     ExclusiveLock* lock = nullptr;
 };
 
-class BasePort
+class BasePort;
+
+using PortConnectorIntf = sdbusplus::async::server_t<
+    BasePort,
+    sdbusplus::aserver::xyz::openbmc_project::inventory::item::Connector,
+    sdbusplus::aserver::xyz::openbmc_project::object::Enable>;
+
+class BasePort : public PortConnectorIntf
 {
   public:
     explicit BasePort(sdbusplus::async::context& ctx,
                       const config::Config& config,
                       const std::string& devicePath);
+    ~BasePort();
+
+    /** @brief Handle a client write of the Object.Enable Enabled property:
+     *  reserve the port when disabled, release it when enabled.
+     *  @return Whether the enabled state changed. */
+    auto set_property(enabled_t, bool enabled) -> bool;
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
@@ -167,6 +182,8 @@ class BasePort
     std::unique_ptr<ModbusIntf> modbus;
     sdbusplus::async::mutex mutex;
     bool busy = false;
+    // Held while the port is disabled via Object.Enable; reset to resume.
+    std::optional<ExclusiveLock> monitoringLock;
 };
 
 } // namespace phosphor::modbus::rtu::port
