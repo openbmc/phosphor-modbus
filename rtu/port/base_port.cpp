@@ -6,19 +6,38 @@
 
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Configuration/USBPort/client.hpp>
+#include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
+#include <algorithm>
 #include <filesystem>
 #include <format>
 #include <optional>
 #include <regex>
+#include <utility>
 
 namespace phosphor::modbus::rtu::port
 {
 
 PHOSPHOR_LOG2_USING;
 
+namespace
+{
+auto getConnectorPath(std::string name) -> sdbusplus::object_path
+{
+    // D-Bus paths can't contain '-' (e.g. ttyRS485-8 -> ttyRS485_8).
+    std::ranges::replace(name, '-', '_');
+    return sdbusplus::object_path(sdbusplus::client::xyz::openbmc_project::
+                                      inventory::Item<>::namespace_path) /
+           "system" / "connector" / name;
+}
+} // namespace
+
+constexpr PortConnectorIntf::Enable::properties_t initEnabled{.enabled = true};
+
 BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
                    const std::string& devicePath) :
+    PortConnectorIntf(ctx, getConnectorPath(config.name), std::nullopt,
+                      initEnabled),
     name(config.name), mutex(config.name)
 {
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
@@ -39,7 +58,38 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
         throw std::runtime_error("Failed to create Modbus interface");
     }
 
+    Connector::emit_added();
+    Enable::emit_added();
+
     debug("Serial port {NAME} created successfully", "NAME", config.name);
+}
+
+BasePort::~BasePort()
+{
+    Connector::emit_removed();
+    Enable::emit_removed();
+}
+
+auto BasePort::set_property(enabled_t, bool enabled) -> bool
+{
+    if (enabled)
+    {
+        monitoringLock.reset();
+    }
+    else if (!monitoringLock)
+    {
+        if (auto lock = acquireExclusive())
+        {
+            monitoringLock.emplace(std::move(*lock));
+        }
+    }
+
+    // The port is enabled only when not reserved, so a failed reservation
+    // leaves the property unchanged.
+    bool portEnabled = !monitoringLock.has_value();
+    bool changed = (portEnabled != properties.enabled);
+    properties.enabled = portEnabled;
+    return changed;
 }
 
 ExclusiveLock::ExclusiveLock(BasePort& port) : port(&port) {}
