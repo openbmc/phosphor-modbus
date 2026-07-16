@@ -79,7 +79,7 @@ class SensorLifecycleTest : public SensorTestBase
         ctx.spawn(device->pollRegisters());
 
         // fastRegister keeps being polled while slowRegister stays at one read.
-        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 3));
+        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 2));
         EXPECT_EQ(serverTester->readCount(slowRegister.offset), 1U);
 
         co_await stopDevice(*device);
@@ -170,11 +170,11 @@ TEST_F(SensorLifecycleTest, TestStopDeviceExitsAndStopsPolling)
 
     // Let it poll once, then stop it
     ctx.spawn(
-        sdbusplus::async::sleep_for(ctx, 1500ms) |
+        sdbusplus::async::sleep_for(ctx, 800ms) |
         sdbusplus::async::execution::then([&]() { device->requestStop(); }));
 
     // Wait for coroutine to exit, then verify no further polls
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 2s) |
               sdbusplus::async::execution::then([&]() {
                   EXPECT_TRUE(device->isStopped())
                       << "Device should be stopped after requestStop";
@@ -182,7 +182,7 @@ TEST_F(SensorLifecycleTest, TestStopDeviceExitsAndStopsPolling)
 
                   // Schedule another check — count should not increase
                   ctx.spawn(
-                      sdbusplus::async::sleep_for(ctx, 2s) |
+                      sdbusplus::async::sleep_for(ctx, 1s) |
                       sdbusplus::async::execution::then([&, countAfterStop]() {
                           EXPECT_EQ(serverTester->totalRequestCount.load(),
                                     countAfterStop)

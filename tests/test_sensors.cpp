@@ -77,7 +77,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -107,7 +107,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
 
     ctx.spawn(testSensorCreation(objectPath, sensorRegister, expectedSigned));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -145,7 +145,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
                            sensorRegister.shift, sensorRegister.scale,
                            sensorRegister.precision)));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -172,7 +172,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -199,7 +199,7 @@ TEST_F(SensorsTest, TestSensorValueFloat32)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterFloat32Value));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -265,7 +265,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
 
     ctx.spawn(testSpan());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -332,7 +332,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
 
     ctx.spawn(testSpan());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -400,7 +400,7 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
 
     ctx.spawn(testIllegalAddr());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
