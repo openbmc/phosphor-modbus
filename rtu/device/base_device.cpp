@@ -294,10 +294,17 @@ auto BaseDevice::findOrCreateBucket(std::chrono::seconds interval)
     return pollBuckets.back();
 }
 
+auto BaseDevice::getPollInterval(const std::string& name) const
+    -> std::chrono::seconds
+{
+    auto it = config.registerPollRates.find(name);
+    return it != config.registerPollRates.end() ? it->second : config.pollRate;
+}
+
 auto BaseDevice::buildPollBuckets() -> void
 {
-    auto& bucket = findOrCreateBucket(config.pollRate);
-
+    // Each register goes to the bucket for its poll interval, created on
+    // demand.
     for (const auto& reg : config.profile.sensorRegisters)
     {
         auto sensorIter = sensors.find(reg.name);
@@ -305,7 +312,8 @@ auto BaseDevice::buildPollBuckets() -> void
         {
             continue;
         }
-        bucket.entries.emplace_back(SensorEntry{reg, *(sensorIter->second)});
+        findOrCreateBucket(getPollInterval(reg.name))
+            .entries.emplace_back(SensorEntry{reg, *(sensorIter->second)});
     }
 
     for (const auto& reg : config.profile.metricRegisters)
@@ -315,13 +323,15 @@ auto BaseDevice::buildPollBuckets() -> void
         {
             continue;
         }
-        bucket.entries.emplace_back(MetricEntry{reg, *(metricIter->second)});
+        findOrCreateBucket(getPollInterval(reg.name))
+            .entries.emplace_back(MetricEntry{reg, *(metricIter->second)});
     }
 
     for (const auto& statusRegister : config.profile.statusRegisters)
     {
-        bucket.entries.emplace_back(
-            StatusEntry{statusRegister.offset, &statusRegister.bits});
+        findOrCreateBucket(getPollInterval(statusRegister.name))
+            .entries.emplace_back(
+                StatusEntry{statusRegister.offset, &statusRegister.bits});
     }
 
     // Build register spans for each bucket.

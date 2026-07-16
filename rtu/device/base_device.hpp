@@ -140,6 +140,10 @@ class BaseDevice
     /** @brief Find or create a poll bucket for a given interval. */
     auto findOrCreateBucket(std::chrono::seconds interval) -> PollBucket&;
 
+    /** @brief Poll interval for a register: its per-register override if set,
+     *  else the device poll rate. */
+    auto getPollInterval(const std::string& name) const -> std::chrono::seconds;
+
     /** @brief Build poll buckets with merged sensor and status spans. */
     auto buildPollBuckets() -> void;
 

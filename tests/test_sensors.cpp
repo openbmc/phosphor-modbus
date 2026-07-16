@@ -10,9 +10,12 @@
 #include <xyz/openbmc_project/State/Decorator/Availability/client.hpp>
 #include <xyz/openbmc_project/State/Decorator/OperationalStatus/client.hpp>
 
+#include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 #include <gtest/gtest.h>
 
@@ -147,7 +150,9 @@ class SensorsTest : public BaseTest
     }
 
     auto createDevice(std::vector<ProfileIntf::SensorRegister> sensorRegisters,
-                      EventIntf::Events& events)
+                      EventIntf::Events& events,
+                      std::unordered_map<std::string, std::chrono::seconds>
+                          registerPollRates = {})
         -> std::pair<std::unique_ptr<MockPort>,
                      std::unique_ptr<DeviceIntf::BaseDevice>>
     {
@@ -168,6 +173,7 @@ class SensorsTest : public BaseTest
                 .inventoryPath = std::move(inventoryPath),
                 .profile = testProfile,
                 .pollRate = 1s,
+                .registerPollRates = std::move(registerPollRates),
             },
             deviceTestConfig.deviceType,
             deviceTestConfig.deviceModel,
@@ -261,6 +267,20 @@ class SensorsTest : public BaseTest
         co_return false;
     }
 
+    auto waitForReadCount(uint16_t offset, uint32_t want)
+        -> sdbusplus::async::task<bool>
+    {
+        for (int i = 0; i < propertyWaitRetries; i++)
+        {
+            if (serverTester->readCount(offset) >= want)
+            {
+                co_return true;
+            }
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return false;
+    }
+
     // Sensor is unavailable with a blanked (NaN) reading, but not faulted.
     auto verifyUnavailableWhileBusy(const std::string& path)
         -> sdbusplus::async::task<void>
@@ -323,6 +343,32 @@ class SensorsTest : public BaseTest
         co_return;
     }
 
+    // A register with a poll-rate override is polled on its own schedule,
+    // independent of the device poll rate.
+    auto testRegisterPollRate(ProfileIntf::SensorRegister fastRegister,
+                              ProfileIntf::SensorRegister slowRegister)
+        -> sdbusplus::async::task<void>
+    {
+        EventIntf::Events events{ctx};
+        // The device rate (1s from createDevice) drives fastRegister; the slow
+        // register is overridden to a long interval so it is polled just once.
+        std::unordered_map<std::string, std::chrono::seconds> overrides = {
+            {slowRegister.name, 100s}};
+        auto devPair =
+            createDevice({fastRegister, slowRegister}, events, overrides);
+        auto& device = devPair.second;
+
+        ctx.spawn(device->pollRegisters());
+
+        // fastRegister keeps being polled while slowRegister stays at one read.
+        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 3));
+        EXPECT_EQ(serverTester->readCount(slowRegister.offset), 1U);
+
+        co_await stopDevice(*device);
+        ctx.request_stop();
+        co_return;
+    }
+
     ProfileIntf::DeviceProfile testProfile = {
         .parity = ModbusIntf::Parity::none,
         .baudRate = baudRate,
@@ -381,6 +427,36 @@ TEST_F(SensorsTest, TestPortBusyMarksSensorUnavailable)
 
     ctx.spawn(testPortBusy(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
+
+    ctx.run();
+}
+
+TEST_F(SensorsTest, TestRegisterPollRateOverride)
+{
+    setupDevice({
+        "ResorviorPumpUnit",
+        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
+        ProfileIntf::DeviceType::reservoirPumpUnit,
+        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+    });
+
+    const ProfileIntf::SensorRegister fastRegister = {
+        .name = "FastSensor",
+        .type = SensorTypeIntf::temperature,
+        .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+        .size = TestIntf::testReadHoldingRegisterTempCount,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
+    };
+
+    const ProfileIntf::SensorRegister slowRegister = {
+        .name = "SlowSensor",
+        .type = SensorTypeIntf::pressure,
+        .offset = TestIntf::testReadHoldingRegisterDistantOffset,
+        .size = TestIntf::testReadHoldingRegisterDistantCount,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
+    };
+
+    ctx.spawn(testRegisterPollRate(fastRegister, slowRegister));
 
     ctx.run();
 }

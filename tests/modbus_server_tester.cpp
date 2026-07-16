@@ -164,6 +164,8 @@ void ServerTester::processReadHoldingRegisters(
     uint16_t registerOffset = request.raw[2] << 8 | request.raw[3];
     uint16_t registerCount = request.raw[4] << 8 | request.raw[5];
 
+    readCountByOffset[registerOffset]++;
+
     if (registerOffset == testFailureReadHoldingRegister)
     {
         buildErrorResponse(request, response,
@@ -211,6 +213,12 @@ void ServerTester::processSuccessfulRead(
 
     segmentedResponse =
         (registerOffset == testSuccessReadHoldingRegisterSegmentedOffset);
+}
+
+uint32_t ServerTester::readCount(uint16_t offset) const
+{
+    auto it = readCountByOffset.find(offset);
+    return it == readCountByOffset.end() ? 0 : it->second;
 }
 
 void ServerTester::processWriteMultipleRegisters(

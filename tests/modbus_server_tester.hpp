@@ -5,6 +5,9 @@
 
 #include <sdbusplus/async.hpp>
 
+#include <cstdint>
+#include <map>
+
 using MessageBase = phosphor::modbus::rtu::Message;
 
 namespace phosphor::modbus::test
@@ -155,6 +158,10 @@ class ServerTester
 
     auto processRequests() -> void;
 
+    /** @brief Number of read requests seen for a register offset, so tests can
+     *  confirm a register's poll cadence. */
+    auto readCount(uint16_t offset) const -> uint32_t;
+
     std::atomic<uint32_t> totalRequestCount{0};
     std::atomic<uint32_t> writeRequestCount{0};
 
@@ -187,5 +194,6 @@ class ServerTester
     sdbusplus::async::mutex mutex;
     uint32_t flakyRegisterRequestCount = 0;
     uint32_t flakyWriteRequestCount = 0;
+    std::map<uint16_t, uint32_t> readCountByOffset;
 };
 } // namespace phosphor::modbus::test
