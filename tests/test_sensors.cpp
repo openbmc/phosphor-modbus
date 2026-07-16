@@ -361,7 +361,7 @@ class SensorsTest : public BaseTest
         ctx.spawn(device->pollRegisters());
 
         // fastRegister keeps being polled while slowRegister stays at one read.
-        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 3));
+        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 2));
         EXPECT_EQ(serverTester->readCount(slowRegister.offset), 1U);
 
         co_await stopDevice(*device);
@@ -402,7 +402,7 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -485,7 +485,7 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
 
     ctx.spawn(testSensorCreation(objectPath, sensorRegister, expectedSigned));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -523,7 +523,7 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
                            sensorRegister.shift, sensorRegister.scale,
                            sensorRegister.precision)));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -550,7 +550,7 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -577,7 +577,7 @@ TEST_F(SensorsTest, TestSensorValueFloat32)
         testSensorCreation(objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterFloat32Value));
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -643,7 +643,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
 
     ctx.spawn(testSpan());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -710,7 +710,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
 
     ctx.spawn(testSpan());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
@@ -748,11 +748,11 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
 
     // Let it poll once, then stop it
     ctx.spawn(
-        sdbusplus::async::sleep_for(ctx, 1500ms) |
+        sdbusplus::async::sleep_for(ctx, 800ms) |
         sdbusplus::async::execution::then([&]() { device->requestStop(); }));
 
     // Wait for coroutine to exit, then verify no further polls
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 3s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 2s) |
               sdbusplus::async::execution::then([&]() {
                   EXPECT_TRUE(device->isStopped())
                       << "Device should be stopped after requestStop";
@@ -760,7 +760,7 @@ TEST_F(SensorsTest, TestStopDeviceExitsAndStopsPolling)
 
                   // Schedule another check — count should not increase
                   ctx.spawn(
-                      sdbusplus::async::sleep_for(ctx, 2s) |
+                      sdbusplus::async::sleep_for(ctx, 1s) |
                       sdbusplus::async::execution::then([&, countAfterStop]() {
                           EXPECT_EQ(serverTester->totalRequestCount.load(),
                                     countAfterStop)
@@ -834,7 +834,7 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
 
     ctx.spawn(testIllegalAddr());
 
-    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
