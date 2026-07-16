@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -107,6 +106,13 @@ struct StatusBit
     StatusType type = StatusType::unknown;
     uint8_t bitPosition = 0;
     bool value = false;
+};
+
+struct StatusRegister
+{
+    std::string name = "unknown";
+    uint16_t offset = 0;
+    std::vector<StatusBit> bits;
 };
 
 enum class MetricType
@@ -219,7 +225,7 @@ struct DeviceProfile
     ProbeRegister probeRegister;
     std::vector<InventoryRegister> inventoryRegisters;
     std::vector<SensorRegister> sensorRegisters;
-    std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
+    std::vector<StatusRegister> statusRegisters;
     std::vector<MetricRegister> metricRegisters;
     std::vector<FirmwareRegister> firmwareRegisters;
     std::vector<ConfigRegister> configRegisters{};

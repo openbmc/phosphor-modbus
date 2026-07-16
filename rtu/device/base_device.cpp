@@ -318,9 +318,10 @@ auto BaseDevice::buildPollBuckets() -> void
         bucket.entries.emplace_back(MetricEntry{reg, *(metricIter->second)});
     }
 
-    for (const auto& [address, statusBits] : config.profile.statusRegisters)
+    for (const auto& statusRegister : config.profile.statusRegisters)
     {
-        bucket.entries.emplace_back(StatusEntry{address, &statusBits});
+        bucket.entries.emplace_back(
+            StatusEntry{statusRegister.offset, &statusRegister.bits});
     }
 
     // Build register spans for each bucket.

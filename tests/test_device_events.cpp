@@ -224,7 +224,7 @@ class DeviceEventsTest : public BaseTest
                 .size = TestIntf::testReadHoldingRegisterTempCount,
                 .format = ProfileIntf::SensorFormat::fixedPoint,
             }},
-            .statusRegisters = {{statusOffset, {statusBit}}},
+            .statusRegisters = {{.offset = statusOffset, .bits = {statusBit}}},
             .metricRegisters = {},
             .firmwareRegisters = {},
         };

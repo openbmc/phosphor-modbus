@@ -180,29 +180,6 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_FALSE(voltage.isSigned);
     EXPECT_EQ(voltage.format, SensorFormat::integer);
 
-    // Status registers — without register Name
-    ASSERT_EQ(profile.statusRegisters.size(), 2U);
-    auto it = profile.statusRegisters.find(500);
-    ASSERT_NE(it, profile.statusRegisters.end());
-    ASSERT_EQ(it->second.size(), 2U);
-    EXPECT_EQ(it->second[0].name, "TestTemp");
-    EXPECT_EQ(it->second[0].type, StatusType::sensorFailure);
-    EXPECT_EQ(it->second[0].bitPosition, 0U);
-    EXPECT_TRUE(it->second[0].value);
-    EXPECT_EQ(it->second[1].name, "TestVoltage");
-    EXPECT_EQ(it->second[1].type, StatusType::sensorReadingCritical);
-    EXPECT_EQ(it->second[1].bitPosition, 3U);
-    EXPECT_FALSE(it->second[1].value);
-
-    // Status registers — with register Name prepended to bit names
-    auto it2 = profile.statusRegisters.find(501);
-    ASSERT_NE(it2, profile.statusRegisters.end());
-    ASSERT_EQ(it2->second.size(), 1U);
-    EXPECT_EQ(it2->second[0].name, "RPU_PumpFault");
-    EXPECT_EQ(it2->second[0].type, StatusType::pumpFailure);
-    EXPECT_EQ(it2->second[0].bitPosition, 1U);
-    EXPECT_TRUE(it2->second[0].value);
-
     // Metric registers
     ASSERT_EQ(profile.metricRegisters.size(), 1U);
     const auto& metric = profile.metricRegisters[0];
@@ -239,6 +216,37 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(oneShot.offset, 801U);
     EXPECT_EQ(oneShot.size, 2U);
     EXPECT_FALSE(oneShot.period.has_value());
+}
+
+TEST_F(DeviceProfileTest, ParsesStatusRegisters)
+{
+    const auto& profile = getDeviceProfile(testProfileName);
+
+    ASSERT_EQ(profile.statusRegisters.size(), 2U);
+
+    // First register omits a Name, so it defaults to "unknown".
+    const auto& status0 = profile.statusRegisters[0];
+    EXPECT_EQ(status0.offset, 500U);
+    EXPECT_EQ(status0.name, "unknown");
+    ASSERT_EQ(status0.bits.size(), 2U);
+    EXPECT_EQ(status0.bits[0].name, "TestTemp");
+    EXPECT_EQ(status0.bits[0].type, StatusType::sensorFailure);
+    EXPECT_EQ(status0.bits[0].bitPosition, 0U);
+    EXPECT_TRUE(status0.bits[0].value);
+    EXPECT_EQ(status0.bits[1].name, "TestVoltage");
+    EXPECT_EQ(status0.bits[1].type, StatusType::sensorReadingCritical);
+    EXPECT_EQ(status0.bits[1].bitPosition, 3U);
+    EXPECT_FALSE(status0.bits[1].value);
+
+    // Second register has a Name that is retained and prepended to bit names.
+    const auto& status1 = profile.statusRegisters[1];
+    EXPECT_EQ(status1.offset, 501U);
+    EXPECT_EQ(status1.name, "RPU");
+    ASSERT_EQ(status1.bits.size(), 1U);
+    EXPECT_EQ(status1.bits[0].name, "RPU_PumpFault");
+    EXPECT_EQ(status1.bits[0].type, StatusType::pumpFailure);
+    EXPECT_EQ(status1.bits[0].bitPosition, 1U);
+    EXPECT_TRUE(status1.bits[0].value);
 }
 
 TEST_F(DeviceProfileTest, CachesProfile)

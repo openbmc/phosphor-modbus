@@ -198,42 +198,45 @@ static void from_json(const json& j, StatusBit& b)
     b.value = j.at("Value").get<bool>();
 }
 
-template <typename T, typename NameFn>
-static void validateUniqueNames(const std::vector<T>& items,
-                                const std::string& context, NameFn getName)
+template <typename T, typename KeyFn>
+static void validateUnique(const std::vector<T>& items,
+                           const std::string& context, KeyFn getKey)
 {
-    std::unordered_set<std::string> names;
+    std::unordered_set<std::string> keys;
     for (const auto& item : items)
     {
-        auto name = getName(item);
-        if (!names.insert(name).second)
+        auto key = getKey(item);
+        if (!keys.insert(key).second)
         {
-            throw std::invalid_argument("Duplicate " + context + ": " + name);
+            throw std::invalid_argument("Duplicate " + context + ": " + key);
         }
     }
 }
 
-static auto parseStatusRegisters(const json& j)
-    -> std::unordered_map<uint16_t, std::vector<StatusBit>>
+static auto parseStatusRegisters(const json& j) -> std::vector<StatusRegister>
 {
-    std::unordered_map<uint16_t, std::vector<StatusBit>> statusRegisters;
+    std::vector<StatusRegister> statusRegisters;
     for (const auto& reg : j)
     {
-        auto address = parseHexOffset(reg, "Offset");
-        auto bits = reg.at("Bits").get<std::vector<StatusBit>>();
+        StatusRegister statusRegister;
+        statusRegister.offset = parseHexOffset(reg, "Offset");
+        statusRegister.bits = reg.at("Bits").get<std::vector<StatusBit>>();
         if (reg.contains("Name") && !reg.at("Name").get<std::string>().empty())
         {
-            auto prefix = reg.at("Name").get<std::string>();
-            for (auto& bit : bits)
+            statusRegister.name = reg.at("Name").get<std::string>();
+            for (auto& bit : statusRegister.bits)
             {
-                bit.name = prefix + "_" + bit.name;
+                bit.name = statusRegister.name + "_" + bit.name;
             }
         }
-        validateUniqueNames(bits, "status bit name", [](const StatusBit& b) {
-            return b.name;
-        });
-        statusRegisters[address] = std::move(bits);
+        validateUnique(statusRegister.bits, "status bit name",
+                       [](const StatusBit& b) { return b.name; });
+        statusRegisters.push_back(std::move(statusRegister));
     }
+    validateUnique(statusRegisters, "status register offset",
+                   [](const StatusRegister& r) {
+                       return std::to_string(r.offset);
+                   });
     return statusRegisters;
 }
 
@@ -316,8 +319,8 @@ static void parseRegisterSections(DeviceProfile& profile, const json& j)
     {
         profile.sensorRegisters =
             j["SensorRegisters"].get<std::vector<SensorRegister>>();
-        validateUniqueNames(profile.sensorRegisters, "sensor register name",
-                            [](const SensorRegister& r) { return r.name; });
+        validateUnique(profile.sensorRegisters, "sensor register name",
+                       [](const SensorRegister& r) { return r.name; });
     }
     if (j.contains("StatusRegisters"))
     {
@@ -327,8 +330,8 @@ static void parseRegisterSections(DeviceProfile& profile, const json& j)
     {
         profile.metricRegisters =
             j["MetricRegisters"].get<std::vector<MetricRegister>>();
-        validateUniqueNames(profile.metricRegisters, "metric register name",
-                            [](const MetricRegister& r) { return r.name; });
+        validateUnique(profile.metricRegisters, "metric register name",
+                       [](const MetricRegister& r) { return r.name; });
     }
     if (j.contains("FirmwareRegisters"))
     {
