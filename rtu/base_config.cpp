@@ -7,6 +7,7 @@
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
 #include <flat_map>
+#include <unordered_map>
 
 namespace phosphor::modbus::rtu::config
 {
@@ -43,12 +44,50 @@ static auto getValue(const ConfigMap& configMap, const std::string& key,
     }
 }
 
-static auto parseConfig(const ConfigMap& configMap,
+// Get RegisterPollRates from the <interfaceName>.RegisterPollRates<N>
+// sub-interfaces.
+static auto parseRegisterPollRates(const InterfaceData& interfaces,
+                                   const std::string& interfaceName)
+    -> std::unordered_map<std::string, std::chrono::seconds>
+{
+    std::unordered_map<std::string, std::chrono::seconds> registerPollRates;
+    const auto prefix = interfaceName + ".RegisterPollRates";
+    for (const auto& [iface, configMap] : interfaces)
+    {
+        if (!iface.starts_with(prefix))
+        {
+            continue;
+        }
+        try
+        {
+            auto name = getValue<std::string>(configMap, "Name", iface);
+            auto pollRate = std::chrono::seconds(
+                getValue<uint64_t>(configMap, "PollRate", iface));
+            registerPollRates[name] = pollRate;
+        }
+        catch (const std::exception& e)
+        {
+            error("Failed to parse {INTF}: {ERROR}", "INTF", iface, "ERROR", e);
+        }
+    }
+    return registerPollRates;
+}
+
+static auto parseConfig(const InterfaceData& interfaces,
                         const sdbusplus::object_path& objectPath,
                         const std::string& interfaceName, std::string type,
                         const ProfileIntf::DeviceProfile& profile)
     -> std::optional<Config>
 {
+    auto ifaceIter = interfaces.find(interfaceName);
+    if (ifaceIter == interfaces.end())
+    {
+        error("Interface {INTF} not found at {PATH}", "INTF", interfaceName,
+              "PATH", objectPath);
+        return std::nullopt;
+    }
+    const auto& configMap = ifaceIter->second;
+
     try
     {
         auto name = std::string(objectPath.filename());
@@ -74,6 +113,8 @@ static auto parseConfig(const ConfigMap& configMap,
             .inventoryPath = {},
             .profile = profile,
             .pollRate = pollRate,
+            .registerPollRates =
+                parseRegisterPollRates(interfaces, interfaceName),
         };
     }
     catch (const std::exception& e)
@@ -122,15 +163,7 @@ auto getConfig(sdbusplus::async::context& ctx,
             continue;
         }
 
-        auto ifaceIter = interfaces.find(interfaceName);
-        if (ifaceIter == interfaces.end())
-        {
-            error("Interface {INTF} not found at {PATH}", "INTF", interfaceName,
-                  "PATH", objectPath);
-            co_return std::nullopt;
-        }
-
-        co_return parseConfig(ifaceIter->second, objectPath, interfaceName,
+        co_return parseConfig(interfaces, objectPath, interfaceName,
                               std::move(type), *profile);
     }
 
