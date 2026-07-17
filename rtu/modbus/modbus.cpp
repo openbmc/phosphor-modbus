@@ -3,6 +3,8 @@
 #include "modbus_commands.hpp"
 #include "modbus_rtu_config.hpp"
 
+#include <linux/serial.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 
 #include <phosphor-logging/lg2.hpp>
@@ -28,6 +30,8 @@ Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
     {
         throw std::runtime_error("Failed to set port properties");
     }
+
+    setRS485Config();
 
     info("Modbus created successfully");
 }
@@ -66,29 +70,22 @@ auto Modbus::setProperties(uint32_t inBaudRate, Parity inParity) -> bool
     }
 
     termios tty{};
-
-    if (inBaudRate != baudRate)
+    if (cfsetspeed(&tty, baudRateMap.at(inBaudRate)) != 0)
     {
-        if (cfsetspeed(&tty, baudRateMap.at(inBaudRate)) != 0)
-        {
-            error("Error setting baud rate");
-            return false;
-        }
+        error("Error setting baud rate");
+        return false;
     }
 
-    if (inParity != parity)
+    if (!applyParitySettings(inParity, tty))
     {
-        if (!applyParitySettings(inParity, tty))
-        {
-            error("Invalid parity");
-            return false;
-        }
+        error("Invalid parity");
+        return false;
     }
 
-    // TODO: We might not need these again.
     tty.c_cflag |= CS8 | CLOCAL | CREAD;
-    // Set non-blocking read behavior
-    tty.c_cc[VMIN] = 1;  // Minimum characters to read
+    // In non-canonical mode, block until at least VMIN bytes are available.
+    // See termios(3).
+    tty.c_cc[VMIN] = 1;
     tty.c_cc[VTIME] = 0; // Timeout in deciseconds (0 for no timeout)
 
     if (tcsetattr(fd, TCSAFLUSH, &tty) != 0)
@@ -103,6 +100,32 @@ auto Modbus::setProperties(uint32_t inBaudRate, Parity inParity) -> bool
     debug("Properties set successfully");
 
     return true;
+}
+
+auto Modbus::setRS485Config() -> void
+{
+    /*
+     * RS485 ioctl is required by some drivers (e.g. xr_serial) but unsupported
+     * by others (e.g. ftdi_sio), so failures are non-fatal.
+     */
+    struct serial_rs485 rs485Conf{};
+
+    rs485Conf.flags = SER_RS485_ENABLED | SER_RS485_RTS_AFTER_SEND |
+                      SER_RS485_RX_DURING_TX;
+
+    if (ioctl(fd, TIOCSRS485, &rs485Conf) < 0)
+    {
+        const int err = errno;
+
+        if (err == ENOTTY)
+        {
+            info("Serial driver does not support TIOCSRS485; "
+                 "continuing without kernel RS485 configuration");
+            return;
+        }
+
+        warning("Failed to configure RS485 mode: {ERR}", "ERR", strerror(err));
+    }
 }
 
 static auto printMessage(uint8_t* data, size_t len) -> void
