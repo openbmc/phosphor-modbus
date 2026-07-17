@@ -41,6 +41,8 @@ class Modbus
                       uint8_t expectedResponseCode)
         -> sdbusplus::async::task<bool>;
 
+    auto setRS485Config() -> void;
+
     sdbusplus::async::context& ctx;
     int fd;
     uint16_t rtsDelay;
