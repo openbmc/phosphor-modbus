@@ -19,6 +19,7 @@
 #include <xyz/openbmc_project/State/Decorator/OperationalStatus/aserver.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <variant>
 
@@ -105,11 +106,14 @@ class BaseDevice
     };
 
     // Pre-computed pairing of status register address and its status bits,
-    // built at construction for span-based batch reads.
+    // built at construction for span-based batch reads. lastValue caches the
+    // last read word so unchanged status registers skip event evaluation;
+    // nullopt means no prior read.
     struct StatusEntry
     {
         uint16_t address;
         const std::vector<ProfileIntf::StatusBit>* statusBits;
+        std::optional<uint16_t> lastValue{};
     };
 
     // Pre-computed pairing of metric register config and its corresponding
