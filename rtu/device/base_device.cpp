@@ -578,9 +578,17 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
             }
             else
             {
-                co_await processStatusEntry(
-                    std::get<StatusEntry>(bucket.entries[idx]), spanBuffer,
-                    span.startOffset);
+                auto& statusEntry = std::get<StatusEntry>(bucket.entries[idx]);
+                auto currentValue =
+                    spanBuffer[statusEntry.address - span.startOffset];
+                // Skip event evaluation when the status register is unchanged.
+                if (statusEntry.lastValue == currentValue)
+                {
+                    continue;
+                }
+                co_await processStatusEntry(statusEntry, spanBuffer,
+                                            span.startOffset);
+                statusEntry.lastValue = currentValue;
             }
         }
     }
