@@ -22,9 +22,7 @@ constexpr uint8_t readHoldingRegistersErrorFunctionCode = 0x83;
 constexpr uint8_t writeMultipleRegistersFunctionCode = 0x10;
 constexpr uint8_t writeMultipleRegistersErrorFunctionCode = 0x90;
 
-ServerTester::ServerTester(sdbusplus::async::context& ctx, int fd) :
-    fd(fd), fdioInstance(ctx, fd), mutex("TestMutex")
-{}
+ServerTester::ServerTester(int fd) : fd(fd) {}
 
 auto ServerTester::processRequestsInternal() -> void
 {
