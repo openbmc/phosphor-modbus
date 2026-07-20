@@ -3,10 +3,12 @@
 #include "modbus/modbus_exception.hpp"
 #include "modbus/modbus_message.hpp"
 
-#include <sdbusplus/async.hpp>
-
+#include <atomic>
 #include <cstdint>
 #include <map>
+#include <string>
+#include <tuple>
+#include <vector>
 
 using MessageBase = phosphor::modbus::rtu::Message;
 
@@ -154,7 +156,7 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
 class ServerTester
 {
   public:
-    explicit ServerTester(sdbusplus::async::context& ctx, int fd);
+    explicit ServerTester(int fd);
 
     auto processRequests() -> void;
 
@@ -190,8 +192,6 @@ class ServerTester
                                bool& segmentedResponse) -> void;
 
     int fd;
-    sdbusplus::async::fdio fdioInstance;
-    sdbusplus::async::mutex mutex;
     uint32_t flakyRegisterRequestCount = 0;
     uint32_t flakyWriteRequestCount = 0;
     std::map<uint16_t, uint32_t> readCountByOffset;

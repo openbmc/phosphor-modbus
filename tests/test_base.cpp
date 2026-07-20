@@ -42,7 +42,7 @@ BaseTest::BaseTest(const char* clientPathPrefix, const char* serverPathPrefix,
 
     ctx.request_name(serviceName);
 
-    serverTester = std::make_unique<TestIntf::ServerTester>(ctx, fdServer);
+    serverTester = std::make_unique<TestIntf::ServerTester>(fdServer);
 }
 
 BaseTest::~BaseTest() noexcept
