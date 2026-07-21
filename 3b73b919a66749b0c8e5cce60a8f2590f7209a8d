@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4aabe1df_590a6c84",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-21T02:23:55Z",
+      "side": 1,
+      "message": "Whats the reason for this comment update ?",
+      "revId": "3b73b919a66749b0c8e5cce60a8f2590f7209a8d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c45e4a11_a97b13cd",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-21T02:23:55Z",
+      "side": 1,
+      "message": "How is this log line useful ? Isn\u0027t it better to make this debug.",
+      "revId": "3b73b919a66749b0c8e5cce60a8f2590f7209a8d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "41d0017e_fc365fd8",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-21T02:23:55Z",
+      "side": 1,
+      "message": "This means it needed the configuration and it failed, this should be fatal isn\u0027t it ? If yes, we should raise an exception and do the required handling in callers.",
+      "revId": "3b73b919a66749b0c8e5cce60a8f2590f7209a8d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
