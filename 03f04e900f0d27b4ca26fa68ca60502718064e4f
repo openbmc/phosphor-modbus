@@ -16,6 +16,24 @@
       "message": "Whats the reason for this change? Did you notice any issue ?",
       "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b17c51d_32e0c160",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002520
+      },
+      "writtenOn": "2026-07-21T03:07:35Z",
+      "side": 0,
+      "message": "`setProperties()` builds a new termios structure from scratch rather than updating the current terminal settings with `tcgetattr()`. Since the baud rate is not inherited from the existing configuration, it must always be programmed into the new termios structure before calling `tcsetattr()`. Otherwise, when only the parity changes, the speed fields remain uninitialized (effectively B0), which I observed during validation with the xr_serial driver.",
+      "parentUuid": "5cd515ff_c2021267",
+      "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
