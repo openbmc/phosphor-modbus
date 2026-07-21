@@ -1,5 +1,6 @@
 #include "common/events.hpp"
 
+#include <nlohmann/json.hpp>
 #include <xyz/openbmc_project/Logging/Create/aserver.hpp>
 #include <xyz/openbmc_project/Logging/Entry/aserver.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/event.hpp>
@@ -7,6 +8,9 @@
 #include <xyz/openbmc_project/State/Leak/Detector/event.hpp>
 #include <xyz/openbmc_project/State/Power/event.hpp>
 #include <xyz/openbmc_project/State/SMC/event.hpp>
+
+#include <filesystem>
+#include <fstream>
 
 #include <gtest/gtest.h>
 
@@ -115,13 +119,18 @@ class EventsTest : public ::testing::Test
     static constexpr auto deassert = false;
     const char* objectPath = "/xyz/openbmc_project/logging";
     sdbusplus::async::context ctx;
+    std::filesystem::path stateDir =
+        std::filesystem::temp_directory_path() / "phosphor-modbus-test-events";
     EventIntf::Events events;
     TestEventServer eventServer;
     sdbusplus::server::manager_t manager;
 
     EventsTest() :
-        events(ctx), eventServer(ctx, objectPath), manager(ctx, objectPath)
+        events(ctx, stateDir), eventServer(ctx, objectPath),
+        manager(ctx, objectPath)
     {
+        std::error_code ec;
+        std::filesystem::remove_all(stateDir, ec);
         ctx.request_name(serviceName);
     }
 
@@ -249,6 +258,51 @@ class EventsTest : public ::testing::Test
 
         ctx.request_stop();
     }
+
+    // Asserting an event persists its log path; a fresh Events instance
+    // restores it from disk, so the matching deassert resolves the persisted
+    // entry across a simulated restart instead of orphaning the log.
+    auto testPersistRestore() -> sdbusplus::async::task<void>
+    {
+        co_await testAssertEvent(EventTestType::sensorWarningEvent);
+
+        auto stateFilePath = stateDir / "pending-events.json";
+        EXPECT_TRUE(std::filesystem::exists(stateFilePath));
+
+        auto eventName = std::string(sensorObjectPath) + ".threshold.Warning";
+        {
+            std::ifstream in(stateFilePath);
+            auto j = nlohmann::json::parse(in);
+            EXPECT_EQ(j.value("version", ""), "1.0.0");
+            auto pending = j.value("pendingEvents", nlohmann::json::object());
+            EXPECT_TRUE(pending.contains(eventName));
+            if (pending.contains(eventName))
+            {
+                EXPECT_FALSE(pending[eventName].get<std::string>().empty());
+            }
+        }
+
+        // Simulate a restart: a new Events restores the pending map from disk.
+        EventIntf::Events restored{ctx, stateDir};
+        restored.restore();
+
+        eventServer.expectedEvent =
+            SensorThresholdEventIntf::SensorReadingNormalRange::errName;
+        co_await restored.generateSensorReadingEvent(
+            sdbusplus::object_path(sensorObjectPath),
+            EventIntf::EventLevel::warning, 40,
+            EventIntf::SensorValueIntf::Unit::DegreesC, deassert);
+
+        // Resolved: the entry is dropped from the persisted file.
+        {
+            std::ifstream in(stateFilePath);
+            auto j = nlohmann::json::parse(in);
+            auto pending = j.value("pendingEvents", nlohmann::json::object());
+            EXPECT_FALSE(pending.contains(eventName));
+        }
+
+        ctx.request_stop();
+    }
 };
 
 TEST_F(EventsTest, TestEventsSensorWarning)
@@ -290,5 +344,11 @@ TEST_F(EventsTest, TestEventsLeakWarning)
 TEST_F(EventsTest, TestEventsLeakCritical)
 {
     ctx.spawn(testEvents(EventTestType::leakCriticalEvent));
+    ctx.run();
+}
+
+TEST_F(EventsTest, TestPendingEventsPersistAndRestore)
+{
+    ctx.spawn(testPersistRestore());
     ctx.run();
 }
