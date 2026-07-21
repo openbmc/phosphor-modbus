@@ -4,6 +4,8 @@
 
 #include <sdbusplus/async.hpp>
 
+#include <filesystem>
+
 #include <gtest/gtest.h>
 
 namespace TestIntf = phosphor::modbus::test;
@@ -25,6 +27,8 @@ class BaseTest : public ::testing::Test
     // between tests.
     std::string clientDevicePath;
     std::string serverDevicePath;
+    // Unique per-test persisted-state directory.
+    std::filesystem::path stateDir;
 
   protected:
     std::unique_ptr<TestIntf::ServerTester> serverTester;
