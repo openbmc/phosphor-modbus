@@ -1,5 +1,6 @@
 #include "events.hpp"
 
+#include <nlohmann/json.hpp>
 #include <phosphor-logging/commit.hpp>
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
@@ -12,15 +13,128 @@
 #include <xyz/openbmc_project/State/Pump/event.hpp>
 #include <xyz/openbmc_project/State/SMC/event.hpp>
 
+#include <filesystem>
+#include <fstream>
+
 namespace phosphor::modbus::events
 {
 
 PHOSPHOR_LOG2_USING;
 
+namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+// On-disk schema version for the pending-events state file.
+static constexpr auto stateFileVersion = "1.0.0";
+
+static constexpr auto stateFileName = "pending-events.json";
+
 const std::unordered_map<EventLevel, std::string> eventLevelToName = {
     {EventLevel::critical, "Critical"},
     {EventLevel::warning, "Warning"},
 };
+
+Events::Events(sdbusplus::async::context& ctx, std::filesystem::path stateDir) :
+    ctx(ctx), stateFile(std::move(stateDir) / stateFileName)
+{}
+
+void Events::persist()
+{
+    if (!stateDirReady)
+    {
+        std::error_code ec;
+        fs::create_directories(stateFile.parent_path(), ec);
+        if (ec)
+        {
+            error("Failed to create state directory {DIR}: {ERROR}", "DIR",
+                  stateFile.parent_path().string(), "ERROR", ec.message());
+            return;
+        }
+        stateDirReady = true;
+    }
+
+    json j;
+    j["version"] = stateFileVersion;
+    auto& entries = j["pendingEvents"];
+    for (const auto& [name, path] : pendingEvents)
+    {
+        entries[name] = path.str;
+    }
+
+    auto tmp = stateFile;
+    tmp += ".tmp";
+    {
+        std::ofstream out(tmp, std::ios::trunc);
+        if (!out)
+        {
+            error("Failed to open {FILE} for writing", "FILE", tmp.string());
+            return;
+        }
+        out << j.dump(2);
+    }
+
+    std::error_code ec;
+    fs::rename(tmp, stateFile, ec);
+    if (ec)
+    {
+        error("Failed to persist pending events to {FILE}: {ERROR}", "FILE",
+              stateFile.string(), "ERROR", ec.message());
+    }
+}
+
+void Events::restore()
+{
+    pendingEvents.clear();
+
+    std::ifstream in(stateFile);
+    if (!in)
+    {
+        // No state file yet (first run) - nothing to restore.
+        return;
+    }
+
+    json j;
+    try
+    {
+        j = json::parse(in);
+    }
+    catch (const std::exception& e)
+    {
+        warning("Ignoring corrupt pending-events file {FILE}: {ERROR}", "FILE",
+                stateFile.string(), "ERROR", e.what());
+        return;
+    }
+
+    if (j.value("version", std::string{}) != stateFileVersion)
+    {
+        warning("Ignoring pending-events file {FILE} with unsupported version",
+                "FILE", stateFile.string());
+        return;
+    }
+
+    auto entries = j.value("pendingEvents", json::object());
+    for (const auto& [name, path] : entries.items())
+    {
+        pendingEvents.emplace(name,
+                              sdbusplus::object_path(path.get<std::string>()));
+    }
+
+    debug("Restored {COUNT} pending event(s) from {FILE}", "COUNT",
+          pendingEvents.size(), "FILE", stateFile.string());
+}
+
+void Events::addPending(const std::string& eventName,
+                        const sdbusplus::object_path& eventPath)
+{
+    pendingEvents.insert_or_assign(eventName, eventPath);
+    persist();
+}
+
+void Events::removePending(const std::string& eventName)
+{
+    pendingEvents.erase(eventName);
+    persist();
+}
 
 auto Events::generateSensorReadingEvent(
     sdbusplus::object_path objectPath, EventLevel level, double value,
@@ -55,7 +169,7 @@ auto Events::generateSensorReadingEvent(
                                                     "UNITS", unit));
             }
 
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -69,7 +183,7 @@ auto Events::generateSensorReadingEvent(
                                      "SENSOR_NAME", objectPath, "READING_VALUE",
                                      value, "UNITS", unit));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -93,7 +207,7 @@ auto Events::generateSensorFailureEvent(sdbusplus::object_path objectPath,
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::SensorFailure("SENSOR_NAME", objectPath));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -104,7 +218,7 @@ auto Events::generateSensorFailureEvent(sdbusplus::object_path objectPath,
 
             co_await lg2::commit(
                 ctx, event_intf::SensorRestored("SENSOR_NAME", objectPath));
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -129,7 +243,7 @@ auto Events::generateControllerFailureEvent(
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::SMCFailed("IDENTIFIER", objectPath,
                                            "FAILURE_TYPE", additionalInfo));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -141,7 +255,7 @@ auto Events::generateControllerFailureEvent(
             co_await lg2::commit(
                 ctx, event_intf::SMCRestored("IDENTIFIER", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -167,7 +281,7 @@ auto Events::generatePowerFaultEvent(sdbusplus::object_path objectPath,
                 ctx,
                 error_intf::PowerRailFault("POWER_RAIL", objectPath,
                                            "FAILURE_DATA", additionalInfo));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -179,7 +293,7 @@ auto Events::generatePowerFaultEvent(sdbusplus::object_path objectPath,
             co_await lg2::commit(ctx, event_intf::PowerRailFaultRecovered(
                                           "POWER_RAIL", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -206,7 +320,7 @@ auto Events::generateFilterFailureEvent(sdbusplus::object_path objectPath,
             auto eventPath = co_await lg2::commit(
                 ctx,
                 error_intf::FilterRequiresService("FILTER_NAME", objectPath));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -218,7 +332,7 @@ auto Events::generateFilterFailureEvent(sdbusplus::object_path objectPath,
             co_await lg2::commit(
                 ctx, event_intf::FilterRestored("FILTER_NAME", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -241,7 +355,7 @@ auto Events::generatePumpFailureEvent(sdbusplus::object_path objectPath,
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::PumpFailed("PUMP_NAME", objectPath));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -253,7 +367,7 @@ auto Events::generatePumpFailureEvent(sdbusplus::object_path objectPath,
             co_await lg2::commit(
                 ctx, event_intf::PumpRestored("PUMP_NAME", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -276,7 +390,7 @@ auto Events::generateFanFailureEvent(sdbusplus::object_path objectPath,
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::FanFailed("FAN_NAME", objectPath));
-            pendingEvents.emplace(eventName, eventPath);
+            addPending(eventName, eventPath);
         }
     }
     else
@@ -288,7 +402,7 @@ auto Events::generateFanFailureEvent(sdbusplus::object_path objectPath,
             co_await lg2::commit(
                 ctx, event_intf::FanRestored("FAN_NAME", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
     }
 
@@ -314,7 +428,7 @@ auto Events::generateLeakDetectedEvent(sdbusplus::object_path objectPath,
             co_await lg2::commit(ctx,
                                  DetectorNormal("DETECTOR_NAME", objectPath));
 
-            pendingEvents.erase(eventName);
+            removePending(eventName);
         }
         co_return;
     }

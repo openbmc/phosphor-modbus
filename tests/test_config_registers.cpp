@@ -29,7 +29,7 @@ TEST_F(ConfigRegistersTest, TestConfigRegisterWritePeriodic)
          .period = 1}};
 
     auto testPeriodicWrite = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({}, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->writeRequestCount.load();
@@ -65,7 +65,7 @@ TEST_F(ConfigRegistersTest, TestConfigRegisterWriteOneShot)
          .period = std::nullopt}};
 
     auto testOneShotWrite = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({}, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->writeRequestCount.load();

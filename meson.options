@@ -75,6 +75,13 @@ option(
 )
 
 option(
+    'state-dir',
+    type: 'string',
+    value: '/var/lib/phosphor-modbus/state',
+    description: 'Directory for persisted runtime state such as pending-events.',
+)
+
+option(
     'device-cleanup-interval-seconds',
     type: 'integer',
     value: 3,
