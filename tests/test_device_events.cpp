@@ -259,7 +259,7 @@ class DeviceEventsTest : public BaseTest
         -> sdbusplus::async::task<void>
     {
         auto testProfile = createTestProfile(statusType);
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         MockPort mockPort(ctx, portConfig, clientDevicePath);
         auto device = createDevice(testProfile, events, mockPort);
         co_await device->pollRegisters();
@@ -300,7 +300,7 @@ TEST_F(DeviceEventsTest, TestSensorStatusSpanMerge)
         createTestProfile(ProfileIntf::StatusType::sensorReadingCritical, false,
                           TestIntf::testReadHoldingRegisterSpanSensor1Offset,
                           TestIntf::testReadHoldingRegisterSpanSensor2Offset);
-    EventIntf::Events events{ctx};
+    EventIntf::Events events{ctx, stateDir};
     MockPort mockPort(ctx, portConfig, clientDevicePath);
     auto device = createDevice(testProfile, events, mockPort);
     auto countBefore = serverTester->totalRequestCount.load();

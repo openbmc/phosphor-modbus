@@ -41,8 +41,10 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
     entityManager(ctx, getInterfaces(),
                   std::bind_front(&DeviceManager::processConfigAdded, this),
                   std::bind_front(&DeviceManager::processConfigRemoved, this)),
-    events(ctx), allowedDevices(ctx, CONFIG_DIR)
+    events(ctx, STATE_DIR), allowedDevices(ctx, CONFIG_DIR)
 {
+    events.restore();
+
     ctx.spawn(entityManager.handleInventoryGet());
     ctx.spawn(cleanupStoppedDevices());
     allowedDevices.startWatching();

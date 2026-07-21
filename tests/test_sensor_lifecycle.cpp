@@ -34,7 +34,7 @@ class SensorLifecycleTest : public SensorTestBase
                       ProfileIntf::SensorRegister sensorRegister,
                       double expectedValue) -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({sensorRegister}, events);
         auto& mockPort = devPair.first;
         auto& device = devPair.second;
@@ -67,7 +67,7 @@ class SensorLifecycleTest : public SensorTestBase
                               ProfileIntf::SensorRegister slowRegister)
         -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         // The device rate (1s from createDevice) drives fastRegister; the slow
         // register is overridden to a long interval so it is polled just once.
         std::unordered_map<std::string, std::chrono::seconds> overrides = {
@@ -160,7 +160,7 @@ TEST_F(SensorLifecycleTest, TestStopDeviceExitsAndStopsPolling)
         .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
-    EventIntf::Events events{ctx};
+    EventIntf::Events events{ctx, stateDir};
     auto devPair = createDevice({sensorRegister}, events);
     auto& device = devPair.second;
 

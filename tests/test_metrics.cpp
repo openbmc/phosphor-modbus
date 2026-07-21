@@ -153,7 +153,7 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
     constexpr double expectedValue = 300.0 * 60.0;
 
     auto testMetric = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({metricRegister}, events);
         auto& device = devPair.second;
 
@@ -195,7 +195,7 @@ TEST_F(MetricsTest, TestMetricAssociations)
     };
 
     auto testAssociations = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({metricRegister}, events);
 
         auto associationProperties =
@@ -253,7 +253,7 @@ TEST_F(MetricsTest, TestMetricValueInteger)
     constexpr double expectedValue = 300.0;
 
     auto testMetric = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({metricRegister}, events);
         auto& device = devPair.second;
 
