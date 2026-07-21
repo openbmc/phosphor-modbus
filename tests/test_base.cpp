@@ -10,6 +10,8 @@ BaseTest::BaseTest(const char* clientPathPrefix, const char* serverPathPrefix,
     auto testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
     clientDevicePath = std::format("{}_{}", clientPathPrefix, testInfo->name());
     serverDevicePath = std::format("{}_{}", serverPathPrefix, testInfo->name());
+    stateDir = std::filesystem::temp_directory_path() /
+               std::format("phosphor-modbus-test-{}", testInfo->name());
 
     std::string socatCmd = std::format(
         "socat -x -v -d -d pty,link={},rawer,echo=0,parenb,{} pty,link={},rawer,echo=0,parenb,{} & echo $!",

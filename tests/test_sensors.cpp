@@ -14,7 +14,7 @@ class SensorsTest : public SensorTestBase
                             double expectedValue)
         -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice({sensorRegister}, events);
         auto& device = devPair.second;
 
@@ -232,7 +232,7 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
@@ -298,7 +298,7 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
@@ -369,7 +369,7 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
     auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx};
+        EventIntf::Events events{ctx, stateDir};
         auto devPair = createDevice(sensorRegisters, events);
         auto& device = devPair.second;
         co_await device->pollRegisters();
