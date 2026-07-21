@@ -71,11 +71,13 @@ allowed_devices_src = files('config/allowed_devices.cpp')
 
 profile_dir = get_option('prefix') / get_option('datadir') / 'phosphor-modbus' / 'profiles'
 config_dir = get_option('config-dir')
+state_dir = get_option('state-dir')
 
 profile_src = files('device_profile.cpp')
 rtu_cpp_args = [
     '-DPROFILE_DIR="' + profile_dir + '"',
     '-DCONFIG_DIR="' + config_dir + '"',
+    '-DSTATE_DIR="' + state_dir + '"',
 ]
 
 device_src = files(
