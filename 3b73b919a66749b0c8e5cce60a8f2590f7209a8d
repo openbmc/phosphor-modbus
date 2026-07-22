@@ -104,6 +104,24 @@
       "parentUuid": "41d0017e_fc365fd8",
       "revId": "3b73b919a66749b0c8e5cce60a8f2590f7209a8d",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2246dfc1_4f0b4341",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-22T02:44:08Z",
+      "side": 1,
+      "message": "\u003e The warning branch is currently defensive handling for other unexpected ioctl errors. Since we do not know whether every such error necessarily makes the device unusable, I am not certain that treating all of them as fatal is appropriate. If we want strict handling, we would need a way to know whether kernel RS485 configuration is mandatory for the specific device.\n\nHmm, so looks like we don\u0027t know what would be the exact behavior for a failing case, but either way the port won\u0027t be useful as it failed to configure so its better to throw an exception for now. In future we can evaluate when we start noticing this issue.",
+      "parentUuid": "25872d48_91c05926",
+      "revId": "3b73b919a66749b0c8e5cce60a8f2590f7209a8d",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
