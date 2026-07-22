@@ -70,6 +70,24 @@
       "parentUuid": "688bec90_8ec4431d",
       "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "62ff4e6c_6f1d13bb",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-22T02:33:52Z",
+      "side": 0,
+      "message": "Acknowledged",
+      "parentUuid": "3b68f929_3796f661",
+      "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
