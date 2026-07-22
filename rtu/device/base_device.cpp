@@ -581,13 +581,18 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
                 auto& statusEntry = std::get<StatusEntry>(bucket.entries[idx]);
                 auto currentValue =
                     spanBuffer[statusEntry.address - span.startOffset];
-                // Skip event evaluation when the status register is unchanged.
-                if (statusEntry.lastValue == currentValue)
+                // Evaluate all bits on the first read; afterwards only the
+                // bits whose value changed since the last read.
+                uint16_t changedBits =
+                    statusEntry.lastValue
+                        ? (*statusEntry.lastValue ^ currentValue)
+                        : 0xFFFF;
+                if (changedBits == 0)
                 {
                     continue;
                 }
                 co_await processStatusEntry(statusEntry, spanBuffer,
-                                            span.startOffset);
+                                            span.startOffset, changedBits);
                 statusEntry.lastValue = currentValue;
             }
         }
@@ -737,9 +742,9 @@ static auto updateSensorOnStatusChange(
     }
 }
 
-auto BaseDevice::processStatusEntry(const StatusEntry& entry,
-                                    std::span<const uint16_t> spanBuffer,
-                                    uint16_t spanStartOffset)
+auto BaseDevice::processStatusEntry(
+    const StatusEntry& entry, std::span<const uint16_t> spanBuffer,
+    uint16_t spanStartOffset, uint16_t changedBits)
     -> sdbusplus::async::task<void>
 {
     auto regOffset = entry.address - spanStartOffset;
@@ -751,6 +756,11 @@ auto BaseDevice::processStatusEntry(const StatusEntry& entry,
         {
             error("Invalid status bit position {POSITION} for {NAME}",
                   "POSITION", statusBit.bitPosition, "NAME", statusBit.name);
+            continue;
+        }
+        // Skip bits whose value did not change since the last read.
+        if ((changedBits & (1 << statusBit.bitPosition)) == 0)
+        {
             continue;
         }
         auto statusBitValue =
