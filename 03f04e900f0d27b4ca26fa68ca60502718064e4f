@@ -34,6 +34,24 @@
       "parentUuid": "5cd515ff_c2021267",
       "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "688bec90_8ec4431d",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-07-22T02:00:31Z",
+      "side": 0,
+      "message": "Originally i had tcgetattr() but that behavior was changed by @amithash@meta.com via https://github.com/openbmc/phosphor-modbus/commit/418ee5fd069ae7ee4a21f432402bb43bab11583b. I remember him mentioning some issue he was observing. @amithash@meta.com Do you remember the reason for dropping tcgetattr ?",
+      "parentUuid": "4b17c51d_32e0c160",
+      "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
