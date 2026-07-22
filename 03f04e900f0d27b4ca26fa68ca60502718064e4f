@@ -52,6 +52,24 @@
       "parentUuid": "4b17c51d_32e0c160",
       "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b68f929_3796f661",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-07-22T02:24:14Z",
+      "side": 0,
+      "message": "The initial configuration of the TTY present in the kernel was incorrect: https://gerrit.openbmc.org/c/openbmc/phosphor-modbus/+/87954/comment/7e1ef97a_467feab1/\n\nI think this change is good. We already test if the change already exists in line 64 ` if (inBaudRate \u003d\u003d baudRate \u0026\u0026 inParity \u003d\u003d parity)`. So, yeah, this test again here is not required.",
+      "parentUuid": "688bec90_8ec4431d",
+      "revId": "03f04e900f0d27b4ca26fa68ca60502718064e4f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
