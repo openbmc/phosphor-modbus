@@ -78,6 +78,7 @@ class TestEventServer : public EventServerIntf
             std::to_string(cnt);
         EXPECT_EQ(message, expectedEvent) << "Event name mismatch";
 
+        createCount++;
         eventEntries.emplace_back(
             std::make_unique<TestEventEntry>(ctx, objectPath.c_str()));
 
@@ -91,7 +92,19 @@ class TestEventServer : public EventServerIntf
         co_return;
     }
 
+    // Destroy the most recently created entry to simulate the logging
+    // service rotating it out ("wrapping").
+    void removeLastEntry()
+    {
+        if (!eventEntries.empty())
+        {
+            eventEntries.pop_back();
+        }
+    }
+
     std::string expectedEvent = "";
+    // Cumulative logs created; never decremented.
+    int createCount = 0;
 
   private:
     sdbusplus::async::context& ctx;
@@ -303,6 +316,40 @@ class EventsTest : public ::testing::Test
 
         ctx.request_stop();
     }
+
+    // A tracked log that is rotated out ("wrapped") must be regenerated on the
+    // next assert, while a still-present log is not duplicated.
+    auto testWrapRecovery() -> sdbusplus::async::task<void>
+    {
+        eventServer.expectedEvent =
+            SensorThresholdErrorIntf::ReadingWarning::errName;
+
+        // First assert creates the log.
+        co_await events.generateSensorReadingEvent(
+            sdbusplus::object_path(sensorObjectPath),
+            EventIntf::EventLevel::warning, 60,
+            EventIntf::SensorValueIntf::Unit::DegreesC, assert);
+        EXPECT_EQ(eventServer.createCount, 1);
+
+        // Re-asserting while the log still exists must not duplicate it.
+        co_await events.generateSensorReadingEvent(
+            sdbusplus::object_path(sensorObjectPath),
+            EventIntf::EventLevel::warning, 60,
+            EventIntf::SensorValueIntf::Unit::DegreesC, assert);
+        EXPECT_EQ(eventServer.createCount, 1);
+
+        // Simulate the logging service wrapping the entry out.
+        eventServer.removeLastEntry();
+
+        // Re-asserting now must regenerate the lost log.
+        co_await events.generateSensorReadingEvent(
+            sdbusplus::object_path(sensorObjectPath),
+            EventIntf::EventLevel::warning, 60,
+            EventIntf::SensorValueIntf::Unit::DegreesC, assert);
+        EXPECT_EQ(eventServer.createCount, 2);
+
+        ctx.request_stop();
+    }
 };
 
 TEST_F(EventsTest, TestEventsSensorWarning)
@@ -350,5 +397,11 @@ TEST_F(EventsTest, TestEventsLeakCritical)
 TEST_F(EventsTest, TestPendingEventsPersistAndRestore)
 {
     ctx.spawn(testPersistRestore());
+    ctx.run();
+}
+
+TEST_F(EventsTest, TestPendingEventWrapRecovery)
+{
+    ctx.spawn(testWrapRecovery());
     ctx.run();
 }
