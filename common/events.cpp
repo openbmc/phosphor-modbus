@@ -4,6 +4,7 @@
 #include <phosphor-logging/commit.hpp>
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
+#include <xyz/openbmc_project/Logging/Entry/client.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/event.hpp>
 #include <xyz/openbmc_project/Sensor/event.hpp>
 #include <xyz/openbmc_project/State/Fan/event.hpp>
@@ -23,6 +24,10 @@ PHOSPHOR_LOG2_USING;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
+using LoggingEntryIntf =
+    sdbusplus::client::xyz::openbmc_project::logging::Entry<>;
+
+static constexpr auto loggingService = "xyz.openbmc_project.Logging";
 
 // On-disk schema version for the pending-events state file.
 static constexpr auto stateFileVersion = "1.0.0";
@@ -136,6 +141,49 @@ void Events::removePending(const std::string& eventName)
     persist();
 }
 
+auto Events::isPending(const std::string& eventName)
+    -> sdbusplus::async::task<bool>
+{
+    auto it = pendingEvents.find(eventName);
+    if (it == pendingEvents.end())
+    {
+        co_return false;
+    }
+
+    // The tracked log entry may have been rotated out ("wrapped") by the
+    // logging service. Probe it; a missing entry means it should be
+    // regenerated, so report it as not pending.
+    try
+    {
+        co_await LoggingEntryIntf(ctx)
+            .service(loggingService)
+            .path(it->second.str)
+            .id();
+        co_return true;
+    }
+    catch (const std::exception& e)
+    {
+        debug("Pending log {PATH} for {NAME} no longer exists: {ERROR}", "PATH",
+              it->second.str, "NAME", eventName, "ERROR", e.what());
+        co_return false;
+    }
+}
+
+auto Events::resolvePending(const sdbusplus::object_path& eventPath)
+    -> sdbusplus::async::task<void>
+{
+    // Ignore failures resolving a log entry that was already rotated out.
+    try
+    {
+        co_await lg2::resolve(ctx, eventPath);
+    }
+    catch (const std::exception& e)
+    {
+        debug("Failed to resolve log {PATH}: {ERROR}", "PATH", eventPath.str,
+              "ERROR", e.what());
+    }
+}
+
 auto Events::generateSensorReadingEvent(
     sdbusplus::object_path objectPath, EventLevel level, double value,
     SensorValueIntf::Unit unit, bool asserted) -> sdbusplus::async::task<>
@@ -151,7 +199,7 @@ auto Events::generateSensorReadingEvent(
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             sdbusplus::object_path eventPath{};
             if (level == EventLevel::critical)
@@ -176,7 +224,7 @@ auto Events::generateSensorReadingEvent(
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(ctx,
                                  event_intf::SensorReadingNormalRange(
@@ -203,7 +251,7 @@ auto Events::generateSensorFailureEvent(sdbusplus::object_path objectPath,
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::SensorFailure("SENSOR_NAME", objectPath));
@@ -214,7 +262,7 @@ auto Events::generateSensorFailureEvent(sdbusplus::object_path objectPath,
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(
                 ctx, event_intf::SensorRestored("SENSOR_NAME", objectPath));
@@ -238,7 +286,7 @@ auto Events::generateControllerFailureEvent(
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::SMCFailed("IDENTIFIER", objectPath,
@@ -250,7 +298,7 @@ auto Events::generateControllerFailureEvent(
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(
                 ctx, event_intf::SMCRestored("IDENTIFIER", objectPath));
@@ -275,7 +323,7 @@ auto Events::generatePowerFaultEvent(sdbusplus::object_path objectPath,
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx,
@@ -288,7 +336,7 @@ auto Events::generatePowerFaultEvent(sdbusplus::object_path objectPath,
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(ctx, event_intf::PowerRailFaultRecovered(
                                           "POWER_RAIL", objectPath));
@@ -315,7 +363,7 @@ auto Events::generateFilterFailureEvent(sdbusplus::object_path objectPath,
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx,
@@ -327,7 +375,7 @@ auto Events::generateFilterFailureEvent(sdbusplus::object_path objectPath,
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(
                 ctx, event_intf::FilterRestored("FILTER_NAME", objectPath));
@@ -351,7 +399,7 @@ auto Events::generatePumpFailureEvent(sdbusplus::object_path objectPath,
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::PumpFailed("PUMP_NAME", objectPath));
@@ -362,7 +410,7 @@ auto Events::generatePumpFailureEvent(sdbusplus::object_path objectPath,
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(
                 ctx, event_intf::PumpRestored("PUMP_NAME", objectPath));
@@ -386,7 +434,7 @@ auto Events::generateFanFailureEvent(sdbusplus::object_path objectPath,
 
     if (asserted)
     {
-        if (pendingEvent == pendingEvents.end())
+        if (!co_await isPending(eventName))
         {
             auto eventPath = co_await lg2::commit(
                 ctx, error_intf::FanFailed("FAN_NAME", objectPath));
@@ -397,7 +445,7 @@ auto Events::generateFanFailureEvent(sdbusplus::object_path objectPath,
     {
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             co_await lg2::commit(
                 ctx, event_intf::FanRestored("FAN_NAME", objectPath));
@@ -421,7 +469,7 @@ auto Events::generateLeakDetectedEvent(sdbusplus::object_path objectPath,
         auto pendingEvent = pendingEvents.find(eventName);
         if (pendingEvent != pendingEvents.end())
         {
-            co_await lg2::resolve(ctx, pendingEvent->second);
+            co_await resolvePending(pendingEvent->second);
 
             using DetectorNormal = sdbusplus::event::xyz::openbmc_project::
                 state::leak::Detector::LeakDetectedNormal;
@@ -430,6 +478,11 @@ auto Events::generateLeakDetectedEvent(sdbusplus::object_path objectPath,
 
             removePending(eventName);
         }
+        co_return;
+    }
+
+    if (co_await isPending(eventName))
+    {
         co_return;
     }
 
@@ -449,7 +502,7 @@ auto Events::generateLeakDetectedEvent(sdbusplus::object_path objectPath,
             ctx, error_intf::LeakDetectedWarning("DETECTOR_NAME", objectPath));
         warning("Warning leak detected for {PATH}", "PATH", objectPath);
     }
-    pendingEvents[eventName] = eventPath;
+    addPending(eventName, eventPath);
 }
 
 } // namespace phosphor::modbus::events
