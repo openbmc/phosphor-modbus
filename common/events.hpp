@@ -74,6 +74,16 @@ class Events
     /** @brief Drop a pending event and persist the map. */
     void removePending(const std::string& eventName);
 
+    /** @brief True if the event is tracked and its log entry still exists.
+     *  A tracked entry whose log was rotated out ("wrapped") reports false so
+     *  the caller regenerates it. */
+    auto isPending(const std::string& eventName)
+        -> sdbusplus::async::task<bool>;
+
+    /** @brief Resolve a log entry, ignoring an already rotated-out entry. */
+    auto resolvePending(const sdbusplus::object_path& eventPath)
+        -> sdbusplus::async::task<void>;
+
     /** @brief Atomically write pendingEvents to stateFile (best-effort). */
     void persist();
 
