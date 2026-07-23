@@ -180,8 +180,7 @@ class BaseDevice
                             std::span<const uint16_t> spanBuffer,
                             uint16_t spanStartOffset) -> void;
 
-    /** @brief Process the changed status bits for a single status register
-     *  entry. changedBits marks which bit positions to evaluate. */
+    /** @brief Process the status bits of a single status register entry. */
     auto processStatusEntry(const StatusEntry& entry,
                             std::span<const uint16_t> spanBuffer,
                             uint16_t spanStartOffset, uint16_t changedBits)

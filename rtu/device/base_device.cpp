@@ -581,16 +581,12 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
                 auto& statusEntry = std::get<StatusEntry>(bucket.entries[idx]);
                 auto currentValue =
                     spanBuffer[statusEntry.address - span.startOffset];
-                // Evaluate all bits on the first read; afterwards only the
-                // bits whose value changed since the last read.
+                // Mark all bits on the first read; afterwards only the bits
+                // whose value changed since the last read.
                 uint16_t changedBits =
                     statusEntry.lastValue
                         ? (*statusEntry.lastValue ^ currentValue)
                         : 0xFFFF;
-                if (changedBits == 0)
-                {
-                    continue;
-                }
                 co_await processStatusEntry(statusEntry, spanBuffer,
                                             span.startOffset, changedBits);
                 statusEntry.lastValue = currentValue;
@@ -758,14 +754,16 @@ auto BaseDevice::processStatusEntry(
                   "POSITION", statusBit.bitPosition, "NAME", statusBit.name);
             continue;
         }
-        // Skip bits whose value did not change since the last read.
-        if ((changedBits & (1 << statusBit.bitPosition)) == 0)
-        {
-            continue;
-        }
         auto statusBitValue =
             ((spanBuffer[regOffset] & (1 << statusBit.bitPosition)) != 0);
         auto statusAsserted = (statusBitValue == statusBit.value);
+        auto bitChanged = (changedBits & (1 << statusBit.bitPosition)) != 0;
+        // Skip a bit that neither changed (no assert/deassert transition) nor
+        // is currently asserted (no log to regenerate if rotated out).
+        if (!bitChanged && !statusAsserted)
+        {
+            continue;
+        }
         auto objectPath = getObjectPath(config, statusBit.type, statusBit.name);
         double sensorValue = std::numeric_limits<double>::quiet_NaN();
         SensorIntf::Unit sensorUnit = SensorIntf::Unit::Percent;
