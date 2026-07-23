@@ -91,6 +91,7 @@ class TestEventServer : public EventServerIntf
             std::to_string(cnt);
         EXPECT_EQ(message, expectedEvent) << "Event name mismatch";
 
+        createCount++;
         eventEntries.emplace_back(
             std::make_unique<TestEventEntry>(ctx, objectPath.c_str()));
 
@@ -104,7 +105,19 @@ class TestEventServer : public EventServerIntf
         co_return;
     }
 
+    // Destroy the most recently created entry to simulate the logging
+    // service rotating it out ("wrapping").
+    void removeLastEntry()
+    {
+        if (!eventEntries.empty())
+        {
+            eventEntries.pop_back();
+        }
+    }
+
     std::string expectedEvent;
+    // Cumulative logs created; never decremented.
+    int createCount = 0;
 
   private:
     sdbusplus::async::context& ctx;
@@ -287,6 +300,34 @@ class DeviceEventsTest : public BaseTest
                      DeviceIntf::getUnit(testProfile.sensorRegisters[0].type));
         co_return;
     }
+
+    // Poll a device whose status bit stays asserted. Held in its own
+    // coroutine so the device outlives its spawned poll loop.
+    auto pollAssertedStatus() -> sdbusplus::async::task<void>
+    {
+        auto testProfile =
+            createTestProfile(ProfileIntf::StatusType::sensorReadingCritical);
+        EventIntf::Events events{ctx, stateDir};
+        MockPort mockPort(ctx, portConfig, clientDevicePath);
+        auto device = createDevice(testProfile, events, mockPort);
+        co_await device->pollRegisters();
+    }
+
+    // Once the first log is committed, wrap it out and confirm a later poll
+    // of the unchanged, still-asserted register regenerates it.
+    auto driveStatusWrap() -> sdbusplus::async::task<void>
+    {
+        while (eventServer.createCount < 1)
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 100ms);
+        }
+        eventServer.removeLastEntry();
+        while (eventServer.createCount < 2)
+        {
+            co_await sdbusplus::async::sleep_for(ctx, 100ms);
+        }
+        ctx.request_stop();
+    }
 };
 
 TEST_F(DeviceEventsTest, TestSensorStatusSpanMerge)
@@ -330,6 +371,26 @@ TEST_F(DeviceEventsTest, TestSensorReadingCritical)
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();
+}
+
+// A status bit that stays asserted must have its log regenerated when the
+// logging service wraps it out, even though the register value is unchanged.
+TEST_F(DeviceEventsTest, TestStatusWrapRegeneratesLog)
+{
+    eventServer.expectedEvent =
+        "xyz.openbmc_project.Sensor.Threshold.ReadingCritical";
+
+    ctx.spawn(pollAssertedStatus());
+    ctx.spawn(driveStatusWrap());
+
+    // Safety net so a regression fails instead of hanging.
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 10s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+
+    EXPECT_GE(eventServer.createCount, 2)
+        << "Wrapped log was not regenerated on a later poll";
 }
 
 TEST_F(DeviceEventsTest, TestSensorFailure)
