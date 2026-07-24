@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <cstdio>
+
 BaseTest::BaseTest(const char* clientPathPrefix, const char* serverPathPrefix,
                    const char* serviceName)
 {
@@ -67,10 +69,16 @@ void BaseTest::SetUp()
 
 void BaseTest::TearDown()
 {
+    fprintf(stderr, "HANGDBG teardown: set exitThread\n");
+    fflush(stderr);
     exitThread.store(true);
     if (serverThread.joinable())
     {
+        fprintf(stderr, "HANGDBG teardown: before join\n");
+        fflush(stderr);
         serverThread.join();
+        fprintf(stderr, "HANGDBG teardown: after join\n");
+        fflush(stderr);
     }
 }
 
@@ -78,6 +86,10 @@ void BaseTest::ServerRequestHandler()
 {
     while (!exitThread.load())
     {
+        fprintf(stderr, "HANGDBG server: loop iter\n");
+        fflush(stderr);
         serverTester->processRequests();
     }
+    fprintf(stderr, "HANGDBG server: exited loop\n");
+    fflush(stderr);
 }

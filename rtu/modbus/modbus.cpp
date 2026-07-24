@@ -10,6 +10,8 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 
+#include <cstdio>
+
 namespace phosphor::modbus::rtu
 {
 
@@ -279,9 +281,13 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
         debug("Waiting for response for {DEVICE_ADDRESS} with {EXPECTED} bytes",
               "DEVICE_ADDRESS", lg2::hex, deviceAddress, "EXPECTED",
               expectedLen);
+        fprintf(stderr, "HANGDBG readResp: await next() remain=%d\n",
+                expectedLen);
         co_await fdioInstance.next();
+        fprintf(stderr, "HANGDBG readResp: next() done, calling read()\n");
         auto ret = read(fd, response.raw.data() + response.len - expectedLen,
                         expectedLen);
+        fprintf(stderr, "HANGDBG readResp: read() ret=%ld\n", (long)ret);
         if (ret < 0)
         {
             error(

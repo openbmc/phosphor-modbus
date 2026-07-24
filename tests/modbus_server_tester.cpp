@@ -7,6 +7,8 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 
+#include <cstdio>
+
 #include <gtest/gtest.h>
 
 namespace phosphor::modbus::test
@@ -83,7 +85,11 @@ auto ServerTester::processRequests() -> void
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000;
 
+    fprintf(stderr, "HANGDBG server: before select\n");
+    fflush(stderr);
     int readyFds = select(fd + 1, &readFds, nullptr, nullptr, &timeout);
+    fprintf(stderr, "HANGDBG server: select ret=%d\n", readyFds);
+    fflush(stderr);
 
     if (readyFds == -1)
     {
