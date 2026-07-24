@@ -7,6 +7,7 @@
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Configuration/USBPort/client.hpp>
 
+#include <cstdio>
 #include <filesystem>
 #include <format>
 #include <optional>
@@ -79,7 +80,13 @@ auto BasePort::readHoldingRegisters(
     }
 
     sdbusplus::async::lock_guard lg{mutex};
+    fprintf(stderr, "HANGDBG port.read off=0x%x: await lock\n",
+            (unsigned)registerOffset);
+    fflush(stderr);
     co_await lg.lock();
+    fprintf(stderr, "HANGDBG port.read off=0x%x: got lock\n",
+            (unsigned)registerOffset);
+    fflush(stderr);
 
     if (!modbus->setProperties(baudRate, parity))
     {
@@ -92,8 +99,14 @@ auto BasePort::readHoldingRegisters(
         "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
         registerOffset);
 
+    fprintf(stderr, "HANGDBG port.read off=0x%x: call modbus read\n",
+            (unsigned)registerOffset);
+    fflush(stderr);
     auto ret = co_await modbus->readHoldingRegisters(deviceAddress,
                                                      registerOffset, registers);
+    fprintf(stderr, "HANGDBG port.read off=0x%x: modbus read done\n",
+            (unsigned)registerOffset);
+    fflush(stderr);
     if (!ret)
     {
         error(

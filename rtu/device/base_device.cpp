@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cstdio>
 #include <numeric>
 #include <span>
 
@@ -616,6 +617,8 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
 
     while (!ctx.stop_requested() && !stopRequested)
     {
+        fprintf(stderr, "HANGDBG pollReg: loop top\n");
+        fflush(stderr);
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
 
         for (auto& bucket : pollBuckets)
@@ -627,7 +630,11 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
                     std::min(earliestNextPoll, bucket.nextPollTime);
                 continue;
             }
+            fprintf(stderr, "HANGDBG pollReg: before pollBucket\n");
+            fflush(stderr);
             co_await pollBucket(bucket);
+            fprintf(stderr, "HANGDBG pollReg: after pollBucket\n");
+            fflush(stderr);
             bucket.nextPollTime =
                 std::chrono::steady_clock::now() + bucket.pollInterval;
             earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
@@ -639,7 +646,11 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
         }
         earliestNextPoll = std::min(earliestNextPoll, configNextWrite);
 
+        fprintf(stderr, "HANGDBG pollReg: before sleep\n");
+        fflush(stderr);
         co_await sleepUntilNextPoll(earliestNextPoll);
+        fprintf(stderr, "HANGDBG pollReg: after sleep\n");
+        fflush(stderr);
         debug("Polling sensors for {NAME}", "NAME", config.name);
     }
 
@@ -667,7 +678,12 @@ auto BaseDevice::sleepUntilNextPoll(
          elapsed < sleepDuration && !ctx.stop_requested() && !stopRequested;)
     {
         auto sleepTime = std::min(sleepDuration - elapsed, stopCheckInterval);
+        fprintf(stderr, "HANGDBG sleep: before sleep_for %ld ms\n",
+                (long)sleepTime.count());
+        fflush(stderr);
         co_await sdbusplus::async::sleep_for(ctx, sleepTime);
+        fprintf(stderr, "HANGDBG sleep: woke\n");
+        fflush(stderr);
         elapsed += sleepTime;
     }
 }
