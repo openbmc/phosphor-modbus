@@ -4,8 +4,13 @@
 #include "modbus/modbus_commands.hpp"
 #include "modbus/modbus_exception.hpp"
 
+#include <sys/eventfd.h>
+#include <unistd.h>
+
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
+
+#include <algorithm>
 
 #include <gtest/gtest.h>
 
@@ -22,7 +27,28 @@ constexpr uint8_t readHoldingRegistersErrorFunctionCode = 0x83;
 constexpr uint8_t writeMultipleRegistersFunctionCode = 0x10;
 constexpr uint8_t writeMultipleRegistersErrorFunctionCode = 0x90;
 
-ServerTester::ServerTester(int fd) : fd(fd) {}
+ServerTester::ServerTester(int fd) : fd(fd)
+{
+    stopFd = eventfd(0, EFD_NONBLOCK);
+    EXPECT_NE(stopFd, -1) << "Failed to create stop eventfd: "
+                          << strerror(errno);
+}
+
+ServerTester::~ServerTester()
+{
+    if (stopFd != -1)
+    {
+        close(stopFd);
+    }
+}
+
+auto ServerTester::stop() -> void
+{
+    uint64_t value = 1;
+    // Best-effort wake of a blocked select(); return value intentionally
+    // ignored.
+    [[maybe_unused]] auto ret = write(stopFd, &value, sizeof(value));
+}
 
 auto ServerTester::processRequestsInternal() -> void
 {
@@ -78,12 +104,14 @@ auto ServerTester::processRequests() -> void
     fd_set readFds;
     FD_ZERO(&readFds);
     FD_SET(fd, &readFds);
+    FD_SET(stopFd, &readFds);
 
     struct timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000;
 
-    int readyFds = select(fd + 1, &readFds, nullptr, nullptr, &timeout);
+    int maxFd = std::max(fd, stopFd);
+    int readyFds = select(maxFd + 1, &readFds, nullptr, nullptr, &timeout);
 
     if (readyFds == -1)
     {
@@ -97,6 +125,12 @@ auto ServerTester::processRequests() -> void
     }
     else
     {
+        if (FD_ISSET(stopFd, &readFds))
+        {
+            // Stop requested on teardown; return so the server loop can
+            // observe the exit flag and terminate promptly.
+            return;
+        }
         if (FD_ISSET(fd, &readFds))
         {
             // Data is available to read
