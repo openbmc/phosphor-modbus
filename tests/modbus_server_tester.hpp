@@ -157,8 +157,13 @@ class ServerTester
 {
   public:
     explicit ServerTester(int fd);
+    ~ServerTester();
 
     auto processRequests() -> void;
+
+    /** @brief Wake a blocked processRequests() so the server thread can exit
+     *  promptly on teardown, instead of waiting out the select() timeout. */
+    auto stop() -> void;
 
     /** @brief Number of read requests seen for a register offset, so tests can
      *  confirm a register's poll cadence. */
@@ -192,6 +197,8 @@ class ServerTester
                                bool& segmentedResponse) -> void;
 
     int fd;
+    // eventfd used to interrupt select() in processRequests() on teardown.
+    int stopFd = -1;
     uint32_t flakyRegisterRequestCount = 0;
     uint32_t flakyWriteRequestCount = 0;
     std::map<uint16_t, uint32_t> readCountByOffset;

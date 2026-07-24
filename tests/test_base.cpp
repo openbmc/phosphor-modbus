@@ -68,6 +68,12 @@ void BaseTest::SetUp()
 void BaseTest::TearDown()
 {
     exitThread.store(true);
+    // Wake the server thread's blocked select() so it exits promptly instead
+    // of waiting out the select() timeout before it re-checks exitThread.
+    if (serverTester)
+    {
+        serverTester->stop();
+    }
     if (serverThread.joinable())
     {
         serverThread.join();
