@@ -126,6 +126,16 @@ class ExclusiveLock
     BasePort* port;
 };
 
+/** @brief Optional modifiers for a port read/write operation. */
+struct OperationOptions
+{
+    /** @brief Number of retries before the operation is considered failed. */
+    uint8_t retries = modbusRTURetries;
+    /** @brief Exclusive-lock handle; set to bypass the busy gate while the
+     *  port is reserved (e.g. during a firmware update). */
+    ExclusiveLock* lock = nullptr;
+};
+
 class BasePort
 {
   public:
@@ -136,13 +146,13 @@ class BasePort
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               uint32_t baudRate, Parity parity,
                               std::span<uint16_t> registers,
-                              ExclusiveLock* lock = nullptr)
+                              OperationOptions options = {})
         -> sdbusplus::async::task<OperationStatus>;
 
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                                 uint32_t baudRate, Parity parity,
                                 std::span<const uint16_t> registers,
-                                ExclusiveLock* lock = nullptr)
+                                OperationOptions options = {})
         -> sdbusplus::async::task<OperationStatus>;
 
     /** @brief Reserve the port exclusively (e.g. for a firmware update).

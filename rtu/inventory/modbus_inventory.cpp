@@ -233,7 +233,7 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
 
     auto ret = co_await port.readHoldingRegisters(
         config.address, probe.offset, config.profile.baudRate,
-        config.profile.parity, registers);
+        config.profile.parity, registers, {.retries = inventoryProbeRetries});
     if (ret == ModbusIntf::port::OperationStatus::busy)
     {
         co_return;

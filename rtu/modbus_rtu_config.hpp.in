@@ -11,6 +11,8 @@ inline constexpr auto modbusRTUTimeout =
 
 inline constexpr uint8_t modbusRTURetries = @MODBUS_RTU_RETRIES@;
 
+inline constexpr uint8_t inventoryProbeRetries = @INVENTORY_PROBE_RETRIES@;
+
 inline constexpr auto defaultSensorPollInterval =
     std::chrono::seconds(@SENSOR_POLL_INTERVAL_SECONDS@);
 
