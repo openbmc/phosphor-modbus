@@ -33,6 +33,13 @@ option(
 )
 
 option(
+    'inventory-probe-retries',
+    type: 'integer',
+    value: 1,
+    description: 'Number of retries for a failed inventory probe read. Lower than modbus-rtu-retries because an absent device never answers, so extra back-to-back attempts only lengthen the discovery sweep.',
+)
+
+option(
     'sensor-poll-interval-seconds',
     type: 'integer',
     value: 180,

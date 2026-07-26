@@ -115,7 +115,7 @@ class PortTest : public BaseTest
         auto held = co_await port.readHoldingRegisters(
             TestIntf::testDeviceAddress,
             TestIntf::testSuccessReadHoldingRegisterOffset, config.baudRate,
-            RTUIntf::Parity::none, registers, &*lock);
+            RTUIntf::Parity::none, registers, {.lock = &*lock});
         EXPECT_EQ(held, PortIntf::OperationStatus::success);
 
         // Releasing the lock re-enables normal reads.

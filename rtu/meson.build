@@ -28,6 +28,10 @@ conf.set(
     'MODBUS_RTU_RETRIES',
     get_option('modbus-rtu-retries'),
 )
+conf.set(
+    'INVENTORY_PROBE_RETRIES',
+    get_option('inventory-probe-retries'),
+)
 conf.set10(
     'APPEND_UNIT_SUFFIX',
     get_option('append-unit-suffix'),

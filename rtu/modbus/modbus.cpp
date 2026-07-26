@@ -142,12 +142,12 @@ static auto printMessage(uint8_t* data, size_t len) -> void
     debug("{MSG}", "MSG", ss.str());
 }
 
-auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
-                                  uint16_t registerOffset,
-                                  std::span<uint16_t> registers)
+auto Modbus::readHoldingRegisters(
+    uint8_t deviceAddress, uint16_t registerOffset,
+    std::span<uint16_t> registers, uint8_t retries)
     -> sdbusplus::async::task<bool>
 {
-    for (uint8_t attempt = 0; attempt <= modbusRTURetries; ++attempt)
+    for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
         try
         {
@@ -183,7 +183,7 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
         }
         catch (std::exception& e)
         {
-            if (attempt == modbusRTURetries)
+            if (attempt == retries)
             {
                 error(
                     "Failed to read holding registers for {DEVICE_ADDRESS} with {ERROR}",
@@ -195,12 +195,12 @@ auto Modbus::readHoldingRegisters(uint8_t deviceAddress,
     co_return false;
 }
 
-auto Modbus::writeMultipleRegisters(uint8_t deviceAddress,
-                                    uint16_t registerOffset,
-                                    std::span<const uint16_t> registers)
+auto Modbus::writeMultipleRegisters(
+    uint8_t deviceAddress, uint16_t registerOffset,
+    std::span<const uint16_t> registers, uint8_t retries)
     -> sdbusplus::async::task<bool>
 {
-    for (uint8_t attempt = 0; attempt <= modbusRTURetries; ++attempt)
+    for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
         try
         {
@@ -237,7 +237,7 @@ auto Modbus::writeMultipleRegisters(uint8_t deviceAddress,
         }
         catch (std::exception& e)
         {
-            if (attempt == modbusRTURetries)
+            if (attempt == retries)
             {
                 error(
                     "Failed to write multiple registers for {DEVICE_ADDRESS} with {ERROR}",
