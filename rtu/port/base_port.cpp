@@ -70,10 +70,10 @@ auto BasePort::acquireExclusive() -> std::optional<ExclusiveLock>
 
 auto BasePort::readHoldingRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
-    Parity parity, std::span<uint16_t> registers, ExclusiveLock* lock)
+    Parity parity, std::span<uint16_t> registers, OperationOptions options)
     -> sdbusplus::async::task<OperationStatus>
 {
-    if (lock == nullptr && busy)
+    if (options.lock == nullptr && busy)
     {
         co_return OperationStatus::busy;
     }
@@ -92,8 +92,8 @@ auto BasePort::readHoldingRegisters(
         "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
         registerOffset);
 
-    auto ret = co_await modbus->readHoldingRegisters(deviceAddress,
-                                                     registerOffset, registers);
+    auto ret = co_await modbus->readHoldingRegisters(
+        deviceAddress, registerOffset, registers, options.retries);
     if (!ret)
     {
         error(
@@ -109,10 +109,10 @@ auto BasePort::readHoldingRegisters(
 
 auto BasePort::writeMultipleRegisters(
     uint8_t deviceAddress, uint16_t registerOffset, uint32_t baudRate,
-    Parity parity, std::span<const uint16_t> registers, ExclusiveLock* lock)
-    -> sdbusplus::async::task<OperationStatus>
+    Parity parity, std::span<const uint16_t> registers,
+    OperationOptions options) -> sdbusplus::async::task<OperationStatus>
 {
-    if (lock == nullptr && busy)
+    if (options.lock == nullptr && busy)
     {
         co_return OperationStatus::busy;
     }
@@ -131,8 +131,8 @@ auto BasePort::writeMultipleRegisters(
         "ADDRESS", lg2::hex, deviceAddress, "PORT", name, "OFFSET", lg2::hex,
         registerOffset);
 
-    co_return co_await modbus->writeMultipleRegisters(deviceAddress,
-                                                      registerOffset, registers)
+    co_return co_await modbus->writeMultipleRegisters(
+        deviceAddress, registerOffset, registers, options.retries)
         ? OperationStatus::success
         : OperationStatus::failure;
 }

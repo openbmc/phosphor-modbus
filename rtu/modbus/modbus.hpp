@@ -1,7 +1,10 @@
 #pragma once
 
+#include "modbus_rtu_config.hpp"
+
 #include <sdbusplus/async.hpp>
 
+#include <cstdint>
 #include <span>
 
 namespace phosphor::modbus::rtu
@@ -26,11 +29,13 @@ class Modbus
     auto setProperties(uint32_t inBaudRate, Parity inParity) -> bool;
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
-                              std::span<uint16_t> registers)
+                              std::span<uint16_t> registers,
+                              uint8_t retries = modbusRTURetries)
         -> sdbusplus::async::task<bool>;
 
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
-                                std::span<const uint16_t> registers)
+                                std::span<const uint16_t> registers,
+                                uint8_t retries = modbusRTURetries)
         -> sdbusplus::async::task<bool>;
 
   private:
