@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/entity_manager_interface.hpp"
 #include "device_profile.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -38,10 +39,13 @@ struct Config
  *  @param interfaceName  The EM interface (type is derived from the last
  *                        segment, e.g.
  * "...DeltaRDF040DSS5193E0ReservoirPumpUnit").
+ *  @param inInterfaces  The object's already-fetched interface map. When
+ *                     empty, getConfig fetches it from Entity Manager itself.
  *  @return A populated Config, or std::nullopt on failure. */
 auto getConfig(sdbusplus::async::context& ctx,
                const sdbusplus::object_path& objectPath,
-               const std::string& interfaceName)
+               const std::string& interfaceName,
+               const entity_manager::ConfigData& inInterfaces = {})
     -> sdbusplus::async::task<std::optional<Config>>;
 
 } // namespace phosphor::modbus::rtu::config

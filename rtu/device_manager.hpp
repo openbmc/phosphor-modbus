@@ -58,7 +58,8 @@ class DeviceManager
     auto discoverConfigs() -> sdbusplus::async::task<>;
 
     auto processConfigAdded(const sdbusplus::object_path& objectPath,
-                            const std::string& interfaceName)
+                            const std::string& interfaceName,
+                            const entity_manager::ConfigData& inInterfaces)
         -> sdbusplus::async::task<>;
 
     auto processPortAdded(const sdbusplus::object_path& objectPath,
@@ -66,7 +67,8 @@ class DeviceManager
         -> sdbusplus::async::task<>;
 
     auto processInventoryAdded(const sdbusplus::object_path& objectPath,
-                               const std::string& interfaceName)
+                               const std::string& interfaceName,
+                               const entity_manager::ConfigData& inInterfaces)
         -> sdbusplus::async::task<>;
 
     /** @brief Create and start the inventory device for a config on a port. */

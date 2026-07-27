@@ -59,9 +59,9 @@ auto DeviceManager::discoverConfigs() -> sdbusplus::async::task<>
         DeviceFactoryIntf::getInterfaces());
 }
 
-auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
-                                       const std::string& interfaceName)
-    -> sdbusplus::async::task<>
+auto DeviceManager::processConfigAdded(
+    const sdbusplus::object_path& objectPath, const std::string& interfaceName,
+    const entity_manager::ConfigData& inInterfaces) -> sdbusplus::async::task<>
 {
     debug("Config added for {PATH} with {INTF}", "PATH", objectPath, "INTF",
           interfaceName);
@@ -70,6 +70,7 @@ auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
     if (std::find(portInterfaces.begin(), portInterfaces.end(),
                   interfaceName) != portInterfaces.end())
     {
+        // Ports use a targeted properties() fetch, so the map is not needed.
         co_return co_await processPortAdded(objectPath, interfaceName);
     }
 
@@ -77,7 +78,8 @@ auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
     if (std::find(deviceInterfaces.begin(), deviceInterfaces.end(),
                   interfaceName) != deviceInterfaces.end())
     {
-        co_return co_await processInventoryAdded(objectPath, interfaceName);
+        co_return co_await processInventoryAdded(objectPath, interfaceName,
+                                                 inInterfaces);
     }
 }
 
@@ -120,18 +122,19 @@ auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
         pendingDevices.erase(pendingIter);
         for (const auto& device : pending)
         {
+            // No cached map for deferred devices - pass empty to re-fetch.
             co_await processInventoryAdded(device.objectPath,
-                                           device.interfaceName);
+                                           device.interfaceName, {});
         }
     }
 }
 
 auto DeviceManager::processInventoryAdded(
-    const sdbusplus::object_path& objectPath, const std::string& interfaceName)
-    -> sdbusplus::async::task<>
+    const sdbusplus::object_path& objectPath, const std::string& interfaceName,
+    const entity_manager::ConfigData& inInterfaces) -> sdbusplus::async::task<>
 {
-    auto config =
-        co_await DeviceFactoryIntf::getConfig(ctx, objectPath, interfaceName);
+    auto config = co_await DeviceFactoryIntf::getConfig(
+        ctx, objectPath, interfaceName, inInterfaces);
     if (!config)
     {
         error("Failed to get config for {PATH}", "PATH", objectPath);

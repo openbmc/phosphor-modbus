@@ -16,17 +16,9 @@ PHOSPHOR_LOG2_USING;
 
 namespace rules_intf = sdbusplus::match_rules;
 
-using BasicVariantType =
-    std::variant<std::vector<std::string>, std::vector<uint8_t>, std::string,
-                 int64_t, uint64_t, double, int32_t, uint32_t, int16_t,
-                 uint16_t, uint8_t, bool>;
-using BaseConfigMap = std::flat_map<std::string, BasicVariantType>;
-using ConfigData = std::flat_map<std::string, BaseConfigMap>;
-using ManagedObjectType = std::flat_map<sdbusplus::object_path, ConfigData>;
-
 EntityManagerInterface::EntityManagerInterface(
     sdbusplus::async::context& ctx, const interface_list_t& interfaceNames,
-    Callback_t addedCallback, Callback_t removedCallback) :
+    AddedCallback_t addedCallback, RemovedCallback_t removedCallback) :
     ctx(ctx), interfaceNames(interfaceNames),
     addedCallback(std::move(addedCallback)),
     removedCallback(std::move(removedCallback))
@@ -67,7 +59,8 @@ auto EntityManagerInterface::handleInventoryGet(
         {
             if (interfaceConfig.contains(interfaceName))
             {
-                co_await addedCallback(objectPath, interfaceName);
+                co_await addedCallback(objectPath, interfaceName,
+                                       interfaceConfig);
             }
         }
     }
@@ -96,7 +89,9 @@ auto EntityManagerInterface::handleInventoryAdded() -> sdbusplus::async::task<>
         {
             if (inventoryData.contains(interfaceName))
             {
-                co_await addedCallback(objectPath, interfaceName);
+                // Add signal does not provide sub-interfaces; pass empty to
+                // force a fetch.
+                co_await addedCallback(objectPath, interfaceName, {});
             }
         }
     }

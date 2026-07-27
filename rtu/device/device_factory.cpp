@@ -28,11 +28,12 @@ auto DeviceFactory::getInterfaces() -> std::vector<std::string>
 
 auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
                               const sdbusplus::object_path& objectPath,
-                              const std::string& interfaceName)
+                              const std::string& interfaceName,
+                              const entity_manager::ConfigData& inInterfaces)
     -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>
 {
-    auto baseConfig =
-        co_await config::getConfig(ctx, objectPath, interfaceName);
+    auto baseConfig = co_await config::getConfig(ctx, objectPath, interfaceName,
+                                                 inInterfaces);
     if (!baseConfig)
     {
         co_return std::nullopt;

@@ -31,7 +31,8 @@ class DeviceFactory
 
     static auto getConfig(sdbusplus::async::context& ctx,
                           const sdbusplus::object_path& objectPath,
-                          const std::string& interfaceName)
+                          const std::string& interfaceName,
+                          const entity_manager::ConfigData& inInterfaces = {})
         -> sdbusplus::async::task<std::optional<config::DeviceFactoryConfig>>;
 
     static auto create(sdbusplus::async::context& ctx,

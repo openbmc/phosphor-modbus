@@ -14,16 +14,12 @@ namespace phosphor::modbus::rtu::config
 
 PHOSPHOR_LOG2_USING;
 
-using BasicVariantType =
-    std::variant<std::vector<std::string>, std::vector<uint8_t>, std::string,
-                 int64_t, uint64_t, double, int32_t, uint32_t, int16_t,
-                 uint16_t, uint8_t, bool>;
-using ConfigMap = std::flat_map<std::string, BasicVariantType>;
-using InterfaceData = std::flat_map<std::string, ConfigMap>;
-using ManagedObjectType = std::flat_map<sdbusplus::object_path, InterfaceData>;
+using entity_manager::BaseConfigMap;
+using entity_manager::ConfigData;
+using entity_manager::ManagedObjectType;
 
 template <typename T>
-static auto getValue(const ConfigMap& configMap, const std::string& key,
+static auto getValue(const BaseConfigMap& configMap, const std::string& key,
                      const std::string& contextName) -> T
 {
     auto iter = configMap.find(key);
@@ -46,7 +42,7 @@ static auto getValue(const ConfigMap& configMap, const std::string& key,
 
 // Get RegisterPollRates from the <interfaceName>.RegisterPollRates<N>
 // sub-interfaces.
-static auto parseRegisterPollRates(const InterfaceData& interfaces,
+static auto parseRegisterPollRates(const ConfigData& interfaces,
                                    const std::string& interfaceName)
     -> std::unordered_map<std::string, std::chrono::seconds>
 {
@@ -73,7 +69,7 @@ static auto parseRegisterPollRates(const InterfaceData& interfaces,
     return registerPollRates;
 }
 
-static auto parseConfig(const InterfaceData& interfaces,
+static auto parseConfig(const ConfigData& interfaces,
                         const sdbusplus::object_path& objectPath,
                         const std::string& interfaceName, std::string type,
                         const ProfileIntf::DeviceProfile& profile)
@@ -127,7 +123,7 @@ static auto parseConfig(const InterfaceData& interfaces,
 
 auto getConfig(sdbusplus::async::context& ctx,
                const sdbusplus::object_path& objectPath,
-               const std::string& interfaceName)
+               const std::string& interfaceName, const ConfigData& inInterfaces)
     -> sdbusplus::async::task<std::optional<Config>>
 {
     auto type = interfaceName.substr(interfaceName.rfind('.') + 1);
@@ -142,6 +138,14 @@ auto getConfig(sdbusplus::async::context& ctx,
         error("No device profile for type {TYPE}: {ERROR}", "TYPE", type,
               "ERROR", e);
         co_return std::nullopt;
+    }
+
+    // Interface map already provided by the caller (e.g. from the initial
+    // GetManagedObjects) - parse it directly without re-querying.
+    if (!inInterfaces.empty())
+    {
+        co_return parseConfig(inInterfaces, objectPath, interfaceName,
+                              std::move(type), *profile);
     }
 
     using InventoryIntf =
