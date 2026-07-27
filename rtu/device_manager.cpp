@@ -45,10 +45,18 @@ DeviceManager::DeviceManager(sdbusplus::async::context& ctx) :
 {
     events.restore();
 
-    ctx.spawn(entityManager.handleInventoryGet());
+    ctx.spawn(discoverConfigs());
     ctx.spawn(cleanupStoppedDevices());
     allowedDevices.startWatching();
     info("DeviceManager created successfully");
+}
+
+auto DeviceManager::discoverConfigs() -> sdbusplus::async::task<>
+{
+    co_await entityManager.handleInventoryGet(
+        PortIntf::PortFactory::getInterfaces());
+    co_await entityManager.handleInventoryGet(
+        DeviceFactoryIntf::getInterfaces());
 }
 
 auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
@@ -69,12 +77,6 @@ auto DeviceManager::processConfigAdded(const sdbusplus::object_path& objectPath,
     if (std::find(deviceInterfaces.begin(), deviceInterfaces.end(),
                   interfaceName) != deviceInterfaces.end())
     {
-        if (ports.empty())
-        {
-            warning("Skip processing {INTF} as no serial ports detected yet",
-                    "INTF", interfaceName);
-            co_return;
-        }
         co_return co_await processInventoryAdded(objectPath, interfaceName);
     }
 }
@@ -91,6 +93,14 @@ auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
         co_return;
     }
 
+    // A port can be seen via both the get and an add signal; recreating it
+    // would destroy the BasePort that devices already reference.
+    if (ports.contains(config->name))
+    {
+        debug("Port {NAME} already created, skipping", "NAME", config->name);
+        co_return;
+    }
+
     try
     {
         ports[config->name] = PortIntf::PortFactory::create(ctx, *config);
@@ -102,8 +112,18 @@ auto DeviceManager::processPortAdded(const sdbusplus::object_path& objectPath,
         co_return;
     }
 
-    co_await entityManager.handleInventoryGet(
-        DeviceFactoryIntf::getInterfaces());
+    // Bind any device configs that arrived before this port existed.
+    auto pendingIter = pendingDevices.find(config->name);
+    if (pendingIter != pendingDevices.end())
+    {
+        auto pending = std::move(pendingIter->second);
+        pendingDevices.erase(pendingIter);
+        for (const auto& device : pending)
+        {
+            co_await processInventoryAdded(device.objectPath,
+                                           device.interfaceName);
+        }
+    }
 }
 
 auto DeviceManager::processInventoryAdded(
@@ -130,13 +150,20 @@ auto DeviceManager::processInventoryAdded(
     auto portIter = ports.find(config->serialPort);
     if (portIter == ports.end())
     {
-        warning("Serial port {PORT} not found for {NAME}", "PORT",
-                config->serialPort, "NAME", config->name);
+        debug("Serial port {PORT} not created yet, deferring {NAME}", "PORT",
+              config->serialPort, "NAME", config->name);
+        pendingDevices[config->serialPort].push_back(
+            {objectPath, interfaceName});
         co_return;
     }
 
-    auto callback =
-        [this, config = *config](bool success) -> sdbusplus::async::task<> {
+    addInventoryDevice(*config, *(portIter->second));
+}
+
+auto DeviceManager::addInventoryDevice(const DeviceFactoryConfigIntf& config,
+                                       PortIntf::BasePort& port) -> void
+{
+    auto callback = [this, config](bool success) -> sdbusplus::async::task<> {
         if (success)
         {
             co_await processDeviceAdded(config);
@@ -158,16 +185,14 @@ auto DeviceManager::processInventoryAdded(
     try
     {
         auto inventoryDevice = std::make_unique<InventoryIntf::Device>(
-            ctx, *config, *(portIter->second), allowedDevices,
-            std::move(callback));
+            ctx, config, port, allowedDevices, std::move(callback));
         ctx.spawn(inventoryDevice->startProbing());
-        variants[config->type] = std::move(inventoryDevice);
+        inventoryDevices[config.name][config.type] = std::move(inventoryDevice);
     }
     catch (const std::exception& e)
     {
-        error("Failed to create Inventory Device for {PATH} with {ERROR}",
-              "PATH", objectPath, "ERROR", e);
-        co_return;
+        error("Failed to create Inventory Device for {NAME} with {ERROR}",
+              "NAME", config.name, "ERROR", e);
     }
 }
 

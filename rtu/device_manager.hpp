@@ -46,6 +46,17 @@ class DeviceManager
         std::unordered_map<std::string,
                            std::unique_ptr<DeviceIntf::BaseDevice>>;
 
+    // Identity of a device config waiting for its serial port.
+    struct PendingDevice
+    {
+        sdbusplus::object_path objectPath;
+        std::string interfaceName;
+    };
+
+    /** @brief Create all ports, then all device configs, so each device binds
+     *  to its port on the first pass without re-scanning per port addition. */
+    auto discoverConfigs() -> sdbusplus::async::task<>;
+
     auto processConfigAdded(const sdbusplus::object_path& objectPath,
                             const std::string& interfaceName)
         -> sdbusplus::async::task<>;
@@ -57,6 +68,10 @@ class DeviceManager
     auto processInventoryAdded(const sdbusplus::object_path& objectPath,
                                const std::string& interfaceName)
         -> sdbusplus::async::task<>;
+
+    /** @brief Create and start the inventory device for a config on a port. */
+    auto addInventoryDevice(const device::config::DeviceFactoryConfig& config,
+                            PortIntf::BasePort& port) -> void;
 
     auto processDeviceAdded(const device::config::DeviceFactoryConfig& config)
         -> sdbusplus::async::task<>;
@@ -82,6 +97,9 @@ class DeviceManager
     inventory_device_map_t inventoryDevices;
     port_map_t ports;
     device_map_t devices; // Modbus devices
+    // Device configs waiting for their serial port, keyed by serial port name.
+    // Drained when the matching port is created.
+    std::unordered_map<std::string, std::vector<PendingDevice>> pendingDevices;
 };
 
 } // namespace phosphor::modbus::rtu
