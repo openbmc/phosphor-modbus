@@ -39,7 +39,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
         throw std::runtime_error("Failed to create Modbus interface");
     }
 
-    info("Serial port {NAME} created successfully", "NAME", config.name);
+    debug("Serial port {NAME} created successfully", "NAME", config.name);
 }
 
 ExclusiveLock::ExclusiveLock(BasePort& port) : port(&port) {}
