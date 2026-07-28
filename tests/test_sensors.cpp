@@ -405,3 +405,79 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
 
     ctx.run();
 }
+
+// When every read in a cycle fails, the device may be gone, so the poll loop
+// should ask the inventory layer to probe.
+TEST_F(SensorsTest, AllReadsFailedRequestsInventoryProbe)
+{
+    setupDevice({
+        "PowerSupplyUnit",
+        "xyz/openbmc_project/Inventory/PowerSupplyUnit",
+        ProfileIntf::DeviceType::powerSupplyUnit,
+        ProfileIntf::DeviceModel::Artesyn7000552480000,
+    });
+
+    // Sensor mapped to an offset the mock server always errors on.
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
+        {.name = "BadSensor",
+         .type = SensorTypeIntf::temperature,
+         .offset = TestIntf::testFailureReadHoldingRegister,
+         .size = 1,
+         .format = ProfileIntf::SensorFormat::fixedPoint}};
+
+    int probeRequests = 0;
+
+    auto test = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx, stateDir};
+        auto devPair = createDevice(sensorRegisters, events, {}, [&]() {
+            ++probeRequests;
+        });
+        co_await devPair.second->pollRegisters();
+        co_return;
+    };
+
+    ctx.spawn(test());
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+    ctx.run();
+
+    EXPECT_GT(probeRequests, 0)
+        << "expected an inventory probe request when all reads fail";
+}
+
+// Successful reads must never ask the inventory layer to probe.
+TEST_F(SensorsTest, SuccessfulReadsDoNotRequestInventoryProbe)
+{
+    setupDevice({
+        "PowerSupplyUnit",
+        "xyz/openbmc_project/Inventory/PowerSupplyUnit",
+        ProfileIntf::DeviceType::powerSupplyUnit,
+        ProfileIntf::DeviceModel::Artesyn7000552480000,
+    });
+
+    std::vector<ProfileIntf::SensorRegister> sensorRegisters = {
+        {.name = "GoodSensor",
+         .type = SensorTypeIntf::temperature,
+         .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
+         .size = 1,
+         .format = ProfileIntf::SensorFormat::fixedPoint}};
+
+    int probeRequests = 0;
+
+    auto test = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx, stateDir};
+        auto devPair = createDevice(sensorRegisters, events, {}, [&]() {
+            ++probeRequests;
+        });
+        co_await devPair.second->pollRegisters();
+        co_return;
+    };
+
+    ctx.spawn(test());
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+    ctx.run();
+
+    EXPECT_EQ(probeRequests, 0)
+        << "no inventory probe request expected when reads succeed";
+}

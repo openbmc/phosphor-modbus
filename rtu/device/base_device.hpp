@@ -19,6 +19,7 @@
 #include <xyz/openbmc_project/State/Decorator/OperationalStatus/aserver.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <span>
 #include <variant>
@@ -69,9 +70,13 @@ class BaseDevice
   public:
     BaseDevice() = delete;
 
+    /** @brief Invoked when a whole poll cycle fails, to trigger a probe. */
+    using ProbeRequestCallback = std::function<void()>;
+
     explicit BaseDevice(sdbusplus::async::context& ctx,
                         const config::Config& config, PortIntf& serialPort,
-                        EventIntf::Events& events);
+                        EventIntf::Events& events,
+                        ProbeRequestCallback probeRequest = nullptr);
     ~BaseDevice();
 
     /** @brief Poll sensor and status registers in a timed loop. */
@@ -200,12 +205,16 @@ class BaseDevice
     const config::Config config;
     PortIntf& serialPort;
     EventIntf::Events& events;
+    ProbeRequestCallback probeRequest;
     DeviceConfig deviceConfig;
     std::unique_ptr<DeviceFirmware> currentFirmware;
     sensors_map_t sensors;
     metrics_map_t metrics;
     std::vector<PollBucket> pollBuckets;
     std::vector<uint16_t> readBuffer;
+    // Reads attempted (excluding busy) and reads failed in the current cycle.
+    size_t cycleReadCount = 0;
+    size_t cycleFailedCount = 0;
     bool stopRequested = false;
     bool stopped = false;
 };

@@ -94,10 +94,12 @@ class SensorTestBase : public BaseTest
                                     const std::string& inventoryPath)
         -> sdbusplus::async::task<void>;
 
-    auto createDevice(std::vector<ProfileIntf::SensorRegister> sensorRegisters,
-                      EventIntf::Events& events,
-                      std::unordered_map<std::string, std::chrono::seconds>
-                          registerPollRates = {})
+    auto createDevice(
+        std::vector<ProfileIntf::SensorRegister> sensorRegisters,
+        EventIntf::Events& events,
+        std::unordered_map<std::string, std::chrono::seconds>
+            registerPollRates = {},
+        DeviceIntf::BaseDevice::ProbeRequestCallback probeRequest = nullptr)
         -> std::pair<std::unique_ptr<MockPort>,
                      std::unique_ptr<DeviceIntf::BaseDevice>>;
 

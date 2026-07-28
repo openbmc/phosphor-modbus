@@ -75,6 +75,11 @@ class DeviceManager
     auto addInventoryDevice(const device::config::DeviceFactoryConfig& config,
                             PortIntf::BasePort& port) -> void;
 
+    /** @brief Ask the inventory device for name/type to probe now (e.g. when
+     *  its sensor reads have all failed). No-op if it no longer exists. */
+    auto requestInventoryProbe(const std::string& name, const std::string& type)
+        -> void;
+
     auto processDeviceAdded(const device::config::DeviceFactoryConfig& config)
         -> sdbusplus::async::task<>;
 

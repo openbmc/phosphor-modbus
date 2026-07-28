@@ -129,8 +129,10 @@ auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit
 
 BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
                        const config::Config& config, PortIntf& serialPort,
-                       EventIntf::Events& events) :
+                       EventIntf::Events& events,
+                       ProbeRequestCallback probeRequest) :
     ctx(ctx), config(config), serialPort(serialPort), events(events),
+    probeRequest(std::move(probeRequest)),
     deviceConfig(this->config, serialPort)
 {
     createSensors();
@@ -558,8 +560,10 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
             handleSpanBusy(bucket, span);
             continue;
         }
+        ++cycleReadCount;
         if (ret != port::OperationStatus::success)
         {
+            ++cycleFailedCount;
             handleSpanReadFailure(bucket, span);
             continue;
         }
@@ -618,6 +622,8 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
     while (!ctx.stop_requested() && !stopRequested)
     {
         auto earliestNextPoll = std::chrono::steady_clock::time_point::max();
+        cycleReadCount = 0;
+        cycleFailedCount = 0;
 
         for (auto& bucket : pollBuckets)
         {
@@ -632,6 +638,16 @@ auto BaseDevice::pollRegisters() -> sdbusplus::async::task<void>
             bucket.nextPollTime =
                 std::chrono::steady_clock::now() + bucket.pollInterval;
             earliestNextPoll = std::min(earliestNextPoll, bucket.nextPollTime);
+        }
+
+        // All reads failed this cycle; ask inventory to probe and confirm.
+        if (cycleReadCount > 0 && cycleFailedCount == cycleReadCount &&
+            probeRequest)
+        {
+            info(
+                "All sensor reads failed for {NAME}, requesting inventory probe",
+                "NAME", config.name);
+            probeRequest();
         }
 
         if (std::chrono::steady_clock::now() >= configNextWrite)
