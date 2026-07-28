@@ -37,7 +37,8 @@ class DeviceFactory
 
     static auto create(sdbusplus::async::context& ctx,
                        const config::DeviceFactoryConfig& config,
-                       PortIntf& serialPort, EventIntf::Events& events)
+                       PortIntf& serialPort, EventIntf::Events& events,
+                       BaseDevice::ProbeRequestCallback probeRequest = nullptr)
         -> std::unique_ptr<BaseDevice>;
 };
 

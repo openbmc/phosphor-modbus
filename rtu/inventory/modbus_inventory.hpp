@@ -107,6 +107,14 @@ class Device
         stoppedBySibling = siblingWon;
     }
 
+    /** @brief Request an immediate probe, e.g. when the sensor poll loop sees
+     *  the device stop responding. The probing loop picks it up on its next
+     *  wake and confirms whether the device is still present. */
+    auto requestProbe() -> void
+    {
+        probeRequested = true;
+    }
+
     /** @brief Returns true after the probing coroutine has exited. */
     auto isStopped() const -> bool
     {
@@ -121,6 +129,7 @@ class Device
         stoppedBySibling = false;
         dormant = false;
         mismatchLogged = false;
+        probeRequested = false;
     }
 
     /** @brief Returns true if this device was stopped because a sibling
@@ -162,6 +171,8 @@ class Device
     bool stopRequested = false;
     bool stopped = false;
     bool stoppedBySibling = false;
+    /** @brief Whether an out-of-cycle probe has been requested */
+    bool probeRequested = false;
     std::vector<RegisterSpan> registerSpans;
     std::vector<uint16_t> readBuffer;
 };

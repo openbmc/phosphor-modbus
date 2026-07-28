@@ -224,6 +224,21 @@ auto DeviceManager::handleSiblingProbes(const DeviceFactoryConfigIntf& config,
     }
 }
 
+auto DeviceManager::requestInventoryProbe(const std::string& name,
+                                          const std::string& type) -> void
+{
+    auto nameIter = inventoryDevices.find(name);
+    if (nameIter == inventoryDevices.end())
+    {
+        return;
+    }
+    auto typeIter = nameIter->second.find(type);
+    if (typeIter != nameIter->second.end())
+    {
+        typeIter->second->requestProbe();
+    }
+}
+
 auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
     -> sdbusplus::async::task<>
 {
@@ -255,8 +270,11 @@ auto DeviceManager::processDeviceAdded(const DeviceFactoryConfigIntf& config)
 
     try
     {
-        auto device =
-            DeviceFactoryIntf::create(ctx, config, *(portIter->second), events);
+        // Bind the probe helper as BaseDevice's all-reads-failed callback.
+        auto device = DeviceFactoryIntf::create(
+            ctx, config, *(portIter->second), events,
+            std::bind_front(&DeviceManager::requestInventoryProbe, this,
+                            config.name, config.type));
         ctx.spawn(device->pollRegisters());
         devices[deviceKey] = std::move(device);
     }

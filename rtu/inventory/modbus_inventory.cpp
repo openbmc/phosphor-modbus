@@ -143,13 +143,14 @@ auto Device::startProbing() -> sdbusplus::async::task<void>
           config.serialPort);
     while (isRunning())
     {
+        probeRequested = false;
         co_await probeDevice();
 
-        // Sleep in short intervals so we can respond to stop requests
+        // Sleep in short intervals so we can respond to stop or probe requests
         // promptly instead of blocking for the full probe interval.
         constexpr auto stopCheckInterval = std::chrono::seconds(3);
         for (auto elapsed = std::chrono::seconds(0);
-             elapsed < inventoryProbeInterval && isRunning();
+             elapsed < inventoryProbeInterval && isRunning() && !probeRequested;
              elapsed += stopCheckInterval)
         {
             co_await sdbusplus::async::sleep_for(ctx, stopCheckInterval);

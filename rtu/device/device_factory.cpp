@@ -53,7 +53,8 @@ auto DeviceFactory::getConfig(sdbusplus::async::context& ctx,
 
 auto DeviceFactory::create(sdbusplus::async::context& ctx,
                            const config::DeviceFactoryConfig& config,
-                           PortIntf& serialPort, EventIntf::Events& events)
+                           PortIntf& serialPort, EventIntf::Events& events,
+                           BaseDevice::ProbeRequestCallback probeRequest)
     -> std::unique_ptr<BaseDevice>
 {
     if (config.deviceType == ProfileIntf::DeviceType::unknown)
@@ -61,7 +62,8 @@ auto DeviceFactory::create(sdbusplus::async::context& ctx,
         return nullptr;
     }
 
-    return std::make_unique<BaseDevice>(ctx, config, serialPort, events);
+    return std::make_unique<BaseDevice>(ctx, config, serialPort, events,
+                                        std::move(probeRequest));
 }
 
 } // namespace phosphor::modbus::rtu::device

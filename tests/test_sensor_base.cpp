@@ -78,7 +78,8 @@ auto SensorTestBase::checkInventoryAssociations(
 auto SensorTestBase::createDevice(
     std::vector<ProfileIntf::SensorRegister> sensorRegisters,
     EventIntf::Events& events,
-    std::unordered_map<std::string, std::chrono::seconds> registerPollRates)
+    std::unordered_map<std::string, std::chrono::seconds> registerPollRates,
+    DeviceIntf::BaseDevice::ProbeRequestCallback probeRequest)
     -> std::pair<std::unique_ptr<MockPort>,
                  std::unique_ptr<DeviceIntf::BaseDevice>>
 {
@@ -105,8 +106,8 @@ auto SensorTestBase::createDevice(
     };
     auto mockPort =
         std::make_unique<MockPort>(ctx, portConfig, clientDevicePath);
-    auto device = DeviceIntf::DeviceFactory::create(ctx, deviceFactoryConfig,
-                                                    *mockPort, events);
+    auto device = DeviceIntf::DeviceFactory::create(
+        ctx, deviceFactoryConfig, *mockPort, events, std::move(probeRequest));
     return {std::move(mockPort), std::move(device)};
 }
 
