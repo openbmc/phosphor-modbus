@@ -42,9 +42,14 @@ static auto getDevicePath(const config::PortFactoryConfig& inConfig)
     namespace fs = std::filesystem;
     auto config = static_cast<const config::USBPortConfig&>(inConfig);
 
-    std::regex pattern(std::format(R"(platform-{}\.usb-usb.*:{}:1\.{}-port{}$)",
-                                   config.address, config.location,
-                                   config.interface, config.port));
+    // systemd's 60-serial.rules appends "-portN" when a usb-serial ancestor
+    // provides port_number. CDC ACM has no usb-serial ancestor, so its by-path
+    // name has no port suffix. Only accept that form for configured port 0.
+    const auto portSuffix =
+        config.port == 0 ? R"((-port0)?)" : std::format("-port{}", config.port);
+    std::regex pattern(
+        std::format(R"(platform-{}\.usb-usb.*:{}:1\.{}{}$)", config.address,
+                    config.location, config.interface, portSuffix));
     fs::path searchDir = "/dev/serial/by-path/";
 
     for (const auto& entry : fs::recursive_directory_iterator(searchDir))
