@@ -338,7 +338,6 @@
     ],
     "ConfigRegisters": [
         {
-            "Name": "SyncTime",
             "Type": "UnixTime",
             "Offset": "0x5A",
             "Size": 2,
