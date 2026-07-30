@@ -10,6 +10,10 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 
+// VGDBG: temporary diagnostic for the valgrind run_loop hang. std::cerr is
+// unbuffered so lines survive when the process is killed on a hang. REVERT.
+#include <iostream>
+
 namespace phosphor::modbus::rtu
 {
 
@@ -149,6 +153,8 @@ auto Modbus::readHoldingRegisters(
 {
     for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
+        std::cerr << "VGDBG readHoldingRegisters attempt="
+                  << static_cast<int>(attempt) << std::endl;
         try
         {
             ReadHoldingRegistersRequest request(deviceAddress, registerOffset,
@@ -202,6 +208,8 @@ auto Modbus::writeMultipleRegisters(
 {
     for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
+        std::cerr << "VGDBG writeMultipleRegisters attempt="
+                  << static_cast<int>(attempt) << std::endl;
         try
         {
             WriteMultipleRegistersRequest request(deviceAddress, registerOffset,
@@ -274,6 +282,10 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
 {
     int expectedLen = response.len;
 
+    std::cerr << "VGDBG readResponse ENTER dev=" << std::hex
+              << static_cast<int>(deviceAddress) << std::dec
+              << " expectedLen=" << expectedLen << std::endl;
+
     do
     {
         debug("Waiting for response for {DEVICE_ADDRESS} with {EXPECTED} bytes",
@@ -282,6 +294,12 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
         co_await fdioInstance.next();
         auto ret = read(fd, response.raw.data() + response.len - expectedLen,
                         expectedLen);
+        // VGDBG: if this floods with ret=0, the loop is busy-spinning on a
+        // level-triggered EOF (socat closed at teardown) -> run_loop hang.
+        std::cerr << "VGDBG readResponse dev=" << std::hex
+                  << static_cast<int>(deviceAddress) << std::dec
+                  << " ret=" << ret << " expectedLen=" << expectedLen
+                  << std::endl;
         if (ret < 0)
         {
             error(
@@ -325,6 +343,8 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
             ctx, std::chrono::milliseconds(rtsDelay));
     }
 
+    std::cerr << "VGDBG readResponse DONE dev=" << std::hex
+              << static_cast<int>(deviceAddress) << std::dec << std::endl;
     co_return true;
 }
 
