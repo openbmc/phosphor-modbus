@@ -45,8 +45,8 @@ class DeviceConfig
         std::chrono::steady_clock::time_point nextWriteTime;
     };
 
-    /** @brief Produce the register values to write for a config type. */
-    static auto produceValue(ProfileIntf::ConfigType type)
+    /** @brief Produce the register values to write for a config register. */
+    static auto produceValue(const ProfileIntf::ConfigRegister& reg)
         -> std::vector<uint16_t>;
 
     /** @brief Write a single config register to the device. */

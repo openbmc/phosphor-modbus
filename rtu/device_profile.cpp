@@ -104,6 +104,7 @@ static const std::unordered_map<std::string, FirmwareFormat> firmwareFormatMap =
 
 static const std::unordered_map<std::string, ConfigType> configTypeMap = {
     {"UnixTime", ConfigType::unixTime},
+    {"Init", ConfigType::init},
 };
 
 static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
@@ -292,10 +293,55 @@ static void from_json(const json& j, ConfigRegister& r)
     }
     r.type = lookupEnum(configTypeMap, j.at("Type").get<std::string>(), "Type");
     r.offset = parseHexOffset(j, "Offset");
-    r.size = j.at("Size").get<uint8_t>();
-    if (j.contains("Period"))
+
+    if (r.type == ConfigType::init)
     {
-        r.period = j.at("Period").get<uint32_t>();
+        if (!j.contains("Name"))
+        {
+            throw std::invalid_argument("Init config register requires Name");
+        }
+        if (j.contains("Period"))
+        {
+            throw std::invalid_argument(
+                "Init config register must not have Period: " + r.name);
+        }
+        if (j.contains("Default"))
+        {
+            // Default is an array with one 16-bit word per register; its length
+            // is the register count. A Size may still be given, but it must
+            // then match that length.
+            r.defaultValue = j.at("Default").get<std::vector<uint16_t>>();
+            r.size = static_cast<uint8_t>(r.defaultValue.size());
+            if (j.contains("Size") && j.at("Size").get<uint8_t>() != r.size)
+            {
+                throw std::invalid_argument(
+                    "Init Size must match Default length for " + r.name);
+            }
+        }
+        else
+        {
+            // No value yet, so the size must be declared explicitly.
+            if (!j.contains("Size"))
+            {
+                throw std::invalid_argument(
+                    "Init config register without a Default requires Size: " +
+                    r.name);
+            }
+            r.size = j.at("Size").get<uint8_t>();
+        }
+    }
+    else
+    {
+        r.size = j.at("Size").get<uint8_t>();
+        if (j.contains("Period"))
+        {
+            r.period = j.at("Period").get<uint32_t>();
+        }
+        if (j.contains("Default"))
+        {
+            throw std::invalid_argument(
+                "Default is only valid for Init config register: " + r.name);
+        }
     }
 }
 

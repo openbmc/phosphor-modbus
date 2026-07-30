@@ -259,20 +259,39 @@
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["Type", "Offset", "Size"],
+                "required": ["Type", "Offset"],
                 "additionalProperties": false,
                 "properties": {
                     "Name": { "type": "string" },
                     "Type": {
                         "type": "string",
-                        "enum": ["UnixTime"]
+                        "enum": ["UnixTime", "Init"]
                     },
                     "Offset": {
                         "type": "string",
                         "pattern": "^0x[0-9A-Fa-f]+$"
                     },
                     "Size": { "type": "integer" },
-                    "Period": { "type": "integer" }
+                    "Period": { "type": "integer" },
+                    "Default": {
+                        "type": "array",
+                        "items": { "type": "integer" }
+                    }
+                },
+                "if": {
+                    "properties": { "Type": { "const": "Init" } }
+                },
+                "then": {
+                    "required": ["Name"],
+                    "properties": { "Period": false },
+                    "anyOf": [
+                        { "required": ["Default"] },
+                        { "required": ["Size"] }
+                    ]
+                },
+                "else": {
+                    "required": ["Size"],
+                    "properties": { "Default": false }
                 }
             }
         }

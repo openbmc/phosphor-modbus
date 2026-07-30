@@ -160,7 +160,11 @@ struct FirmwareRegister
 
 enum class ConfigType
 {
+    // Current Unix time; written once on bring-up, or periodically with a
+    // Period.
     unixTime,
+    // A configured value written once on bring-up.
+    init,
     unknown
 };
 
@@ -172,6 +176,9 @@ struct ConfigRegister
     uint8_t size = 0;
     // Seconds between writes; nullopt means write once on bring-up
     std::optional<uint32_t> period;
+    // Profile-declared default value for an "Init" register, one 16-bit word
+    // per Modbus register.
+    std::vector<uint16_t> defaultValue{};
 };
 
 enum class DeviceType

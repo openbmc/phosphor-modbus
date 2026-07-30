@@ -115,6 +115,25 @@ static constexpr auto testProfileJson = R"({
             "Type": "UnixTime",
             "Offset": "0x321",
             "Size": 2
+        },
+        {
+            "Name": "BBU_1_2_DischargeTime",
+            "Type": "Init",
+            "Offset": "0x322",
+            "Default": [90]
+        },
+        {
+            "Name": "BBU_1_2_Thresholds",
+            "Type": "Init",
+            "Offset": "0x323",
+            "Size": 3,
+            "Default": [1, 4660, 65535]
+        },
+        {
+            "Name": "BBU_1_2_NoDefault",
+            "Type": "Init",
+            "Offset": "0x324",
+            "Size": 2
         }
     ]
 })";
@@ -200,8 +219,9 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(profile.firmwareRegisters[0].offset, 600U);
     EXPECT_EQ(profile.firmwareRegisters[0].size, 2U);
 
-    // Config registers — first is periodic, second is one-shot (no Period)
-    ASSERT_EQ(profile.configRegisters.size(), 2U);
+    // Config registers — first is periodic, second is one-shot (no Period),
+    // the rest are Init registers.
+    ASSERT_EQ(profile.configRegisters.size(), 5U);
     const auto& periodic = profile.configRegisters[0];
     EXPECT_EQ(periodic.name, "TestSyncTime");
     EXPECT_EQ(periodic.type, ConfigType::unixTime);
@@ -216,6 +236,34 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(oneShot.offset, 801U);
     EXPECT_EQ(oneShot.size, 2U);
     EXPECT_FALSE(oneShot.period.has_value());
+
+    // Init register with a single-register Default and no Size; size derived
+    // from the Default length.
+    const auto& singleInit = profile.configRegisters[2];
+    EXPECT_EQ(singleInit.name, "BBU_1_2_DischargeTime");
+    EXPECT_EQ(singleInit.type, ConfigType::init);
+    EXPECT_EQ(singleInit.offset, 802U);
+    EXPECT_EQ(singleInit.size, 1U);
+    EXPECT_FALSE(singleInit.period.has_value());
+    EXPECT_EQ(singleInit.defaultValue, (std::vector<uint16_t>{90U}));
+
+    // Init register with a multi-register Default and a matching Size.
+    const auto& arrayInit = profile.configRegisters[3];
+    EXPECT_EQ(arrayInit.name, "BBU_1_2_Thresholds");
+    EXPECT_EQ(arrayInit.type, ConfigType::init);
+    EXPECT_EQ(arrayInit.offset, 803U);
+    EXPECT_EQ(arrayInit.size, 3U);
+    EXPECT_EQ(arrayInit.defaultValue,
+              (std::vector<uint16_t>{1U, 4660U, 65535U}));
+
+    // Init register without a Default; Size declares the width and there is
+    // nothing to write, so defaultValue is empty.
+    const auto& noDefaultInit = profile.configRegisters[4];
+    EXPECT_EQ(noDefaultInit.name, "BBU_1_2_NoDefault");
+    EXPECT_EQ(noDefaultInit.type, ConfigType::init);
+    EXPECT_EQ(noDefaultInit.offset, 804U);
+    EXPECT_EQ(noDefaultInit.size, 2U);
+    EXPECT_TRUE(noDefaultInit.defaultValue.empty());
 }
 
 TEST_F(DeviceProfileTest, ParsesStatusRegisters)
@@ -272,6 +320,32 @@ TEST_F(DeviceProfileTest, LoadsRPUProfile)
 TEST_F(DeviceProfileTest, UnknownTypeThrows)
 {
     EXPECT_THROW(getDeviceProfile("NonExistentDevice"), std::runtime_error);
+}
+
+TEST_F(DeviceProfileTest, InitSizeMustMatchDefaultLength)
+{
+    // An Init register may carry both Size and Default, but they must agree.
+    constexpr auto name = "TestInitSizeMismatch";
+    auto path = std::filesystem::path(PROFILE_DIR) /
+                (std::string(name) + ".json");
+    std::ofstream(path) << R"({
+        "DeviceType": "PowerSupplyUnit",
+        "DeviceModel": "Artesyn7000552480000",
+        "Parity": "Even",
+        "BaudRate": 9600,
+        "ProbeRegister": { "Offset": "0x32", "Size": 2, "ExpectedValue": "X" },
+        "ConfigRegisters": [
+            {
+                "Name": "BadInit",
+                "Type": "Init",
+                "Offset": "0x320",
+                "Size": 2,
+                "Default": [90]
+            }
+        ]
+    })";
+    EXPECT_THROW(getDeviceProfile(name), std::invalid_argument);
+    std::filesystem::remove(path);
 }
 
 TEST_F(DeviceProfileTest, GetDeviceTypeReturnsCorrectType)

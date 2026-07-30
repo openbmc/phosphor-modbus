@@ -15,10 +15,10 @@ class ConfigRegistersTest : public SensorTestBase
 TEST_F(ConfigRegistersTest, TestConfigRegisterWritePeriodic)
 {
     setupDevice({
-        "ResorviorPumpUnit",
-        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        ProfileIntf::DeviceType::reservoirPumpUnit,
-        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        "PowerSupplyUnit",
+        "xyz/openbmc_project/Inventory/PowerSupplyUnit",
+        ProfileIntf::DeviceType::powerSupplyUnit,
+        ProfileIntf::DeviceModel::Artesyn7000552480000,
     });
 
     testProfile.configRegisters = {
@@ -50,10 +50,10 @@ TEST_F(ConfigRegistersTest, TestConfigRegisterWritePeriodic)
 TEST_F(ConfigRegistersTest, TestConfigRegisterWriteOneShot)
 {
     setupDevice({
-        "ResorviorPumpUnit",
-        "xyz/openbmc_project/Inventory/ResorviorPumpUnit",
-        ProfileIntf::DeviceType::reservoirPumpUnit,
-        ProfileIntf::DeviceModel::DeltaRDF040DSS5193E0,
+        "PowerSupplyUnit",
+        "xyz/openbmc_project/Inventory/PowerSupplyUnit",
+        ProfileIntf::DeviceType::powerSupplyUnit,
+        ProfileIntf::DeviceModel::Artesyn7000552480000,
     });
 
     // No Period -> written exactly once on bring-up, never rewritten.
@@ -76,6 +76,43 @@ TEST_F(ConfigRegistersTest, TestConfigRegisterWriteOneShot)
     };
 
     ctx.spawn(testOneShotWrite());
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ConfigRegistersTest, TestInitConfigRegisterWritesDefault)
+{
+    setupDevice({
+        "BatteryBackupUnit",
+        "xyz/openbmc_project/Inventory/BatteryBackupUnit",
+        ProfileIntf::DeviceType::batteryBackupUnit,
+        ProfileIntf::DeviceModel::DeltaBBUBC100AE000,
+    });
+
+    // Init register carries a profile default and is written once on bring-up.
+    testProfile.configRegisters = {
+        {.name = "BBU_1_2_DischargeTime",
+         .type = ProfileIntf::ConfigType::init,
+         .offset = TestIntf::testConfigWriteRegisterOffset,
+         .size = 1,
+         .period = std::nullopt,
+         .defaultValue = {90}}};
+
+    auto testInitWrite = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx, stateDir};
+        auto devPair = createDevice({}, events);
+        auto& device = devPair.second;
+        auto countBefore = serverTester->writeRequestCount.load();
+        co_await device->pollRegisters();
+        EXPECT_EQ(serverTester->writeRequestCount.load() - countBefore, 1U)
+            << "Init config register should be written exactly once";
+        co_return;
+    };
+
+    ctx.spawn(testInitWrite());
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
