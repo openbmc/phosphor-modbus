@@ -485,6 +485,12 @@
             "Offset": "0x65",
             "Size": 2,
             "Period": 3600
+        },
+        {
+            "Name": "BATTERY_BACKUP_TIME",
+            "Type": "Init",
+            "Offset": "0x121",
+            "Default": [90]
         }
     ]
 }
