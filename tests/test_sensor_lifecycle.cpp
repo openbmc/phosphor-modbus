@@ -34,28 +34,30 @@ class SensorLifecycleTest : public SensorTestBase
                       ProfileIntf::SensorRegister sensorRegister,
                       double expectedValue) -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice({sensorRegister}, events);
-        auto& mockPort = devPair.first;
-        auto& device = devPair.second;
+        {
+            EventIntf::Events events{ctx, stateDir};
+            auto devPair = createDevice({sensorRegister}, events);
+            auto& mockPort = devPair.first;
+            auto& device = devPair.second;
 
-        ctx.spawn(device->pollRegisters());
+            ctx.spawn(device->pollRegisters());
 
-        // First poll succeeds: sensor reads its value and is available.
-        EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
+            // First poll succeeds: sensor reads its value and is available.
+            EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
 
-        // Reserve the port; subsequent polls return busy.
-        auto lock = mockPort->acquireExclusive();
-        EXPECT_TRUE(lock.has_value());
+            // Reserve the port; subsequent polls return busy.
+            auto lock = mockPort->acquireExclusive();
+            EXPECT_TRUE(lock.has_value());
 
-        co_await verifyUnavailableWhileBusy(objectPath);
+            co_await verifyUnavailableWhileBusy(objectPath);
 
-        // Release the port; sensor recovers availability and its value.
-        lock.reset();
-        EXPECT_TRUE(co_await waitForAvailability(objectPath, true));
-        EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
+            // Release the port; sensor recovers availability and its value.
+            lock.reset();
+            EXPECT_TRUE(co_await waitForAvailability(objectPath, true));
+            EXPECT_TRUE(co_await waitForValue(objectPath, expectedValue));
 
-        co_await stopDevice(*device);
+            co_await stopDevice(*device);
+        }
 
         ctx.request_stop();
         co_return;
@@ -67,22 +69,26 @@ class SensorLifecycleTest : public SensorTestBase
                               ProfileIntf::SensorRegister slowRegister)
         -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx, stateDir};
-        // The device rate (1s from createDevice) drives fastRegister; the slow
-        // register is overridden to a long interval so it is polled just once.
-        std::unordered_map<std::string, std::chrono::seconds> overrides = {
-            {slowRegister.name, 100s}};
-        auto devPair =
-            createDevice({fastRegister, slowRegister}, events, overrides);
-        auto& device = devPair.second;
+        {
+            EventIntf::Events events{ctx, stateDir};
+            // The device rate (1s from createDevice) drives fastRegister; the
+            // slow register is overridden to a long interval so it is polled
+            // just once.
+            std::unordered_map<std::string, std::chrono::seconds> overrides = {
+                {slowRegister.name, 100s}};
+            auto devPair =
+                createDevice({fastRegister, slowRegister}, events, overrides);
+            auto& device = devPair.second;
 
-        ctx.spawn(device->pollRegisters());
+            ctx.spawn(device->pollRegisters());
 
-        // fastRegister keeps being polled while slowRegister stays at one read.
-        EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 2));
-        EXPECT_EQ(serverTester->readCount(slowRegister.offset), 1U);
+            // fastRegister keeps being polled while slowRegister stays at one
+            // read.
+            EXPECT_TRUE(co_await waitForReadCount(fastRegister.offset, 2));
+            EXPECT_EQ(serverTester->readCount(slowRegister.offset), 1U);
 
-        co_await stopDevice(*device);
+            co_await stopDevice(*device);
+        }
         ctx.request_stop();
         co_return;
     }
