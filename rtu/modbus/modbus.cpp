@@ -10,6 +10,10 @@
 #include <phosphor-logging/lg2.hpp>
 #include <sdbusplus/async.hpp>
 
+// VGDBG: temporary diagnostic for the valgrind run_loop hang. std::cerr is
+// unbuffered so lines survive when the process is killed on a hang. REVERT.
+#include <iostream>
+
 namespace phosphor::modbus::rtu
 {
 
@@ -149,6 +153,8 @@ auto Modbus::readHoldingRegisters(
 {
     for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
+        std::cerr << "VGDBG readHoldingRegisters attempt="
+                  << static_cast<int>(attempt) << '\n';
         try
         {
             ReadHoldingRegistersRequest request(deviceAddress, registerOffset,
@@ -202,6 +208,8 @@ auto Modbus::writeMultipleRegisters(
 {
     for (uint8_t attempt = 0; attempt <= retries; ++attempt)
     {
+        std::cerr << "VGDBG writeMultipleRegisters attempt="
+                  << static_cast<int>(attempt) << '\n';
         try
         {
             WriteMultipleRegistersRequest request(deviceAddress, registerOffset,
@@ -268,6 +276,9 @@ auto Modbus::writeRequest(uint8_t deviceAddress, Message& request)
     co_return true;
 }
 
+// VGDBG: diagnostic markers push this over the size limit; suppress for the
+// throwaway commit. REVERT.
+// NOLINTNEXTLINE(readability-function-size)
 auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
                           uint8_t expectedResponseCode)
     -> sdbusplus::async::task<bool>
@@ -282,6 +293,10 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
         co_await fdioInstance.next();
         auto ret = read(fd, response.raw.data() + response.len - expectedLen,
                         expectedLen);
+        // VGDBG: flood of ret=0 = busy-spin on level-triggered EOF.
+        std::cerr << "VGDBG readResponse dev=" << std::hex
+                  << static_cast<int>(deviceAddress) << std::dec
+                  << " ret=" << ret << " expectedLen=" << expectedLen << '\n';
         if (ret < 0)
         {
             error(
