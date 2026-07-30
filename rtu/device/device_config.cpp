@@ -22,10 +22,10 @@ DeviceConfig::DeviceConfig(const config::Config& config, PortIntf& serialPort) :
     }
 }
 
-auto DeviceConfig::produceValue(ProfileIntf::ConfigType type)
+auto DeviceConfig::produceValue(const ProfileIntf::ConfigRegister& reg)
     -> std::vector<uint16_t>
 {
-    switch (type)
+    switch (reg.type)
     {
         case ProfileIntf::ConfigType::unixTime:
         {
@@ -33,6 +33,8 @@ auto DeviceConfig::produceValue(ProfileIntf::ConfigType type)
             return {static_cast<uint16_t>(now >> 16),
                     static_cast<uint16_t>(now & 0xFFFF)};
         }
+        case ProfileIntf::ConfigType::init:
+            return reg.defaultValue;
         case ProfileIntf::ConfigType::unknown:
             throw std::invalid_argument("Unknown config type");
     }
@@ -42,7 +44,12 @@ auto DeviceConfig::produceValue(ProfileIntf::ConfigType type)
 auto DeviceConfig::writeRegister(const ProfileIntf::ConfigRegister& reg)
     -> sdbusplus::async::task<port::OperationStatus>
 {
-    auto values = produceValue(reg.type);
+    auto values = produceValue(reg);
+    if (values.empty())
+    {
+        // An empty produceValue result means nothing to write, which is a bug.
+        co_return port::OperationStatus::failure;
+    }
     co_return co_await serialPort.writeMultipleRegisters(
         config.address, reg.offset, config.profile.baudRate,
         config.profile.parity, values);
