@@ -152,11 +152,11 @@ TEST_F(MetricsTest, TestMetricValueUnsigned)
     // Raw value 0x012C = 300, with scale=60 -> 300 * 60 = 18000 seconds
     constexpr double expectedValue = 300.0 * 60.0;
 
-    auto testMetric = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice({metricRegister}, events);
-        auto& device = devPair.second;
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({metricRegister}, events);
+    auto& device = devPair.second;
 
+    auto testMetric = [&]() -> sdbusplus::async::task<void> {
         co_await device->pollRegisters();
 
         auto properties = co_await MetricValueIntf(ctx)
@@ -194,10 +194,10 @@ TEST_F(MetricsTest, TestMetricAssociations)
         .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
-    auto testAssociations = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice({metricRegister}, events);
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({metricRegister}, events);
 
+    auto testAssociations = [&]() -> sdbusplus::async::task<void> {
         auto associationProperties =
             co_await AssociationIntf(ctx)
                 .service(serviceName)
@@ -252,11 +252,11 @@ TEST_F(MetricsTest, TestMetricValueInteger)
     // Raw value 0x012C = 300, Integer format ignores scale -> 300
     constexpr double expectedValue = 300.0;
 
-    auto testMetric = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice({metricRegister}, events);
-        auto& device = devPair.second;
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({metricRegister}, events);
+    auto& device = devPair.second;
 
+    auto testMetric = [&]() -> sdbusplus::async::task<void> {
         co_await device->pollRegisters();
 
         auto properties = co_await MetricValueIntf(ctx)

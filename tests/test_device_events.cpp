@@ -266,16 +266,14 @@ class DeviceEventsTest : public BaseTest
                                                  mockPort, events);
     }
 
-    auto testSensorCreation(std::string objectPath,
+    auto testSensorCreation(DeviceIntf::BaseDevice& device,
+                            std::string objectPath,
                             ProfileIntf::StatusType statusType,
                             double expectedValue)
         -> sdbusplus::async::task<void>
     {
         auto testProfile = createTestProfile(statusType);
-        EventIntf::Events events{ctx, stateDir};
-        MockPort mockPort(ctx, portConfig, clientDevicePath);
-        auto device = createDevice(testProfile, events, mockPort);
-        co_await device->pollRegisters();
+        co_await device.pollRegisters();
         auto properties = co_await SensorValueIntf(ctx)
                               .service(serviceName)
                               .path(objectPath)
@@ -299,18 +297,6 @@ class DeviceEventsTest : public BaseTest
                      thresholdProperties, expectedValue,
                      DeviceIntf::getUnit(testProfile.sensorRegisters[0].type));
         co_return;
-    }
-
-    // Poll a device whose status bit stays asserted. Held in its own
-    // coroutine so the device outlives its spawned poll loop.
-    auto pollAssertedStatus() -> sdbusplus::async::task<void>
-    {
-        auto testProfile =
-            createTestProfile(ProfileIntf::StatusType::sensorReadingCritical);
-        EventIntf::Events events{ctx, stateDir};
-        MockPort mockPort(ctx, portConfig, clientDevicePath);
-        auto device = createDevice(testProfile, events, mockPort);
-        co_await device->pollRegisters();
     }
 
     // Once the first log is committed, wrap it out and confirm a later poll
@@ -363,8 +349,14 @@ TEST_F(DeviceEventsTest, TestSensorReadingCritical)
     eventServer.expectedEvent =
         "xyz.openbmc_project.Sensor.Threshold.ReadingCritical";
 
+    auto testProfile =
+        createTestProfile(ProfileIntf::StatusType::sensorReadingCritical);
+    EventIntf::Events events{ctx, stateDir};
+    MockPort mockPort(ctx, portConfig, clientDevicePath);
+    auto device = createDevice(testProfile, events, mockPort);
+
     ctx.spawn(testSensorCreation(
-        objectPath, ProfileIntf::StatusType::sensorReadingCritical,
+        *device, objectPath, ProfileIntf::StatusType::sensorReadingCritical,
         TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
@@ -380,7 +372,14 @@ TEST_F(DeviceEventsTest, TestStatusWrapRegeneratesLog)
     eventServer.expectedEvent =
         "xyz.openbmc_project.Sensor.Threshold.ReadingCritical";
 
-    ctx.spawn(pollAssertedStatus());
+    auto testProfile =
+        createTestProfile(ProfileIntf::StatusType::sensorReadingCritical);
+    EventIntf::Events events{ctx, stateDir};
+    MockPort mockPort(ctx, portConfig, clientDevicePath);
+    auto device = createDevice(testProfile, events, mockPort);
+
+    // Device is a test-body local so it outlives its spawned poll loop.
+    ctx.spawn(device->pollRegisters());
     ctx.spawn(driveStatusWrap());
 
     // Safety net so a regression fails instead of hanging.
@@ -397,9 +396,15 @@ TEST_F(DeviceEventsTest, TestSensorFailure)
 {
     eventServer.expectedEvent = "xyz.openbmc_project.Sensor.SensorFailure";
 
-    ctx.spawn(
-        testSensorCreation(objectPath, ProfileIntf::StatusType::sensorFailure,
-                           std::numeric_limits<double>::quiet_NaN()));
+    auto testProfile =
+        createTestProfile(ProfileIntf::StatusType::sensorFailure);
+    EventIntf::Events events{ctx, stateDir};
+    MockPort mockPort(ctx, portConfig, clientDevicePath);
+    auto device = createDevice(testProfile, events, mockPort);
+
+    ctx.spawn(testSensorCreation(*device, objectPath,
+                                 ProfileIntf::StatusType::sensorFailure,
+                                 std::numeric_limits<double>::quiet_NaN()));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));

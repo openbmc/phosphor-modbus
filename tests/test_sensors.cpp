@@ -9,16 +9,13 @@ class SensorsTest : public SensorTestBase
                        "xyz.openbmc_project.TestModbusRTUSensors")
     {}
 
-    auto testSensorCreation(std::string objectPath,
+    auto testSensorCreation(DeviceIntf::BaseDevice& device,
+                            std::string objectPath,
                             ProfileIntf::SensorRegister sensorRegister,
                             double expectedValue)
         -> sdbusplus::async::task<void>
     {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice({sensorRegister}, events);
-        auto& device = devPair.second;
-
-        co_await device->pollRegisters();
+        co_await device.pollRegisters();
 
         auto properties = co_await SensorValueIntf(ctx)
                               .service(serviceName)
@@ -73,8 +70,11 @@ TEST_F(SensorsTest, TestRpuSensorValueUnsigned)
         .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({sensorRegister}, events);
+
     ctx.spawn(
-        testSensorCreation(objectPath, sensorRegister,
+        testSensorCreation(*devPair.second, objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
@@ -105,7 +105,11 @@ TEST_F(SensorsTest, TestRpuSensorValueSigned)
     const int16_t expectedSigned =
         static_cast<int16_t>(TestIntf::testReadHoldingRegisterTempSigned[0]);
 
-    ctx.spawn(testSensorCreation(objectPath, sensorRegister, expectedSigned));
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({sensorRegister}, events);
+
+    ctx.spawn(testSensorCreation(*devPair.second, objectPath, sensorRegister,
+                                 expectedSigned));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
@@ -139,8 +143,11 @@ TEST_F(SensorsTest, TestRpuSensorValueWithSettings)
         .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({sensorRegister}, events);
+
     ctx.spawn(testSensorCreation(
-        objectPath, sensorRegister,
+        *devPair.second, objectPath, sensorRegister,
         applyValueSettings(TestIntf::testReadHoldingRegisterTempUnsigned[0],
                            sensorRegister.shift, sensorRegister.scale,
                            sensorRegister.precision)));
@@ -168,8 +175,11 @@ TEST_F(SensorsTest, TestPmmSensorValueUnsigned)
         .format = ProfileIntf::SensorFormat::fixedPoint,
     };
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({sensorRegister}, events);
+
     ctx.spawn(
-        testSensorCreation(objectPath, sensorRegister,
+        testSensorCreation(*devPair.second, objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterTempUnsigned[0]));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
@@ -195,8 +205,11 @@ TEST_F(SensorsTest, TestSensorValueFloat32)
         .format = ProfileIntf::SensorFormat::float32,
     };
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice({sensorRegister}, events);
+
     ctx.spawn(
-        testSensorCreation(objectPath, sensorRegister,
+        testSensorCreation(*devPair.second, objectPath, sensorRegister,
                            TestIntf::testReadHoldingRegisterFloat32Value));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 500ms) |
@@ -231,10 +244,11 @@ TEST_F(SensorsTest, TestContiguousRegistersSpanMerge)
          .size = 1,
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice(sensorRegisters, events);
+    auto& device = devPair.second;
+
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice(sensorRegisters, events);
-        auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
         co_await device->pollRegisters();
 
@@ -297,10 +311,11 @@ TEST_F(SensorsTest, TestDistantRegistersSeparateSpans)
          .size = 1,
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice(sensorRegisters, events);
+    auto& device = devPair.second;
+
     auto testSpan = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice(sensorRegisters, events);
-        auto& device = devPair.second;
         auto countBefore = serverTester->totalRequestCount.load();
         co_await device->pollRegisters();
 
@@ -368,10 +383,11 @@ TEST_F(SensorsTest, TestIllegalDataAddressFailsEntireSpan)
          .size = 1,
          .format = ProfileIntf::SensorFormat::fixedPoint}};
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair = createDevice(sensorRegisters, events);
+    auto& device = devPair.second;
+
     auto testIllegalAddr = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice(sensorRegisters, events);
-        auto& device = devPair.second;
         co_await device->pollRegisters();
 
         // Both sensors in the span should be NaN and non-functional
@@ -427,11 +443,11 @@ TEST_F(SensorsTest, AllReadsFailedRequestsInventoryProbe)
 
     int probeRequests = 0;
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair =
+        createDevice(sensorRegisters, events, {}, [&]() { ++probeRequests; });
+
     auto test = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice(sensorRegisters, events, {}, [&]() {
-            ++probeRequests;
-        });
         co_await devPair.second->pollRegisters();
         co_return;
     };
@@ -464,11 +480,11 @@ TEST_F(SensorsTest, SuccessfulReadsDoNotRequestInventoryProbe)
 
     int probeRequests = 0;
 
+    EventIntf::Events events{ctx, stateDir};
+    auto devPair =
+        createDevice(sensorRegisters, events, {}, [&]() { ++probeRequests; });
+
     auto test = [&]() -> sdbusplus::async::task<void> {
-        EventIntf::Events events{ctx, stateDir};
-        auto devPair = createDevice(sensorRegisters, events, {}, [&]() {
-            ++probeRequests;
-        });
         co_await devPair.second->pollRegisters();
         co_return;
     };

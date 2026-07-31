@@ -306,10 +306,10 @@ TEST_F(InventoryTest, TestAddInventoryObject)
 // Verify that a failed probe does not create an inventory object on D-Bus.
 TEST_F(InventoryTest, TestNonRespondingAddressNoInventoryObject)
 {
-    auto testProbe = [&]() -> sdbusplus::async::task<void> {
-        auto devicePair = createDevice(failProfile);
-        auto& inventoryDevice = devicePair.second;
+    auto devicePair = createDevice(failProfile);
+    auto& inventoryDevice = devicePair.second;
 
+    auto testProbe = [&]() -> sdbusplus::async::task<void> {
         co_await inventoryDevice->startProbing();
 
         auto objPath =
