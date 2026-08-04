@@ -143,7 +143,7 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     {
         currentFirmware =
             std::make_unique<DeviceFirmware>(ctx, config, serialPort);
-        ctx.spawn(currentFirmware->readVersionRegister());
+        ctx.spawn(currentFirmware->readVersionRegisters());
     }
 
     info("Successfully created device {NAME}", "NAME", config.name);

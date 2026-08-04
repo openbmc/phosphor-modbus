@@ -37,9 +37,9 @@ class TestFirmware : public DeviceIntf::DeviceFirmware
         DeviceIntf::DeviceFirmware(ctx, config, serialPort)
     {}
 
-    auto getObjectPath() -> sdbusplus::object_path
+    auto getObjectPaths() -> std::vector<sdbusplus::object_path>
     {
-        return objectPath;
+        return DeviceFirmware::getObjectPaths();
     }
 };
 
@@ -65,7 +65,7 @@ class FirmwareTest : public BaseTest
         portConfig.rtsDelay = 1;
         portConfig.timeout = std::chrono::microseconds(300000);
 
-        deviceName = std::format("ResorviorPumpUnit_{}_{}",
+        deviceName = std::format("PowerSupplyUnit_{}_{}",
                                  TestIntf::testDeviceAddress, portName);
         objectPath =
             std::format("{}/{}", SoftwareIntf::namespace_path, deviceName);
@@ -97,7 +97,7 @@ class FirmwareTest : public BaseTest
             .serialPort = portConfig.name,
             .parentInventoryPath = sdbusplus::object_path("/"),
             .inventoryPath = sdbusplus::object_path(
-                "xyz/openbmc_project/Inventory/ResorviorPumpUnit"),
+                "xyz/openbmc_project/Inventory/PowerSupplyUnit"),
             .profile = testProfile,
             .pollRate = 1s,
         };
@@ -105,12 +105,18 @@ class FirmwareTest : public BaseTest
         auto deviceFirmware =
             std::make_unique<TestFirmware>(ctx, baseConfig, *mockPort);
 
-        co_await deviceFirmware->readVersionRegister();
+        co_await deviceFirmware->readVersionRegisters();
 
-        EXPECT_TRUE(deviceFirmware->getObjectPath().str.starts_with(objectPath))
+        auto paths = deviceFirmware->getObjectPaths();
+        EXPECT_EQ(paths.size(), 1u) << "Expected one firmware object";
+        if (paths.empty())
+        {
+            co_return;
+        }
+        EXPECT_TRUE(paths.front().str.starts_with(objectPath))
             << "Invalid ObjectPath";
 
-        auto softwarePath = deviceFirmware->getObjectPath().str;
+        auto softwarePath = paths.front().str;
 
         auto properties = co_await SoftwareIntf(ctx)
                               .service(serviceName)
@@ -119,6 +125,61 @@ class FirmwareTest : public BaseTest
 
         EXPECT_EQ(properties.version, expectedVersion)
             << "Firmware version mismatch";
+
+        co_return;
+    }
+
+    auto testMultipleFirmwareVersions(
+        std::vector<ProfileIntf::FirmwareRegister> firmwareRegisters,
+        std::vector<std::string> expectedVersions)
+        -> sdbusplus::async::task<void>
+    {
+        ProfileIntf::DeviceProfile testProfile = {
+            .parity = ModbusIntf::Parity::none,
+            .baudRate = baudRate,
+            .probeRegister = {},
+            .inventoryRegisters = {},
+            .sensorRegisters = {},
+            .statusRegisters = {},
+            .metricRegisters = {},
+            .firmwareRegisters = firmwareRegisters,
+        };
+
+        ModbusIntf::config::Config baseConfig = {
+            .name = deviceName,
+            .type = "TestDevice",
+            .address = TestIntf::testDeviceAddress,
+            .serialPort = portConfig.name,
+            .parentInventoryPath = sdbusplus::object_path("/"),
+            .inventoryPath = sdbusplus::object_path(
+                "xyz/openbmc_project/Inventory/PowerSupplyUnit"),
+            .profile = testProfile,
+            .pollRate = 1s,
+        };
+
+        auto deviceFirmware =
+            std::make_unique<TestFirmware>(ctx, baseConfig, *mockPort);
+
+        co_await deviceFirmware->readVersionRegisters();
+
+        auto paths = deviceFirmware->getObjectPaths();
+        EXPECT_EQ(paths.size(), firmwareRegisters.size())
+            << "Expected one firmware object per version register";
+        if (paths.size() != firmwareRegisters.size())
+        {
+            co_return;
+        }
+
+        for (size_t i = 0; i < paths.size(); i++)
+        {
+            auto properties = co_await SoftwareIntf(ctx)
+                                  .service(serviceName)
+                                  .path(paths[i].str)
+                                  .properties();
+
+            EXPECT_EQ(properties.version, expectedVersions[i])
+                << "Firmware version mismatch for " << paths[i].str;
+        }
 
         co_return;
     }
@@ -157,6 +218,31 @@ TEST_F(FirmwareTest, TestFirmwareVersionInteger)
         TestIntf::testReadHoldingRegisterFirmwareIntVersionStr));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(FirmwareTest, TestMultipleFirmwareVersions)
+{
+    const ProfileIntf::FirmwareRegister stringRegister = {
+        .name = "PSU_FW_Revision",
+        .type = ProfileIntf::FirmwareRegisterType::version,
+        .format = ProfileIntf::FirmwareFormat::string,
+        .offset = TestIntf::testReadHoldingRegisterFirmwareVersionOffset,
+        .size = TestIntf::testReadHoldingRegisterFirmwareVersionCount};
+
+    const ProfileIntf::FirmwareRegister integerRegister = {
+        .name = "PSU_FBL_FW_Revision",
+        .type = ProfileIntf::FirmwareRegisterType::version,
+        .format = ProfileIntf::FirmwareFormat::integer,
+        .offset = TestIntf::testReadHoldingRegisterFirmwareIntVersionOffset,
+        .size = TestIntf::testReadHoldingRegisterFirmwareIntVersionCount};
+
+    ctx.spawn(testMultipleFirmwareVersions(
+                  {stringRegister, integerRegister},
+                  {TestIntf::testReadHoldingRegisterFirmwareVersionStr,
+                   TestIntf::testReadHoldingRegisterFirmwareIntVersionStr}) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
     ctx.run();

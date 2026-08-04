@@ -16,29 +16,19 @@ static auto getRandomId() -> long int
     return random() % 10000;
 }
 
-static auto getObjectPath(const config::Config& config)
+static auto getObjectPath(const config::Config& config,
+                          const ProfileIntf::FirmwareRegister& firmwareRegister)
     -> sdbusplus::object_path
 {
-    for (const auto& firmwareRegister : config.profile.firmwareRegisters)
+    if (firmwareRegister.name.empty())
     {
-        if (firmwareRegister.type == ProfileIntf::FirmwareRegisterType::version)
-        {
-            if (firmwareRegister.name.empty())
-            {
-                return sdbusplus::object_path(FirmwareIntf::namespace_path) /
-                       std::format("{}_{}", config.name, getRandomId());
-            }
-            else
-            {
-                return sdbusplus::object_path(FirmwareIntf::namespace_path) /
-                       std::format("{}_{}_{}", config.name,
-                                   firmwareRegister.name, getRandomId());
-            }
-        }
+        return sdbusplus::object_path(FirmwareIntf::namespace_path) /
+               std::format("{}_{}", config.name, getRandomId());
     }
 
-    throw std::runtime_error(
-        "No firmware version register found for " + config.name);
+    return sdbusplus::object_path(FirmwareIntf::namespace_path) /
+           std::format("{}_{}_{}", config.name, firmwareRegister.name,
+                       getRandomId());
 }
 
 constexpr FirmwareIntf::Version::properties_t initVersion{
@@ -51,24 +41,51 @@ constexpr FirmwareIntf::Definitions::properties_t initAssociations{};
 DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
                                const config::Config& config,
                                PortIntf& serialPort) :
-    objectPath(getObjectPath(config)),
-    currentFirmware(
-        std::make_unique<FirmwareIntf>(ctx, objectPath.str.c_str(), initVersion,
-                                       initActivation, initAssociations)),
     config(config), serialPort(serialPort)
 {
-    currentFirmware->Version::emit_added();
-    currentFirmware->Activation::emit_added();
-    currentFirmware->Definitions::emit_added();
+    for (const auto& firmwareRegister : this->config.profile.firmwareRegisters)
+    {
+        if (firmwareRegister.type != ProfileIntf::FirmwareRegisterType::version)
+        {
+            continue;
+        }
 
-    debug("Device firmware {NAME} created successfully", "NAME", config.name);
+        auto objectPath = getObjectPath(this->config, firmwareRegister);
+        auto firmware = std::make_unique<FirmwareIntf>(
+            ctx, objectPath.str.c_str(), initVersion, initActivation,
+            initAssociations);
+        firmware->Version::emit_added();
+        firmware->Activation::emit_added();
+        firmware->Definitions::emit_added();
+
+        firmwareVersions.push_back(
+            {firmwareRegister, std::move(objectPath), std::move(firmware)});
+    }
+
+    debug("Device firmware {NAME} created successfully", "NAME",
+          this->config.name);
+}
+
+auto DeviceFirmware::getObjectPaths() const
+    -> std::vector<sdbusplus::object_path>
+{
+    std::vector<sdbusplus::object_path> paths;
+    paths.reserve(firmwareVersions.size());
+    for (const auto& fwVersion : firmwareVersions)
+    {
+        paths.push_back(fwVersion.objectPath);
+    }
+    return paths;
 }
 
 DeviceFirmware::~DeviceFirmware()
 {
-    currentFirmware->Version::emit_removed();
-    currentFirmware->Activation::emit_removed();
-    currentFirmware->Definitions::emit_removed();
+    for (const auto& fwVersion : firmwareVersions)
+    {
+        fwVersion.firmwareVersion->Version::emit_removed();
+        fwVersion.firmwareVersion->Activation::emit_removed();
+        fwVersion.firmwareVersion->Definitions::emit_removed();
+    }
 }
 
 static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,
@@ -97,24 +114,18 @@ static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,
     return strValue;
 }
 
-auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
+auto DeviceFirmware::readVersionRegisters() -> sdbusplus::async::task<void>
 {
-    const auto it =
-        std::find_if(config.profile.firmwareRegisters.begin(),
-                     config.profile.firmwareRegisters.end(),
-                     [](const ProfileIntf::FirmwareRegister& firmwareRegister) {
-                         return firmwareRegister.type ==
-                                ProfileIntf::FirmwareRegisterType::version;
-                     });
-
-    if (it == config.profile.firmwareRegisters.end())
+    for (const auto& fwVersion : firmwareVersions)
     {
-        error("No firmware version register found for {NAME}", "NAME",
-              config.name);
-        co_return;
+        co_await readVersionRegister(fwVersion);
     }
+}
 
-    const ProfileIntf::FirmwareRegister& versionRegister = *it;
+auto DeviceFirmware::readVersionRegister(const FirmwareVersion& fwVersion)
+    -> sdbusplus::async::task<void>
+{
+    const auto& versionRegister = fwVersion.versionRegister;
 
     auto registers = std::vector<uint16_t>(versionRegister.size);
     auto ret = co_await serialPort.readHoldingRegisters(
@@ -134,12 +145,13 @@ auto DeviceFirmware::readVersionRegister() -> sdbusplus::async::task<void>
 
     auto strValue = formatVersion(versionRegister, registers);
 
-    currentFirmware->version(strValue);
-    currentFirmware->activation(FirmwareIntf::Activation::Activations::Active);
+    fwVersion.firmwareVersion->version(strValue);
+    fwVersion.firmwareVersion->activation(
+        FirmwareIntf::Activation::Activations::Active);
     auto associationList =
         std::vector<std::tuple<std::string, std::string, std::string>>{
             {"running", "ran_on", config.inventoryPath}};
-    currentFirmware->associations(associationList);
+    fwVersion.firmwareVersion->associations(associationList);
 
     debug("Firmware version {VERSION} for {NAME} at {DEVICE_ADDRESS}",
           "VERSION", strValue, "NAME", config.name, "DEVICE_ADDRESS", lg2::hex,
