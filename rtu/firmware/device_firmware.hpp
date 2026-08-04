@@ -34,16 +34,29 @@ class DeviceFirmware
                             PortIntf& serialPort);
     ~DeviceFirmware();
 
-    auto readVersionRegister() -> sdbusplus::async::task<void>;
-
-  protected:
-    // Object path of current firmware object
-    // TODO: check if its possible to get rid off this via mocking since its
-    // only used in tests
-    const sdbusplus::object_path objectPath;
+    auto readVersionRegisters() -> sdbusplus::async::task<void>;
 
   private:
-    std::unique_ptr<FirmwareIntf> currentFirmware;
+    // Holds a "Version" register profile alongside its D-Bus object and path.
+    struct FirmwareVersion
+    {
+        const ProfileIntf::FirmwareRegister& versionRegister;
+        sdbusplus::object_path objectPath;
+        std::unique_ptr<FirmwareIntf> firmwareVersion;
+    };
+
+    // Reads a single version register and publishes it on its D-Bus object.
+    auto readVersionRegister(const FirmwareVersion& fwVersion)
+        -> sdbusplus::async::task<void>;
+
+  protected:
+    // Object paths of the firmware version objects, one per "Version" register.
+    // TODO: check if its possible to get rid off this via mocking since its
+    // only used in tests
+    auto getObjectPaths() const -> std::vector<sdbusplus::object_path>;
+
+  private:
+    std::vector<FirmwareVersion> firmwareVersions;
     const ConfigIntf::Config config;
     PortIntf& serialPort;
 };
