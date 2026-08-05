@@ -83,10 +83,10 @@ auto Modbus::setProperties(uint32_t inBaudRate, Parity inParity) -> bool
     }
 
     tty.c_cflag |= CS8 | CLOCAL | CREAD;
-    // In non-canonical mode, block until at least VMIN bytes are available.
-    // See termios(3).
-    tty.c_cc[VMIN] = 1;
-    tty.c_cc[VTIME] = 0; // Timeout in deciseconds (0 for no timeout)
+    // VMIN=0/VTIME=0: read() returns immediately instead of blocking the async
+    // context thread; readability is gated by fdio.next(). See termios(3).
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 0;
 
     if (tcsetattr(fd, TCSAFLUSH, &tty) != 0)
     {
