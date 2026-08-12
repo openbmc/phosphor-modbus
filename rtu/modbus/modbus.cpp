@@ -305,15 +305,21 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
                 "DEVICE_ADDRESS", lg2::hex, deviceAddress, "EXPECTED",
                 expectedLen);
         }
-        if (ret >= 2 && response.functionCode != expectedResponseCode)
+        // Abort early if we receive an exception response.
+        auto receivedLen = response.len - expectedLen;
+        if (receivedLen >= 5 && (expectedResponseCode & 0x80) != 0)
         {
-            // Update the length of the expected response to received error
-            // message size
-            response.len = ret;
+            if (receivedLen > 5)
+            {
+                error("Truncating trailing {NUM} bytes from error response",
+                      "NUM", receivedLen - 5);
+            }
+            // error response received
+            response.len = 5;
+            expectedLen = 0;
             error("Received error response {CODE} for device {DEVICE_ADDRESS}",
                   "CODE", response.raw[1], "DEVICE_ADDRESS", lg2::hex,
                   deviceAddress);
-            co_return false;
         }
     } while (expectedLen > 0);
 
