@@ -475,6 +475,42 @@
                     "Type": "SensorReadingCritical",
                     "BitPosition": 5,
                     "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_1_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 6,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_2_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 7,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_3_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 8,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_4_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 9,
+                    "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_5_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 10,
+                    "Value": true
+                },
+                {
+                    "Name": "ORING_OTP",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 11,
+                    "Value": true
                 }
             ]
         }
