@@ -6,7 +6,7 @@
     "ProbeRegister": {
         "Offset": "0x0",
         "Size": 8,
-        "ExpectedValue": "Delta"
+        "ExpectedValue": "DELTA"
     },
     "InventoryRegisters": [
         {
