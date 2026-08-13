@@ -1,5 +1,7 @@
 #include "common/events.hpp"
 
+#include <unistd.h>
+
 #include <nlohmann/json.hpp>
 #include <xyz/openbmc_project/Logging/Create/aserver.hpp>
 #include <xyz/openbmc_project/Logging/Entry/aserver.hpp>
@@ -10,6 +12,7 @@
 #include <xyz/openbmc_project/State/SMC/event.hpp>
 
 #include <filesystem>
+#include <format>
 #include <fstream>
 
 #include <gtest/gtest.h>
@@ -132,8 +135,10 @@ class EventsTest : public ::testing::Test
     static constexpr auto deassert = false;
     const char* objectPath = "/xyz/openbmc_project/logging";
     sdbusplus::async::context ctx;
+    // Include the pid: test binaries run in parallel and share /tmp.
     std::filesystem::path stateDir =
-        std::filesystem::temp_directory_path() / "phosphor-modbus-test-events";
+        std::filesystem::temp_directory_path() /
+        std::format("phosphor-modbus-test-events-{}", getpid());
     EventIntf::Events events;
     TestEventServer eventServer;
     sdbusplus::server::manager_t manager;
