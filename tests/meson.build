@@ -19,6 +19,11 @@ if not gtest_dep.found() or not gmock_dep.found()
     endif
 endif
 
+# Suites using an sdbusplus async context run one at a time. Under valgrind on
+# a busy machine, several of them running together can leave the context scope
+# draining for a long time.
+async_test_parallel = false
+
 test_base_lib = static_library(
     'test_base_lib',
     ['test_base.cpp'],
@@ -56,6 +61,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.'],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -68,6 +74,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
@@ -97,6 +104,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -125,6 +133,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -142,6 +151,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -159,6 +169,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -176,6 +187,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -187,6 +199,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
 
 test(
@@ -233,4 +246,5 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    is_parallel: async_test_parallel,
 )
