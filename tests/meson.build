@@ -19,6 +19,11 @@ if not gtest_dep.found() or not gmock_dep.found()
     endif
 endif
 
+# Suites using an sdbusplus async context may occasionally take much longer
+# under valgrind on a busy machine, where draining the context scope can be
+# slow. Give them some extra headroom.
+async_test_timeout = 60
+
 test_base_lib = static_library(
     'test_base_lib',
     ['test_base.cpp'],
@@ -56,6 +61,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.'],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -68,6 +74,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test_profile_dir = meson.project_source_root() / 'rtu' / 'profiles'
@@ -97,6 +104,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -125,6 +133,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -142,6 +151,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -159,6 +169,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -176,6 +187,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -187,6 +199,7 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
 
 test(
@@ -205,6 +218,7 @@ test(
         include_directories: ['.', common_include],
     ),
     is_parallel: false,  # To avoid conflict with test_events, which also simulates xyz.openbmc_project.Logging service operations
+    timeout: async_test_timeout,
 )
 
 test(
@@ -233,4 +247,5 @@ test(
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],
     ),
+    timeout: async_test_timeout,
 )
