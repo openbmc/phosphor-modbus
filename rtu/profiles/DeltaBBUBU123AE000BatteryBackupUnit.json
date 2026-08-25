@@ -526,7 +526,7 @@
             "Name": "BATTERY_BACKUP_TIME",
             "Type": "Init",
             "Offset": "0x121",
-            "Default": [90]
+            "Default": [50]
         }
     ]
 }
