@@ -385,6 +385,12 @@
                     "Type": "SensorReadingCritical",
                     "BitPosition": 4,
                     "Value": true
+                },
+                {
+                    "Name": "DISCHARGE_INPUT_UV",
+                    "Type": "SensorReadingCritical",
+                    "BitPosition": 5,
+                    "Value": true
                 }
             ]
         },
