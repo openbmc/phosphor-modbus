@@ -543,6 +543,11 @@ auto BaseDevice::handleSpanBusy(PollBucket& bucket, const RegisterSpan& span)
             sensor.value(std::numeric_limits<double>::quiet_NaN());
             sensor.available(false);
         }
+        else if (std::holds_alternative<MetricEntry>(bucket.entries[idx]))
+        {
+            auto& metric = std::get<MetricEntry>(bucket.entries[idx]).metric;
+            metric.value(std::numeric_limits<double>::quiet_NaN());
+        }
     }
 }
 
