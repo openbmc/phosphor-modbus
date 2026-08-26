@@ -9,6 +9,7 @@
 #include <xyz/openbmc_project/Metric/Value/client.hpp>
 
 #include <cmath>
+#include <functional>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -122,6 +123,39 @@ class MetricsTest : public BaseTest
         auto device = DeviceIntf::DeviceFactory::create(
             ctx, deviceFactoryConfig, *mockPort, events);
         return {std::move(mockPort), std::move(device)};
+    }
+
+    static constexpr int propertyWaitRetries = 50;
+    static constexpr auto propertyWaitInterval = std::chrono::milliseconds(100);
+
+    // Polls the metric value until it satisfies value, or the retries run out.
+    auto waitForMetric(std::string path, std::function<bool(double)> value)
+        -> sdbusplus::async::task<bool>
+    {
+        for (int i = 0; i < propertyWaitRetries; i++)
+        {
+            auto props = co_await MetricValueIntf(ctx)
+                             .service(serviceName)
+                             .path(path)
+                             .properties();
+            if (value(props.value))
+            {
+                co_return true;
+            }
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return false;
+    }
+
+    auto stopDevice(DeviceIntf::BaseDevice& device)
+        -> sdbusplus::async::task<void>
+    {
+        device.requestStop();
+        while (!device.isStopped())
+        {
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        co_return;
     }
 
     ProfileIntf::DeviceProfile testProfile = {
@@ -272,6 +306,60 @@ TEST_F(MetricsTest, TestMetricValueInteger)
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+// While the port is reserved (e.g. for a firmware update) the read is not
+// attempted, so the metric is set to NaN rather than left stale.
+TEST_F(MetricsTest, TestPortBusyInvalidatesMetric)
+{
+    const ProfileIntf::MetricRegister metricRegister = {
+        .name = metricName,
+        .type = MetricTypeIntf::valveClosedDuration,
+        .offset = TestIntf::testReadHoldingRegisterMetricOffset,
+        .size = TestIntf::testReadHoldingRegisterMetricCount,
+        .scale = 60.0,
+        .format = ProfileIntf::SensorFormat::fixedPoint,
+    };
+
+    // Raw value 0x012C = 300, with scale=60 -> 300 * 60 = 18000 seconds
+    constexpr double expectedValue = 300.0 * 60.0;
+
+    auto testMetric = [&]() -> sdbusplus::async::task<void> {
+        EventIntf::Events events{ctx, stateDir};
+        auto devPair = createDevice({metricRegister}, events);
+        auto& mockPort = devPair.first;
+        auto& device = devPair.second;
+
+        ctx.spawn(device->pollRegisters());
+
+        // First poll succeeds: the metric reads its value.
+        EXPECT_TRUE(co_await waitForMetric(objectPath, [](double v) {
+            return v == expectedValue;
+        })) << "metric should read its value before the port is reserved";
+
+        // Reserve the port; subsequent polls return busy.
+        auto lock = mockPort->acquireExclusive();
+        EXPECT_TRUE(lock.has_value());
+
+        EXPECT_TRUE(co_await waitForMetric(objectPath, [](double v) {
+            return std::isnan(v);
+        })) << "metric should be NaN while the port is busy";
+
+        // Release the port; the metric recovers its value.
+        lock.reset();
+        EXPECT_TRUE(co_await waitForMetric(objectPath, [](double v) {
+            return v == expectedValue;
+        })) << "metric should recover once the port is released";
+
+        co_await stopDevice(*device);
+
+        ctx.request_stop();
+        co_return;
+    };
+
+    ctx.spawn(testMetric());
 
     ctx.run();
 }
