@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 
 #include <gtest/gtest.h>
 
@@ -58,6 +59,7 @@ TEST_F(AllowedDevicesTest, NoConfigAllowsAll)
     EXPECT_TRUE(devices.isAllowed("PSU_1_1"));
     EXPECT_TRUE(devices.isAllowed("BBU_SHELF_1"));
     EXPECT_TRUE(devices.isAllowed("anything"));
+    EXPECT_FALSE(devices.getConfiguredDevices().has_value());
 }
 
 TEST_F(AllowedDevicesTest, AllowlistFiltersDevices)
@@ -70,6 +72,9 @@ TEST_F(AllowedDevicesTest, AllowlistFiltersDevices)
     EXPECT_TRUE(devices.isAllowed("BBU_SHELF_1"));
     EXPECT_FALSE(devices.isAllowed("PSU_1_2"));
     EXPECT_FALSE(devices.isAllowed("CBU_SHELF_1"));
+
+    EXPECT_EQ(devices.getConfiguredDevices(),
+              (std::unordered_set<std::string>{"PSU_1_1", "BBU_SHELF_1"}));
 }
 
 TEST_F(AllowedDevicesTest, EmptyAllowlistBlocksAll)
@@ -80,6 +85,10 @@ TEST_F(AllowedDevicesTest, EmptyAllowlistBlocksAll)
 
     EXPECT_FALSE(devices.isAllowed("PSU_1_1"));
     EXPECT_FALSE(devices.isAllowed("anything"));
+
+    // Present but empty, unlike an unconfigured allowlist which is nullopt.
+    EXPECT_EQ(devices.getConfiguredDevices(),
+              std::unordered_set<std::string>{});
 }
 
 TEST_F(AllowedDevicesTest, SpacesReplacedWithUnderscores)
@@ -102,6 +111,7 @@ TEST_F(AllowedDevicesTest, InvalidJsonResetsAllowlist)
     ConfigIntf::AllowedDevices devices(ctx, configDir);
 
     EXPECT_TRUE(devices.isAllowed("anything"));
+    EXPECT_FALSE(devices.getConfiguredDevices().has_value());
 }
 
 TEST_F(AllowedDevicesTest, MissingKeyResetsAllowlist)
@@ -111,4 +121,5 @@ TEST_F(AllowedDevicesTest, MissingKeyResetsAllowlist)
     ConfigIntf::AllowedDevices devices(ctx, configDir);
 
     EXPECT_TRUE(devices.isAllowed("anything"));
+    EXPECT_FALSE(devices.getConfiguredDevices().has_value());
 }
