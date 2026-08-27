@@ -81,4 +81,10 @@ auto AllowedDevices::isAllowed(const std::string& deviceName) const -> bool
     return allowlist->contains(deviceName);
 }
 
+auto AllowedDevices::getConfiguredDevices() const
+    -> const std::optional<std::unordered_set<std::string>>&
+{
+    return allowlist;
+}
+
 } // namespace phosphor::modbus::rtu::config
