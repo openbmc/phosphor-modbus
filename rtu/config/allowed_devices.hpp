@@ -19,6 +19,19 @@ class AllowedDevices
 
     auto isAllowed(const std::string& deviceName) const -> bool;
 
+    /** @brief The device names read from the allowlist config.
+     *  - nullopt: no usable config present, either missing or unparseable,
+     *    so every device is allowed.
+     *  - empty set: config present but lists no devices, so no device is
+     *    allowed.
+     *  - non-empty set: only the listed devices are allowed.
+     *
+     *  NOTE: nullopt and an empty set are different in their meaning, so
+     *  use isAllowed() to explicitly understand whether a device is
+     *  allowed. */
+    auto getConfiguredDevices() const
+        -> const std::optional<std::unordered_set<std::string>>&;
+
     auto startWatching() -> void;
 
   private:
