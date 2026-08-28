@@ -202,10 +202,10 @@ auto BaseDevice::createSensors() -> void
         }
 
         SensorIntf::Value::properties_t initValue = {
-            std::numeric_limits<double>::quiet_NaN(),
-            std::numeric_limits<double>::quiet_NaN(),
-            std::numeric_limits<double>::quiet_NaN(),
-            getUnit(sensorRegister.type)};
+            .value = std::numeric_limits<double>::quiet_NaN(),
+            .max_value = std::numeric_limits<double>::quiet_NaN(),
+            .min_value = std::numeric_limits<double>::quiet_NaN(),
+            .unit = getUnit(sensorRegister.type)};
 
         auto sensorName = config.name + "_" + sensorRegister.name;
         if constexpr (appendUnitSuffix)
