@@ -208,6 +208,20 @@ test(
 )
 
 test(
+    'test_base_config',
+    executable(
+        'test_base_config',
+        'test_base_config.cpp',
+        base_config_src,
+        profile_src,
+        cpp_args: test_profile_cpp_args,
+        link_with: [modbus_common_lib],
+        dependencies: [gtest_dep, default_deps, modbus_rtu_dep],
+        include_directories: ['.', common_include],
+    ),
+)
+
+test(
     'test_device_profile',
     executable(
         'test_device_profile',
