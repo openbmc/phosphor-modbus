@@ -6,6 +6,8 @@
 #include <xyz/openbmc_project/Configuration/USBPort/aserver.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 using namespace std::literals;
@@ -43,6 +45,8 @@ class PortTest : public BaseTest
     static constexpr auto clientPathPrefix = "/tmp/ttyPortV0";
     static constexpr auto serverPathPrefix = "/tmp/ttyPortV1";
     static constexpr auto serviceName = "xyz.openbmc_project.TestModbusPort";
+    static constexpr int propertyWaitRetries = 50;
+    static constexpr auto propertyWaitInterval = std::chrono::milliseconds(10);
     bool getPortConfigPassed = false;
 
     PortTest() : BaseTest(clientPathPrefix, serverPathPrefix, serviceName) {}
@@ -126,6 +130,18 @@ class PortTest : public BaseTest
         co_return;
     }
 
+    // The Enabled property clears only once the bus has gone idle, so poll it
+    // rather than expecting the write to take effect straight away.
+    auto WaitForDisabled(MockPort& port) -> sdbusplus::async::task<void>
+    {
+        for (int i = 0; i < propertyWaitRetries && port.enabled(); i++)
+        {
+            co_await sdbusplus::async::sleep_for(ctx, propertyWaitInterval);
+        }
+        EXPECT_FALSE(port.enabled());
+        co_return;
+    }
+
     auto TestPortEnabled(PortConfigIntf::Config& config, MockPort& port)
         -> sdbusplus::async::task<void>
     {
@@ -134,11 +150,12 @@ class PortTest : public BaseTest
         EXPECT_EQ(co_await ReadStatus(config, port),
                   PortIntf::OperationStatus::success);
 
-        // Disabling the port reserves it; reads return busy.
+        // Disabling the port reserves it straight away, so reads return busy
+        // even before the property clears.
         port.enabled(false);
-        EXPECT_FALSE(port.enabled());
         EXPECT_EQ(co_await ReadStatus(config, port),
                   PortIntf::OperationStatus::busy);
+        co_await WaitForDisabled(port);
 
         // Re-enabling the port releases it; reads succeed again.
         port.enabled(true);

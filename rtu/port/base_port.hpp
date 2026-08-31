@@ -10,6 +10,7 @@
 #include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
 #include <concepts>
+#include <cstdint>
 #include <optional>
 
 namespace phosphor::modbus::rtu::port
@@ -155,6 +156,11 @@ class BasePort : public PortConnectorIntf
 
     /** @brief Handle a client write of the Object.Enable Enabled property:
      *  reserve the port when disabled, release it when enabled.
+     *
+     *  Reserving only gates operations that have not started yet, so the
+     *  property is cleared asynchronously once the bus goes idle. A client
+     *  must wait for Enabled to read false rather than rely on the write
+     *  completing.
      *  @return Whether the enabled state changed. */
     auto set_property(enabled_t, bool enabled) -> bool;
 
@@ -177,6 +183,11 @@ class BasePort : public PortConnectorIntf
 
   private:
     friend class ExclusiveLock;
+
+    /** @brief Wait for operations already in progress to finish, then clear
+     *  the Enabled property for the given reservation. */
+    auto waitForIdle(uint64_t forReservation) -> sdbusplus::async::task<void>;
+
     std::string name;
     int fd = -1;
     std::unique_ptr<ModbusIntf> modbus;
@@ -184,6 +195,10 @@ class BasePort : public PortConnectorIntf
     bool busy = false;
     // Held while the port is disabled via Object.Enable; reset to resume.
     std::optional<ExclusiveLock> monitoringLock;
+    // Set while reserved but still waiting for the bus to go idle.
+    bool awaitingIdle = false;
+    // Incremented per reservation, so a superseded wait can be discarded.
+    uint64_t reservation = 0;
 };
 
 } // namespace phosphor::modbus::rtu::port

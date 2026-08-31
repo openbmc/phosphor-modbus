@@ -75,21 +75,55 @@ auto BasePort::set_property(enabled_t, bool enabled) -> bool
     if (enabled)
     {
         monitoringLock.reset();
+        awaitingIdle = false;
     }
     else if (!monitoringLock)
     {
         if (auto lock = acquireExclusive())
         {
             monitoringLock.emplace(std::move(*lock));
+            awaitingIdle = true;
+            ctx.spawn(waitForIdle(++reservation));
         }
     }
 
-    // The port is enabled only when not reserved, so a failed reservation
-    // leaves the property unchanged.
-    bool portEnabled = !monitoringLock.has_value();
+    // The property clears only once the port is both reserved and idle, so
+    // it stays set while a reservation is still waiting for the bus, and
+    // when a reservation could not be taken at all.
+    bool portEnabled = !monitoringLock.has_value() || awaitingIdle;
     bool changed = (portEnabled != properties.enabled);
     properties.enabled = portEnabled;
     return changed;
+}
+
+auto BasePort::waitForIdle(uint64_t forReservation)
+    -> sdbusplus::async::task<void>
+{
+    {
+        // Operations that started before the reservation still hold the
+        // mutex, so taking it here waits for the bus to go quiet.
+        sdbusplus::async::lock_guard lg{mutex};
+        co_await lg.lock();
+    }
+
+    // The port may have been re-enabled and reserved again while waiting.
+    // Operations admitted in between are still queued, so only the wait
+    // belonging to the current reservation can report the bus quiet.
+    if (forReservation != reservation)
+    {
+        co_return;
+    }
+
+    awaitingIdle = false;
+
+    // The port may have been re-enabled while waiting, in which case the
+    // reservation is gone and there is nothing to report.
+    if (monitoringLock)
+    {
+        enabled(false);
+    }
+
+    co_return;
 }
 
 ExclusiveLock::ExclusiveLock(BasePort& port) : port(&port) {}
