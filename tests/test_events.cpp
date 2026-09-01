@@ -92,7 +92,7 @@ class TestEventServer : public EventServerIntf
         -> sdbusplus::async::task<create_with_ffdc_files_t::return_type>
 
     {
-        co_return;
+        co_return sdbusplus::object_path{};
     }
 
     // Destroy the most recently created entry to simulate the logging
