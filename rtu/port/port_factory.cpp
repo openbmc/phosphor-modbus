@@ -40,4 +40,15 @@ auto PortFactory::create(sdbusplus::async::context& ctx,
     return nullptr;
 }
 
+auto PortFactory::getDevicePath(const config::PortFactoryConfig& config)
+    -> std::string
+{
+    if (config.portType == config::PortType::usb)
+    {
+        return USBPort::getDevicePath(config);
+    }
+
+    return {};
+}
+
 } // namespace phosphor::modbus::rtu::port

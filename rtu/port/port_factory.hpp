@@ -41,6 +41,13 @@ class PortFactory
     static auto create(sdbusplus::async::context& ctx,
                        const config::PortFactoryConfig& config)
         -> std::unique_ptr<BasePort>;
+
+    /** @brief The serial device the port config resolves to, for callers that
+     *  need to drive the port without creating one. Empty if the port type is
+     *  not known.
+     *  @throws std::runtime_error if no matching device is present. */
+    static auto getDevicePath(const config::PortFactoryConfig& config)
+        -> std::string;
 };
 
 } // namespace phosphor::modbus::rtu::port

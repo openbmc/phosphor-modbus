@@ -69,7 +69,9 @@ modbus_rtu_dep = declare_dependency(
 
 base_config_src = files('base_config.cpp')
 
-inventory_src = files('inventory/modbus_inventory.cpp')
+inventory_utils_src = files('inventory/inventory_utils.cpp')
+
+inventory_src = files('inventory/modbus_inventory.cpp') + inventory_utils_src
 
 allowed_devices_src = files('config/allowed_devices.cpp')
 
