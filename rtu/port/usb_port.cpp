@@ -36,7 +36,7 @@ struct USBPortConfig : public PortFactoryConfig
 
 } // namespace config
 
-static auto getDevicePath(const config::PortFactoryConfig& inConfig)
+auto USBPort::getDevicePath(const config::PortFactoryConfig& inConfig)
     -> std::string
 {
     namespace fs = std::filesystem;

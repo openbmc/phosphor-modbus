@@ -1,5 +1,6 @@
 #include "modbus_inventory.hpp"
 
+#include "device/device_utils.hpp"
 #include "modbus_rtu_config.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -65,37 +66,6 @@ static auto fillAssetProperties(
             error("Unknown inventory data type");
             break;
     }
-}
-
-static auto matchesProbeValue(std::span<const uint16_t> readBuffer,
-                              const ProfileIntf::ProbeRegister& probe) -> bool
-{
-    return std::visit(
-        [&readBuffer](const auto& expected) -> bool {
-            using T = std::decay_t<decltype(expected)>;
-            if constexpr (std::is_same_v<T, uint64_t>)
-            {
-                uint64_t value = 0;
-                for (const auto& reg : readBuffer)
-                {
-                    value = (value << 16) | reg;
-                }
-                return value == expected;
-            }
-            else // std::string
-            {
-                std::string value;
-                for (const auto& reg : readBuffer)
-                {
-                    value += static_cast<char>((reg >> 8) & 0xFF);
-                    value += static_cast<char>(reg & 0xFF);
-                }
-                // Remove null characters
-                std::erase(value, '\0');
-                return value == expected;
-            }
-        },
-        probe.expectedValue);
 }
 
 Device::Device(sdbusplus::async::context& ctx, const config::Config& config,
@@ -245,7 +215,7 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
         co_return;
     }
 
-    if (!matchesProbeValue(registers, probe))
+    if (!phosphor::modbus::rtu::device::matchesProbeValue(registers, probe))
     {
         if (!mismatchLogged)
         {

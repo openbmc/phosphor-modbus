@@ -93,6 +93,7 @@ test(
         'modbus_server_tester.cpp',
         inventory_src,
         allowed_devices_src,
+        device_utils_src,
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [gtest_dep, gmock_dep, default_deps, modbus_rtu_dep],
         include_directories: ['.', common_include],

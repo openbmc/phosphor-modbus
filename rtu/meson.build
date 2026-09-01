@@ -84,12 +84,13 @@ rtu_cpp_args = [
     '-DSTATE_DIR="' + state_dir + '"',
 ]
 
+device_utils_src = files('device/device_utils.cpp')
+
 device_src = files(
     'device/base_device.cpp',
     'device/device_config.cpp',
     'device/device_factory.cpp',
-    'device/device_utils.cpp',
-)
+) + device_utils_src
 
 firmware_src = files('firmware/device_firmware.cpp')
 
