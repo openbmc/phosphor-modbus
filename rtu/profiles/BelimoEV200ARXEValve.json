@@ -287,5 +287,13 @@
             ]
         }
     ],
-    "FirmwareRegisters": []
+    "FirmwareRegisters": [
+        {
+            "Name": "SW_Version",
+            "Type": "Version",
+            "Offset": "0x67",
+            "Size": 1,
+            "Format": "Integer"
+        }
+    ]
 }
