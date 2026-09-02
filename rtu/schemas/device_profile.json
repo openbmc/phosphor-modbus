@@ -245,13 +245,19 @@
                     },
                     "Format": {
                         "type": "string",
-                        "enum": ["String", "Integer"]
+                        "enum": ["String", "Integer", "Decimal"]
                     },
                     "Offset": {
                         "type": "string",
                         "pattern": "^0x[0-9A-Fa-f]+$"
                     },
-                    "Size": { "type": "integer" }
+                    "Size": { "type": "integer" },
+                    "DecimalPlaces": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 20,
+                        "default": 0
+                    }
                 }
             }
         },

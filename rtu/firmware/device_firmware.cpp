@@ -93,21 +93,50 @@ static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,
 {
     std::string strValue;
 
-    if (reg.format == ProfileIntf::FirmwareFormat::integer)
+    switch (reg.format)
     {
-        uint64_t intValue = 0;
-        for (const auto& value : registers)
+        case ProfileIntf::FirmwareFormat::integer:
+        case ProfileIntf::FirmwareFormat::decimal:
         {
-            intValue = (intValue << 16) | value;
+            uint64_t rawValue = 0;
+            for (const auto& value : registers)
+            {
+                rawValue = (rawValue << 16) | value;
+            }
+
+            if (reg.format == ProfileIntf::FirmwareFormat::integer)
+            {
+                return std::to_string(rawValue);
+            }
+            else
+            {
+                auto digits = std::to_string(rawValue);
+
+                if (reg.decimalPlaces == 0)
+                {
+                    return digits;
+                }
+
+                const auto decimalPlaces =
+                    static_cast<size_t>(reg.decimalPlaces);
+                if (digits.size() <= decimalPlaces)
+                {
+                    digits.insert(0, decimalPlaces + 1 - digits.size(), '0');
+                }
+                digits.insert(digits.size() - decimalPlaces, 1, '.');
+                return digits;
+            }
         }
-        strValue = std::to_string(intValue);
-    }
-    else
-    {
-        for (const auto& value : registers)
+
+        case ProfileIntf::FirmwareFormat::string:
+        default:
         {
-            strValue += static_cast<char>((value >> 8) & 0xFF);
-            strValue += static_cast<char>(value & 0xFF);
+            for (const auto& value : registers)
+            {
+                strValue += static_cast<char>((value >> 8) & 0xFF);
+                strValue += static_cast<char>(value & 0xFF);
+            }
+            break;
         }
     }
 

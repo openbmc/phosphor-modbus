@@ -100,6 +100,7 @@ static const std::unordered_map<std::string, FirmwareFormat> firmwareFormatMap =
     {
         {"String", FirmwareFormat::string},
         {"Integer", FirmwareFormat::integer},
+        {"Decimal", FirmwareFormat::decimal},
 };
 
 static const std::unordered_map<std::string, ConfigType> configTypeMap = {
@@ -278,6 +279,7 @@ static void from_json(const json& j, FirmwareRegister& r)
                         j.at("Type").get<std::string>(), "Type");
     r.offset = parseHexOffset(j, "Offset");
     r.size = j.at("Size").get<uint8_t>();
+    r.decimalPlaces = j.value("DecimalPlaces", static_cast<uint8_t>(0));
     if (j.contains("Format"))
     {
         r.format = lookupEnum(firmwareFormatMap,

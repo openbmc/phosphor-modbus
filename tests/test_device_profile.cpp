@@ -100,7 +100,9 @@ static constexpr auto testProfileJson = R"({
             "Name": "TestFW",
             "Type": "Version",
             "Offset": "0x258",
-            "Size": 2
+            "Size": 2,
+            "Format": "Decimal",
+            "DecimalPlaces": 2
         }
     ],
     "ConfigRegisters": [
@@ -218,6 +220,8 @@ TEST_F(DeviceProfileTest, ParsesAllRegisterTypes)
     EXPECT_EQ(profile.firmwareRegisters[0].type, FirmwareRegisterType::version);
     EXPECT_EQ(profile.firmwareRegisters[0].offset, 600U);
     EXPECT_EQ(profile.firmwareRegisters[0].size, 2U);
+    EXPECT_EQ(profile.firmwareRegisters[0].decimalPlaces, 2U);
+    EXPECT_EQ(profile.firmwareRegisters[0].format, FirmwareFormat::decimal);
 
     // Config registers — first is periodic, second is one-shot (no Period),
     // the rest are Init registers.
