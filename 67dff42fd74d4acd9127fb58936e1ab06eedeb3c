@@ -16,6 +16,24 @@
       "message": "Code is LGTM. Build is failing. Might be worth investigating.",
       "revId": "67dff42fd74d4acd9127fb58936e1ab06eedeb3c",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "84b0d81d_e84d225f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-09-02T00:49:25Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "dae09371_4f59f7b1",
+      "revId": "67dff42fd74d4acd9127fb58936e1ab06eedeb3c",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
