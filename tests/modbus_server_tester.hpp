@@ -101,6 +101,13 @@ const std::vector<uint16_t> testReadHoldingRegisterFirmwareIntVersion = {
     0x0001, 0x0002};
 constexpr std::string testReadHoldingRegisterFirmwareIntVersionStr = "65538";
 
+// Device Decimal Firmware Testing Constants
+constexpr uint16_t testReadHoldingRegisterFirmwareDecimalVersionOffset = 0x011B;
+constexpr uint16_t testReadHoldingRegisterFirmwareDecimalVersionCount = 0x1;
+const std::vector<uint16_t> testReadHoldingRegisterFirmwareDecimalVersion = {
+    0x00CA}; // 202
+constexpr std::string testReadHoldingRegisterFirmwareDecimalVersionStr = "2.02";
+
 // Device Float32 Sensor Testing Constants
 constexpr uint16_t testReadHoldingRegisterFloat32Offset = 0x0119;
 constexpr uint16_t testReadHoldingRegisterFloat32Count = 0x2;
@@ -142,6 +149,9 @@ static const std::map<uint16_t, std::tuple<uint16_t, std::vector<uint16_t>>>
         {testReadHoldingRegisterFirmwareIntVersionOffset,
          {testReadHoldingRegisterFirmwareIntVersionCount,
           testReadHoldingRegisterFirmwareIntVersion}},
+        {testReadHoldingRegisterFirmwareDecimalVersionOffset,
+         {testReadHoldingRegisterFirmwareDecimalVersionCount,
+          testReadHoldingRegisterFirmwareDecimalVersion}},
         {testReadHoldingRegisterFloat32Offset,
          {testReadHoldingRegisterFloat32Count, testReadHoldingRegisterFloat32}},
         {testReadHoldingRegisterEventOffset,

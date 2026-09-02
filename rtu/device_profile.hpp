@@ -146,6 +146,7 @@ enum class FirmwareFormat
 {
     string,
     integer,
+    decimal,
     unknown
 };
 
@@ -156,6 +157,7 @@ struct FirmwareRegister
     FirmwareFormat format = FirmwareFormat::string;
     uint16_t offset = 0;
     uint8_t size = 0;
+    uint8_t decimalPlaces = 0;
 };
 
 enum class ConfigType

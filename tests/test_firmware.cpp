@@ -223,6 +223,26 @@ TEST_F(FirmwareTest, TestFirmwareVersionInteger)
     ctx.run();
 }
 
+TEST_F(FirmwareTest, TestFirmwareVersionDecimal)
+{
+    const ProfileIntf::FirmwareRegister firmwareRegister = {
+        .name = "",
+        .type = ProfileIntf::FirmwareRegisterType::version,
+        .format = ProfileIntf::FirmwareFormat::decimal,
+        .offset = TestIntf::testReadHoldingRegisterFirmwareDecimalVersionOffset,
+        .size = TestIntf::testReadHoldingRegisterFirmwareDecimalVersionCount,
+        .decimalPlaces = 2};
+
+    ctx.spawn(testFirmwareVersion(
+        objectPath, firmwareRegister,
+        TestIntf::testReadHoldingRegisterFirmwareDecimalVersionStr));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
 TEST_F(FirmwareTest, TestMultipleFirmwareVersions)
 {
     const ProfileIntf::FirmwareRegister stringRegister = {
