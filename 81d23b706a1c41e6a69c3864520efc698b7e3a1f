@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7038b48_f92ff6ef",
+        "filename": "tools/modbus-tool/meson.build",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-09-04T22:27:21Z",
+      "side": 1,
+      "message": "can you name this modbustool to be consistent with other tools in the BMC like pldmtool (no - in the name)",
+      "revId": "81d23b706a1c41e6a69c3864520efc698b7e3a1f",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
