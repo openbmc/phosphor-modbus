@@ -26,6 +26,7 @@ subdir('common')
 
 if get_option('modbus-rtu').allowed()
     subdir('rtu')
+    subdir('tools')
 endif
 
 if get_option('mocked-test-device').allowed()
