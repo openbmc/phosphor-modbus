@@ -222,6 +222,28 @@ test(
 )
 
 test(
+    'test_modbus_tool',
+    executable(
+        'test_modbus_tool',
+        'test_modbus_tool.cpp',
+        'modbus_server_tester.cpp',
+        modbus_tool_src,
+        base_config_src,
+        inventory_utils_src,
+        profile_src,
+        cpp_args: rtu_cpp_args,
+        link_with: [modbus_common_lib, test_base_lib],
+        dependencies: [
+            cli11_dep,
+            gtest_dep,
+            default_deps,
+            modbus_rtu_dep,
+        ],
+        include_directories: ['.', common_include, modbus_tool_include],
+    ),
+)
+
+test(
     'test_device_profile',
     executable(
         'test_device_profile',
