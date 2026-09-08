@@ -9,6 +9,7 @@
 #include <sdbusplus/async.hpp>
 
 #include <cstddef>
+#include <expected>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -81,6 +82,58 @@ auto write(const nlohmann::ordered_json& json, const std::string& path) -> bool
     return true;
 }
 
+struct Options
+{
+    std::vector<std::string> devices{};
+    std::string output{};
+    bool all = false;
+    bool assumeYes = false;
+};
+
+/** @brief Define the dump subcommand and what it takes. */
+auto addDumpCommand(CLI::App& app, Options& options) -> void
+{
+    auto* dump = app.add_subcommand("dump", "Dump device registers");
+    auto* named = dump->add_option("--devices", options.devices,
+                                   "Comma separated list of devices to dump");
+    named->delimiter(',');
+    dump->add_flag("--all", options.all,
+                   "Dump every device the platform allows")
+        ->excludes(named);
+    dump->add_option("--output", options.output,
+                     "Write the JSON here instead of stdout");
+    dump->add_flag("-y,--yes", options.assumeYes,
+                   "Do not ask before pausing monitoring");
+}
+
+/** @brief Produce the dump, resolving --all to a device list first.
+ *  @return The dump, or why there was nothing to attempt. */
+auto takeDump(std::vector<std::string> devices, bool all)
+    -> std::expected<Dump, std::string>
+{
+    sdbusplus::async::context ctx;
+
+    if (all)
+    {
+        auto allowed = modbus_tool::allowedDeviceNames(ctx, CONFIG_DIR);
+        if (!allowed)
+        {
+            return std::unexpected(allowed.error());
+        }
+        devices = std::move(*allowed);
+    }
+
+    Dump result;
+    ctx.spawn(modbus_tool::runDump(ctx, devices) |
+              sdbusplus::async::execution::then([&](Dump dumped) {
+                  result = std::move(dumped);
+                  ctx.request_stop();
+              }));
+    ctx.run();
+
+    return result;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -88,23 +141,19 @@ int main(int argc, char** argv)
     CLI::App app{"Read a device's registers and write them to JSON."};
     app.require_subcommand(1);
 
-    std::vector<std::string> devices;
-    std::string output;
-    bool assumeYes = false;
-
-    auto* dump = app.add_subcommand("dump", "Dump device registers");
-    dump->add_option("--devices", devices,
-                     "Comma separated list of devices to dump")
-        ->required()
-        ->delimiter(',');
-    dump->add_option("--output", output,
-                     "Write the JSON here instead of stdout");
-    dump->add_flag("-y,--yes", assumeYes,
-                   "Do not ask before pausing monitoring");
+    Options options;
+    addDumpCommand(app, options);
 
     CLI11_PARSE(app, argc, argv);
 
-    if (!assumeYes && !confirm())
+    // --all excludes --devices, so only neither being given is left to catch.
+    if (options.devices.empty() && !options.all)
+    {
+        std::cerr << "Name the devices with --devices, or pass --all\n";
+        return 1;
+    }
+
+    if (!options.assumeYes && !confirm())
     {
         return 1;
     }
@@ -117,21 +166,19 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    Dump result;
-    sdbusplus::async::context ctx;
-    ctx.spawn(modbus_tool::runDump(ctx, devices) |
-              sdbusplus::async::execution::then([&](Dump dumped) {
-                  result = std::move(dumped);
-                  ctx.request_stop();
-              }));
-    ctx.run();
+    auto result = takeDump(std::move(options.devices), options.all);
+    if (!result)
+    {
+        std::cerr << result.error() << "\n";
+        return 1;
+    }
 
-    auto failures = reportFailures(result);
-    if (!write(modbus_tool::toJson(result), output))
+    auto failures = reportFailures(*result);
+    if (!write(modbus_tool::toJson(*result), options.output))
     {
         return 1;
     }
 
     // A dump where nothing could be read is of no use.
-    return failures == result.devices.size() ? 1 : 0;
+    return failures == result->devices.size() ? 1 : 0;
 }

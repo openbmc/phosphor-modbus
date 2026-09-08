@@ -2,7 +2,12 @@
 
 #include "device_profile.hpp"
 
+#include <sdbusplus/async.hpp>
+
+#include <expected>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace modbus_tool
 {
@@ -31,6 +36,15 @@ class InstanceLock
   private:
     int fd = -1;
 };
+
+/** @brief The devices the platform's allowlist names, sorted.
+ *
+ *  This is what the daemon is permitted to poll, so it is what the tool reads
+ *  when asked for every device.
+ *  @return The names, or why there are none to read. */
+auto allowedDeviceNames(sdbusplus::async::context& ctx,
+                        const std::string& configDir)
+    -> std::expected<std::vector<std::string>, std::string>;
 
 /** @brief The name a profile gives an inventory register, which is its type. */
 auto inventoryName(ProfileIntf::InventoryDataType type) -> std::string_view;
