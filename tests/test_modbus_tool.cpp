@@ -1,13 +1,18 @@
 #include "cmd/dump.hpp"
 #include "test_base.hpp"
+#include "utils/common.hpp"
 #include "utils/json_writer.hpp"
 #include "utils/port_reservation.hpp"
+
+#include <unistd.h>
 
 #include <nlohmann/json.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 #include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
 #include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -483,4 +488,67 @@ TEST_F(DumpFlowTest, TestOnlyTheMatchingVariantIsKept)
 
     ASSERT_EQ(dump.devices.size(), 1U);
     EXPECT_EQ(dump.devices.front().result, Result::success);
+}
+
+// What --all expands to. The allowlist is the platform's set of devices, so
+// this is the set the tool reads when it is not given names.
+class AllowedNamesTest : public ::testing::Test
+{
+  public:
+    ~AllowedNamesTest() noexcept override = default;
+
+    sdbusplus::async::context ctx;
+
+    const std::string configDir =
+        "/tmp/phosphor-modbus-test-tool-" + std::to_string(getpid());
+
+    void SetUp() override
+    {
+        std::filesystem::create_directories(configDir);
+    }
+
+    void TearDown() override
+    {
+        std::filesystem::remove_all(configDir);
+    }
+
+    void writeConfig(const nlohmann::ordered_json& json)
+    {
+        std::ofstream file(
+            std::filesystem::path(configDir) / "allowed-devices.json");
+        file << json.dump();
+    }
+};
+
+// Without an allowlist there is no set of devices to read, so the tool has to
+// be told which ones rather than guessing.
+TEST_F(AllowedNamesTest, TestNoAllowlistIsAnError)
+{
+    auto names = modbus_tool::allowedDeviceNames(ctx, configDir);
+
+    ASSERT_FALSE(names.has_value());
+    EXPECT_NE(names.error().find("--devices"), std::string::npos);
+}
+
+// An allowlist that permits nothing is not the same as no allowlist, and is
+// equally not something to read.
+TEST_F(AllowedNamesTest, TestEmptyAllowlistIsAnError)
+{
+    writeConfig({{"AllowedDevices", nlohmann::ordered_json::array()}});
+
+    auto names = modbus_tool::allowedDeviceNames(ctx, configDir);
+
+    EXPECT_FALSE(names.has_value());
+}
+
+// Sorted, so two dumps of the same platform can be compared.
+TEST_F(AllowedNamesTest, TestAllowlistIsSorted)
+{
+    writeConfig({{"AllowedDevices", {"PSU_1_2", "BBU_SHELF_1", "PSU_1_1"}}});
+
+    auto names = modbus_tool::allowedDeviceNames(ctx, configDir);
+
+    ASSERT_TRUE(names.has_value());
+    EXPECT_EQ(*names,
+              (std::vector<std::string>{"BBU_SHELF_1", "PSU_1_1", "PSU_1_2"}));
 }
