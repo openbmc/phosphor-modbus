@@ -16,12 +16,12 @@ modbus-tool dump --devices PSU_1_1,PSU_1_2,BBU_1_1
 modbus-tool dump --all --output dump.json
 ```
 
-| Option            | Description                              |
-| ----------------- | ---------------------------------------- |
-| `--devices NAMES` | Comma separated list of devices to dump. |
-| `--all`           | Every device in the allowlist.           |
-| `--output FILE`   | Write the JSON here instead of stdout.   |
-| `-y`, `--yes`     | Do not ask before pausing monitoring.    |
+| Option                  | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `-d`, `--devices NAMES` | Comma separated list of devices to dump. |
+| `-a`, `--all`           | Every device in the allowlist.           |
+| `-o`, `--output FILE`   | Write the JSON here instead of stdout.   |
+| `-y`, `--yes`           | Do not ask before pausing monitoring.    |
 
 A dump pauses `xyz.openbmc_project.ModbusRTU` on the ports involved, so the tool
 says so and waits for a yes first. `--yes` skips the prompt, and is required

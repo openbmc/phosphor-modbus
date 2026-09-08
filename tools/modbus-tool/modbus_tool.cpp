@@ -94,13 +94,13 @@ struct Options
 auto addDumpCommand(CLI::App& app, Options& options) -> void
 {
     auto* dump = app.add_subcommand("dump", "Dump device registers");
-    auto* named = dump->add_option("--devices", options.devices,
+    auto* named = dump->add_option("-d,--devices", options.devices,
                                    "Comma separated list of devices to dump");
     named->delimiter(',');
-    dump->add_flag("--all", options.all,
+    dump->add_flag("-a,--all", options.all,
                    "Dump every device the platform allows")
         ->excludes(named);
-    dump->add_option("--output", options.output,
+    dump->add_option("-o,--output", options.output,
                      "Write the JSON here instead of stdout");
     dump->add_flag("-y,--yes", options.assumeYes,
                    "Do not ask before pausing monitoring");
