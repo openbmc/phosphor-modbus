@@ -1,8 +1,15 @@
 #include "utils/common.hpp"
 
+#include "config/allowed_devices.hpp"
+
 #include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
+
+#include <algorithm>
+#include <expected>
+#include <string>
+#include <vector>
 
 namespace modbus_tool
 {
@@ -37,6 +44,30 @@ auto InstanceLock::acquire() -> bool
     }
 
     return true;
+}
+
+auto allowedDeviceNames(sdbusplus::async::context& ctx,
+                        const std::string& configDir)
+    -> std::expected<std::vector<std::string>, std::string>
+{
+    phosphor::modbus::rtu::config::AllowedDevices devices(ctx, configDir);
+    const auto& allowed = devices.getConfiguredDevices();
+
+    if (!allowed)
+    {
+        return std::unexpected(
+            "No allowlist is configured, so there is no set of devices to "
+            "read. Name the devices with --devices.");
+    }
+    if (allowed->empty())
+    {
+        return std::unexpected("The allowlist permits no devices.");
+    }
+
+    // Sorted, so two dumps of the same platform can be compared.
+    std::vector<std::string> names(allowed->begin(), allowed->end());
+    std::ranges::sort(names);
+    return names;
 }
 
 // Name a register type as the profile schema spells it.

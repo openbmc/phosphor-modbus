@@ -228,6 +228,7 @@ test(
         'test_modbus_tool.cpp',
         'modbus_server_tester.cpp',
         modbus_tool_src,
+        allowed_devices_src,
         base_config_src,
         inventory_utils_src,
         profile_src,
