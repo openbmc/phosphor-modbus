@@ -33,8 +33,12 @@ A device name is its entity-manager `Name`, for example `PSU_1_1`, matching the
 names in `allowed-devices.json`. Spaces are replaced with underscores, as they
 are in the allowlist.
 
-`--all` reads the allowlist from `allowed-devices.json`. If no allowlist is
-configured, or it is empty, name the devices with `--devices` instead.
+`--all` reads the allowlist from `allowed-devices.json` and dumps those devices
+in name order, so two dumps of the same platform can be compared. If no
+allowlist is configured, or it is empty, there is no set to read and the tool
+says to name the devices with `--devices` instead. A name the allowlist has but
+entity-manager does not is reported as `Not configured`, rather than dropped, so
+the two configurations disagreeing is visible.
 
 ### Exit codes
 
@@ -46,9 +50,9 @@ configured, or it is empty, name the devices with `--devices` instead.
 The exit code only says whether there is output to read. Anything that stops one
 device being read, such as a port held by another client or a name that is not
 configured, is reported as that device's `Result` and `Reason`, so the rest of
-the dump survives. Exit 1 is for the cases that leave nothing at all: no
-allowlist to expand, none of the named devices could be attempted, or the lock
-could not be acquired.
+the dump survives. Exit 1 is for the cases that leave nothing to read: no
+allowlist to expand, no device that could be read, the output file could not be
+written, or the lock could not be acquired.
 
 Only one instance runs at a time, held by an exclusive `flock` on
 `/run/lock/phosphor-modbus.lock`. The reservation alone cannot tell two
@@ -61,21 +65,22 @@ else goes to stderr. Exit 1 says why there is no dump:
 
 ```text
 Another modbus-tool is already running
-No allowed-devices list configured; name devices with --devices
+No allowlist is configured, so there is no set of devices to read. Name the
+devices with --devices.
 ```
 
 A dump that was produced still reports what went wrong in it, alongside exit 0,
 so that a failure is visible without reading the JSON:
 
 ```text
-PSU_1_9: Not configured in entity-manager
-ttyRS485-2: Reserved by another client
-PSU_1_4: 12 of 17 registers failed
-3 of 24 devices did not respond
+PSU_1_9: Not configured
+PSU_1_4: Port unavailable
+2 of 24 devices could not be read
 ```
 
-Messages summarise; the per-register detail is in the JSON. A dump with nothing
-to report prints nothing to stderr.
+One line per device that could not be read at all, then a count. A device that
+read only partly is not listed, since it is in the dump; `ReadStatus` says which
+of its registers failed. A dump with nothing to report prints nothing to stderr.
 
 ## Port reservation
 
