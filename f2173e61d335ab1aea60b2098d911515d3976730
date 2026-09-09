@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69ccab5d_1b394025",
+        "filename": "tools/modbus-tool/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-09-09T16:29:21Z",
+      "side": 1,
+      "message": "(nit) If this is triggered by phosphor-debug-collector, then https://github.com/openbmc/phosphor-debug-collector/blob/master/tools/dreport.d/plugins.d/osrelease#L11 should cover the version. This should be redundant.",
+      "revId": "f2173e61d335ab1aea60b2098d911515d3976730",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
