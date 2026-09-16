@@ -101,6 +101,39 @@
             "Shift": 0.0,
             "IsSigned": false,
             "Format": "Float32"
+        },
+        {
+            "Name": "ANALOG_INPUT_VOLT",
+            "Type": "Voltage",
+            "Offset": "0x81C0",
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 1.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
+        },
+        {
+            "Name": "FILTERED_VALVE_DIFF_PRESSURE",
+            "Type": "Pressure",
+            "Offset": "0x8612",
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 1000.0,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
+        },
+        {
+            "Name": "DESIGN_FLOW_RATE_LIQUIDFLOW",
+            "Type": "LiquidFlow",
+            "Offset": "0x8000",
+            "Size": 2,
+            "Precision": 0,
+            "Scale": 0.0166667,
+            "Shift": 0.0,
+            "IsSigned": false,
+            "Format": "Float32"
         }
     ],
     "MetricRegisters": [
