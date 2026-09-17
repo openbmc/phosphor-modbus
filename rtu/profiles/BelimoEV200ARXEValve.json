@@ -166,97 +166,97 @@
             "Offset": "0x9D",
             "Bits": [
                 {
-                    "Name": "Communication_With_Actuator_Not_Possible",
+                    "Name": "COMMUNICATION_WITH_ACTUATOR_NOT_POSSIBLE",
                     "Type": "ControllerFailure",
                     "BitPosition": 0,
                     "Value": true
                 },
                 {
-                    "Name": "Gear_Train_Disengaged",
+                    "Name": "GEAR_TRAIN_DISENGAGED",
                     "Type": "ControllerFailure",
                     "BitPosition": 1,
                     "Value": true
                 },
                 {
-                    "Name": "Actuator_Blocked",
+                    "Name": "ACTUATOR_BLOCKED",
                     "Type": "ControllerFailure",
                     "BitPosition": 2,
                     "Value": true
                 },
                 {
-                    "Name": "Reverse_Flow",
+                    "Name": "REVERSE_FLOW",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 3,
                     "Value": true
                 },
                 {
-                    "Name": "Setpoint_Not_Reached",
+                    "Name": "SETPOINT_NOT_REACHED",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 4,
                     "Value": true
                 },
                 {
-                    "Name": "Flow_With_Closed_Valve",
+                    "Name": "FLOW_WITH_CLOSED_VALVE",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 5,
                     "Value": true
                 },
                 {
-                    "Name": "Actual_Flow_Exceeds_Nominal",
+                    "Name": "ACTUAL_FLOW_EXCEEDS_NOMINAL",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 6,
                     "Value": true
                 },
                 {
-                    "Name": "Flow_Measurement_Error",
+                    "Name": "FLOW_MEASUREMENT_ERROR",
                     "Type": "SensorFailure",
                     "BitPosition": 7,
                     "Value": true
                 },
                 {
-                    "Name": "Remote_Temperature_Error",
+                    "Name": "REMOTE_TEMPERATURE_ERROR",
                     "Type": "SensorFailure",
                     "BitPosition": 8,
                     "Value": true
                 },
                 {
-                    "Name": "Flowbody_Temperature_Error",
+                    "Name": "FLOWBODY_TEMPERATURE_ERROR",
                     "Type": "SensorFailure",
                     "BitPosition": 9,
                     "Value": true
                 },
                 {
-                    "Name": "Flow_Sensor_Communication_Interrupted",
+                    "Name": "FLOW_SENSOR_COMMUNICATION_INTERRUPTED",
                     "Type": "ControllerFailure",
                     "BitPosition": 10,
                     "Value": true
                 },
                 {
-                    "Name": "Freeze_Warning",
+                    "Name": "FREEZE_WARNING",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 11,
                     "Value": true
                 },
                 {
-                    "Name": "Glycol_Detected",
+                    "Name": "GLYCOL_DETECTED",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 12,
                     "Value": true
                 },
                 {
-                    "Name": "Power_Setpoint_Not_Reached",
+                    "Name": "POWER_SETPOINT_NOT_REACHED",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 13,
                     "Value": true
                 },
                 {
-                    "Name": "Device_End_Of_Life",
+                    "Name": "DEVICE_END_OF_LIFE",
                     "Type": "SensorFailure",
                     "BitPosition": 14,
                     "Value": true
                 },
                 {
-                    "Name": "Bus_Watchdog_Timeout",
+                    "Name": "BUS_WATCHDOG_TIMEOUT",
                     "Type": "ControllerFailure",
                     "BitPosition": 15,
                     "Value": true
@@ -267,19 +267,19 @@
             "Offset": "0x9E",
             "Bits": [
                 {
-                    "Name": "No_Differential_Pressure_Detected",
+                    "Name": "NO_DIFFERENTIAL_PRESSURE_DETECTED",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 0,
                     "Value": true
                 },
                 {
-                    "Name": "Differential_Pressure_Setpoint_Not_Reached",
+                    "Name": "DIFFERENTIAL_PRESSURE_SETPOINT_NOT_REACHED",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 1,
                     "Value": true
                 },
                 {
-                    "Name": "Minimum_Position_Applied",
+                    "Name": "MINIMUM_POSITION_APPLIED",
                     "Type": "SensorReadingWarning",
                     "BitPosition": 2,
                     "Value": true
