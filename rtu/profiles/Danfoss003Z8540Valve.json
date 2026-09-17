@@ -143,31 +143,31 @@
             "Offset": "0x8300",
             "Bits": [
                 {
-                    "Name": "Temperature_Out_Of_Range",
+                    "Name": "TEMPERATURE_OUT_OF_RANGE",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 0,
                     "Value": true
                 },
                 {
-                    "Name": "Power_Supply_Voltage_Too_High",
+                    "Name": "POWER_SUPPLY_VOLTAGE_TOO_HIGH",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 2,
                     "Value": true
                 },
                 {
-                    "Name": "Power_Supply_Voltage_Too_Low",
+                    "Name": "POWER_SUPPLY_VOLTAGE_TOO_LOW",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 3,
                     "Value": true
                 },
                 {
-                    "Name": "Communication_Faults",
+                    "Name": "COMMUNICATION_FAULTS",
                     "Type": "ControllerFailure",
                     "BitPosition": 5,
                     "Value": true
                 },
                 {
-                    "Name": "Invalid_Slave_Id_Setting",
+                    "Name": "INVALID_SLAVE_ID_SETTING",
                     "Type": "ControllerFailure",
                     "BitPosition": 6,
                     "Value": true
@@ -178,25 +178,25 @@
             "Offset": "0x8301",
             "Bits": [
                 {
-                    "Name": "No_Control_Signal",
+                    "Name": "NO_CONTROL_SIGNAL",
                     "Type": "ControllerFailure",
                     "BitPosition": 0,
                     "Value": true
                 },
                 {
-                    "Name": "Error_During_Movement",
+                    "Name": "ERROR_DURING_MOVEMENT",
                     "Type": "SensorFailure",
                     "BitPosition": 1,
                     "Value": true
                 },
                 {
-                    "Name": "Error_During_Calibration",
+                    "Name": "ERROR_DURING_CALIBRATION",
                     "Type": "SensorFailure",
                     "BitPosition": 2,
                     "Value": true
                 },
                 {
-                    "Name": "Internal_Error",
+                    "Name": "INTERNAL_ERROR",
                     "Type": "SensorFailure",
                     "BitPosition": 3,
                     "Value": true
