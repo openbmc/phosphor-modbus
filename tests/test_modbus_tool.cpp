@@ -7,6 +7,10 @@
 #include <unistd.h>
 
 #include <nlohmann/json.hpp>
+#include <valijson/adapters/nlohmann_json_adapter.hpp>
+#include <valijson/schema.hpp>
+#include <valijson/schema_parser.hpp>
+#include <valijson/validator.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 #include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
@@ -14,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,13 +73,52 @@ auto readDevice() -> DeviceDump
     return device;
 }
 
+/** @brief Render a dump, checking it against the schema on the way out.
+ *
+ *  The schema is what a consumer parses against, so anything the tool writes
+ *  has to satisfy it. Going through here means every test that looks at the
+ *  output checks that too. */
+auto toCheckedJson(const Dump& dump) -> nlohmann::ordered_json
+{
+    static const auto schemaJson = [] {
+        std::ifstream file(DUMP_SCHEMA);
+        return nlohmann::json::parse(file);
+    }();
+
+    valijson::Schema schema;
+    valijson::SchemaParser parser;
+    valijson::adapters::NlohmannJsonAdapter schemaAdapter(schemaJson);
+    parser.populateSchema(schemaAdapter, schema);
+
+    auto rendered = toJson(dump);
+    // The adapter is written against nlohmann::json, where the tool writes the
+    // ordered form, so hand the validator a converted copy.
+    const nlohmann::json target = rendered;
+    valijson::adapters::NlohmannJsonAdapter targetAdapter(target);
+
+    valijson::ValidationResults results;
+    valijson::Validator validator;
+    if (!validator.validate(schema, targetAdapter, &results))
+    {
+        for (const auto& error : results)
+        {
+            ADD_FAILURE() << "schema: " << error.description << " at "
+                          << std::accumulate(error.context.begin(),
+                                             error.context.end(),
+                                             std::string{});
+        }
+    }
+
+    return rendered;
+}
+
 } // namespace
 
 // Every dump carries the schema version and what produced it, so a consumer
 // can tell whether it understands the rest.
 TEST(ModbusToolSchema, TestMetadata)
 {
-    auto json = toJson(Dump{});
+    auto json = toCheckedJson(Dump{});
 
     const auto& metadata = json.at("Metadata");
     EXPECT_EQ(metadata.at("SchemaVersion"), "1.0.0");
@@ -90,7 +134,7 @@ TEST(ModbusToolSchema, TestDevicesAreAlwaysAnArray)
     Dump dump;
     dump.devices.emplace_back(readDevice());
 
-    auto json = toJson(dump);
+    auto json = toCheckedJson(dump);
 
     ASSERT_TRUE(json.at("Devices").is_array());
     EXPECT_EQ(json.at("Devices").size(), 1U);
@@ -102,7 +146,7 @@ TEST(ModbusToolSchema, TestDeviceFields)
     Dump dump;
     dump.devices.emplace_back(readDevice());
 
-    auto json = toJson(dump);
+    auto json = toCheckedJson(dump);
 
     const auto& device = json.at("Devices").at(0);
     EXPECT_EQ(device.at("Name"), "PSU_1_1");
@@ -121,7 +165,7 @@ TEST(ModbusToolSchema, TestRegisterGroupsArePresent)
     Dump dump;
     dump.devices.emplace_back(readDevice());
 
-    auto json = toJson(dump);
+    auto json = toCheckedJson(dump);
 
     const auto& registers = json.at("Devices").at(0).at("Registers");
     for (const auto* group :
@@ -138,7 +182,7 @@ TEST(ModbusToolSchema, TestRegisterIsRaw)
     Dump dump;
     dump.devices.emplace_back(readDevice());
 
-    auto json = toJson(dump);
+    auto json = toCheckedJson(dump);
 
     const auto& reg =
         json.at("Devices").at(0).at("Registers").at("Inventory").at(0);
@@ -159,7 +203,7 @@ TEST(ModbusToolSchema, TestStatusBits)
     Dump dump;
     dump.devices.emplace_back(readDevice());
 
-    auto dumped = toJson(dump);
+    auto dumped = toCheckedJson(dump);
 
     const auto& status =
         dumped.at("Devices").at(0).at("Registers").at("Status").at(0);
@@ -193,7 +237,7 @@ TEST(ModbusToolSchema, TestFailuresAreReported)
         RegisterDump{.name = "INLET_SENSOR0_TEMP", .offset = 0x45, .size = 1});
     dump.devices.emplace_back(std::move(device));
 
-    auto dumped = toJson(dump);
+    auto dumped = toCheckedJson(dump);
 
     const auto& json = dumped.at("Devices").at(0);
     EXPECT_EQ(json.at("Result"), "Failure");
@@ -220,7 +264,7 @@ TEST(ModbusToolSchema, TestUnmatchedVariantsAreBothReported)
         });
     }
 
-    auto json = toJson(dump);
+    auto json = toCheckedJson(dump);
 
     const auto& devices = json.at("Devices");
     ASSERT_EQ(devices.size(), 2U);
@@ -364,6 +408,9 @@ class DumpFlowTest : public BaseTest
                   }));
 
         ctx.run();
+
+        // A dump read from a device has to satisfy the schema too.
+        toCheckedJson(dump);
         return dump;
     }
 
