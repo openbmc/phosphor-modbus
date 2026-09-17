@@ -106,6 +106,9 @@ busctl set-property xyz.openbmc_project.ModbusRTU \
 
 ## Output
 
+The format is described below, and as a JSON Schema in
+[schemas/dump.json](schemas/dump.json) for validating a dump.
+
 Register contents are reported raw. The tool does no scaling, sign handling or
 string assembly, so the output cannot disagree with the profile - decoding is
 left to the consumer, which needs the profile's `Format`, `Precision`,

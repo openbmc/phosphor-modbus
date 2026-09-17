@@ -1,0 +1,201 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ModbusToolDump",
+    "description": "The registers modbus-tool read from a set of devices.",
+    "type": "object",
+    "required": ["Metadata", "Devices"],
+    "additionalProperties": false,
+    "properties": {
+        "Metadata": {
+            "type": "object",
+            "required": ["SchemaVersion", "Tool", "Timestamp"],
+            "additionalProperties": false,
+            "properties": {
+                "SchemaVersion": {
+                    "description": "Version of this format, major.minor.patch.",
+                    "type": "string",
+                    "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                },
+                "Tool": {
+                    "description": "The tool which generated the dump.",
+                    "type": "string"
+                },
+                "Timestamp": {
+                    "description": "The date and time the dump was generated, ISO 8601 in UTC.",
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+                }
+            }
+        },
+        "Devices": {
+            "description": "One entry per device read. A second sourced device that matched no variant is reported once per variant, so Name is not unique.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/device"
+            }
+        }
+    },
+    "definitions": {
+        "device": {
+            "type": "object",
+            "required": [
+                "Name",
+                "Type",
+                "Address",
+                "SerialPort",
+                "Result",
+                "Registers"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "Name": {
+                    "description": "The device's entity-manager name.",
+                    "type": "string"
+                },
+                "Type": {
+                    "description": "The profile the device was read as. Empty when Reason is Not configured, since there was no configuration to read it by.",
+                    "type": "string"
+                },
+                "Address": {
+                    "description": "Modbus address, hex. 0x0 when Reason is Not configured.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-F]+$"
+                },
+                "SerialPort": {
+                    "description": "Port the device is on. Empty when Reason is Not configured.",
+                    "type": "string"
+                },
+                "Result": {
+                    "description": "How much of the device could be read.",
+                    "enum": ["Success", "Partial", "Failure"]
+                },
+                "Reason": {
+                    "description": "Why the device could not be read. Present only on Failure.",
+                    "enum": [
+                        "No response",
+                        "Probe value mismatch",
+                        "Port unavailable",
+                        "Not configured"
+                    ]
+                },
+                "Registers": {
+                    "$ref": "#/definitions/registers"
+                }
+            }
+        },
+        "registers": {
+            "description": "Grouped as the device profile groups them. A group the profile has none of is still present, as an empty array.",
+            "type": "object",
+            "required": [
+                "Inventory",
+                "Firmware",
+                "Sensor",
+                "Status",
+                "Metric",
+                "Config"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "Inventory": {
+                    "$ref": "#/definitions/registerArray"
+                },
+                "Firmware": {
+                    "$ref": "#/definitions/registerArray"
+                },
+                "Sensor": {
+                    "$ref": "#/definitions/registerArray"
+                },
+                "Status": {
+                    "$ref": "#/definitions/registerArray"
+                },
+                "Metric": {
+                    "$ref": "#/definitions/registerArray"
+                },
+                "Config": {
+                    "$ref": "#/definitions/registerArray"
+                }
+            }
+        },
+        "registerArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/register"
+            }
+        },
+        "register": {
+            "type": "object",
+            "required": ["Name", "Offset", "Size", "ReadStatus", "Raw"],
+            "additionalProperties": false,
+            "properties": {
+                "Name": {
+                    "description": "Device name, then the register name.",
+                    "type": "string"
+                },
+                "Offset": {
+                    "description": "Register offset, hex. Unique within a device.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-F]+$"
+                },
+                "Size": {
+                    "description": "Length in 16-bit registers.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "ReadStatus": {
+                    "enum": ["Success", "Failure"]
+                },
+                "Raw": {
+                    "description": "Size register values, most significant first. Empty when the read failed.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^0x[0-9A-F]{4}$"
+                    }
+                },
+                "Bits": {
+                    "description": "Status registers only. Holds the positions the profile defines, not every bit of the word.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bit"
+                    }
+                }
+            }
+        },
+        "bit": {
+            "type": "object",
+            "required": ["Name", "Position", "Type", "Asserted"],
+            "additionalProperties": false,
+            "properties": {
+                "Name": {
+                    "description": "Device name, then the bit name.",
+                    "type": "string"
+                },
+                "Position": {
+                    "description": "Bit position within the 16-bit register.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 15
+                },
+                "Type": {
+                    "description": "What the profile models the bit as.",
+                    "enum": [
+                        "ControllerFailure",
+                        "FanFailure",
+                        "FilterFailure",
+                        "PowerFault",
+                        "PumpFailure",
+                        "LeakDetectedCritical",
+                        "LeakDetectedWarning",
+                        "SensorFailure",
+                        "SensorReadingCritical",
+                        "SensorReadingWarning"
+                    ]
+                },
+                "Asserted": {
+                    "description": "Whether the bit is set in the word read.",
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}
