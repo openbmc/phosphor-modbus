@@ -59,13 +59,13 @@
             "Offset": "0x9201",
             "Bits": [
                 {
-                    "Name": "RPU_Coolant_Inlet_Temp_C",
+                    "Name": "RPU_COOLANT_INLET_TEMP_C",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 2,
                     "Value": true
                 },
                 {
-                    "Name": "RPU_Coolant_Outlet_Temp_C",
+                    "Name": "RPU_COOLANT_OUTLET_TEMP_C",
                     "Type": "SensorReadingCritical",
                     "BitPosition": 1,
                     "Value": true
@@ -76,13 +76,13 @@
             "Offset": "0x9200",
             "Bits": [
                 {
-                    "Name": "RPU_Coolant_Inlet_Temp_C",
+                    "Name": "RPU_COOLANT_INLET_TEMP_C",
                     "Type": "SensorFailure",
                     "BitPosition": 0,
                     "Value": true
                 },
                 {
-                    "Name": "RPU_Coolant_Outlet_Temp_C",
+                    "Name": "RPU_COOLANT_OUTLET_TEMP_C",
                     "Type": "SensorFailure",
                     "BitPosition": 1,
                     "Value": true
