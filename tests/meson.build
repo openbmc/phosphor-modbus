@@ -1,3 +1,14 @@
+# Checks the tool's output against its schema.
+if meson.get_compiler('cpp').has_header('valijson/validator.hpp')
+    valijson_dep = declare_dependency()
+else
+    subproject('valijson', required: false)
+    valijson_dep = declare_dependency(
+        include_directories: '../subprojects/valijson/include',
+    )
+    valijson_dep = valijson_dep.as_system('system')
+endif
+
 gtest_dep = dependency('gtest', main: true, disabler: true, required: false)
 gmock_dep = dependency('gmock', disabler: true, required: false)
 if not gtest_dep.found() or not gmock_dep.found()
@@ -232,13 +243,16 @@ test(
         base_config_src,
         inventory_utils_src,
         profile_src,
-        cpp_args: rtu_cpp_args,
+        cpp_args: rtu_cpp_args + [
+            '-DDUMP_SCHEMA="' + meson.project_source_root() / 'tools' / 'modbus-tool' / 'schemas' / 'dump.json' + '"',
+        ],
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [
             cli11_dep,
             gtest_dep,
             default_deps,
             modbus_rtu_dep,
+            valijson_dep,
         ],
         include_directories: ['.', common_include, modbus_tool_include],
     ),
