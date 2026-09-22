@@ -29,8 +29,8 @@ ReadHoldingRegistersResponse::ReadHoldingRegistersResponse(
     {
         throw std::underflow_error("Response registers are empty");
     }
-    // addr(1), func(1), bytecount(1), <2 * count regs>, crc(2)
-    len = 5 + (2 * registers.size());
+    // addr(1), func(1), bytecount(1), <registerSize * count regs>, crc(2)
+    len = 5 + (registerSize * registers.size());
 }
 
 WriteMultipleRegistersRequest::WriteMultipleRegistersRequest(
@@ -47,9 +47,9 @@ WriteMultipleRegistersRequest::WriteMultipleRegistersRequest(
 
 auto WriteMultipleRegistersRequest::encode() -> void
 {
-    // addr(1), func(1), offset(2), count(2), bytecount(1), <2 * count regs>,
-    // crc(2)
-    auto byteCount = static_cast<uint8_t>(registers.size() * 2);
+    // addr(1), func(1), offset(2), count(2), bytecount(1),
+    // <registerSize * count regs>, crc(2)
+    auto byteCount = static_cast<uint8_t>(registerSize * registers.size());
     *this << deviceAddress << commandCode << registerOffset
           << static_cast<uint16_t>(registers.size()) << byteCount << registers;
     appendCRC();
@@ -146,7 +146,7 @@ auto ReadHoldingRegistersResponse::decode() -> void
     *this >> registers >> byteCount >> responseCode >> deviceAddress;
     verifyValue("Device Address", deviceAddress, expectedDeviceAddress);
     verifyValue("Response Function Code", responseCode, expectedCommandCode);
-    verifyValue("Byte Count", byteCount, registers.size() * 2);
+    verifyValue("Byte Count", byteCount, registerSize * registers.size());
 }
 
 auto WriteMultipleRegistersResponse::decode() -> void
