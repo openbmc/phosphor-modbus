@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modbus_commands.hpp"
 #include "modbus_rtu_config.hpp"
 
 #include <sdbusplus/async.hpp>
@@ -9,8 +10,6 @@
 
 namespace phosphor::modbus::rtu
 {
-
-class Message;
 
 enum class Parity
 {
@@ -31,6 +30,14 @@ class Modbus
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               std::span<uint16_t> registers,
                               uint8_t retries = modbusRTURetries)
+        -> sdbusplus::async::task<bool>;
+
+    /** @brief Read records from a device's files, in one transaction.
+     *  @param records  Each with its data sized to the length to read, and
+     *                  filled on success.
+     *  @return Whether the read succeeded. */
+    auto readFileRecord(uint8_t deviceAddress, std::span<FileRecord> records,
+                        uint8_t retries = modbusRTURetries)
         -> sdbusplus::async::task<bool>;
 
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,

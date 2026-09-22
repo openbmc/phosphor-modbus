@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 using MessageBase = phosphor::modbus::rtu::Message;
@@ -109,6 +110,13 @@ const std::vector<uint16_t> testReadHoldingRegisterFloat32 = {
 constexpr double testReadHoldingRegisterFloat32Value = 42.5;
 
 // Device Event Testing Constants
+// Device File Record Testing Constants
+constexpr uint16_t testFileNumber = 0x1;
+constexpr uint16_t testFailureFileNumber = 0x9;
+// The file the device holds, which a read returns a window of.
+const std::vector<uint16_t> testFileRecord = {0x1111, 0x2222, 0x3333, 0x4444,
+                                              0x5555, 0x6666, 0x7777, 0x8888};
+
 constexpr uint16_t testReadHoldingRegisterEventCount = 0x1;
 constexpr uint16_t testReadHoldingRegisterEventOffset = 0x0116;
 const std::vector<uint16_t> testReadHoldingRegisterEvent = {
@@ -181,6 +189,19 @@ class ServerTester
     auto processReadHoldingRegisters(MessageIntf& request, size_t requestSize,
                                      MessageIntf& response,
                                      bool& segmentedResponse) -> void;
+
+    // A group of records to read, as a record number and a count.
+    using FileGroup = std::pair<uint16_t, uint16_t>;
+
+    auto processReadFileRecord(MessageIntf& request, size_t requestSize,
+                               MessageIntf& response) -> void;
+
+    /** @brief Read the sub requests a file read carries.
+     *  @return Whether they were all usable, an error response having been
+     *          built otherwise. */
+    auto collectFileGroups(MessageIntf& request, size_t subRequests,
+                           MessageIntf& response,
+                           std::vector<FileGroup>& groups) -> bool;
 
     auto processWriteMultipleRegisters(MessageIntf& request, size_t requestSize,
                                        MessageIntf& response) -> void;

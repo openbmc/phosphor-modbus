@@ -4,6 +4,8 @@
 
 #include <phosphor-logging/lg2.hpp>
 
+#include <stdexcept>
+
 namespace phosphor::modbus::rtu
 {
 
@@ -62,6 +64,66 @@ WriteMultipleRegistersResponse::WriteMultipleRegistersResponse(
     len = 8;
 }
 
+ReadFileRecordRequest::ReadFileRecordRequest(
+    uint8_t deviceAddress, std::span<const FileRecord> records) :
+    deviceAddress(deviceAddress), records(records)
+{
+    if (records.empty())
+    {
+        throw std::underflow_error("No records to read");
+    }
+    if (records.size() > maxFileSubRequests)
+    {
+        throw std::overflow_error("Too many sub requests for one request");
+    }
+    for (const auto& record : records)
+    {
+        if (record.data.empty())
+        {
+            throw std::underflow_error("A record has no length");
+        }
+        if (record.recordNumber > maxFileRecordNumber)
+        {
+            throw std::out_of_range("Record number past the end of a file");
+        }
+    }
+}
+
+auto ReadFileRecordRequest::encode() -> void
+{
+    // addr(1), func(1), bytecount(1), <7 * records>, crc(2)
+    auto byteCount =
+        static_cast<uint8_t>(records.size() * fileSubRequestLength);
+    *this << deviceAddress << commandCode << byteCount;
+    for (const auto& record : records)
+    {
+        *this << FileRecordReferenceType << record.fileNumber
+              << record.recordNumber
+              << static_cast<uint16_t>(record.data.size());
+    }
+    appendCRC();
+}
+
+ReadFileRecordResponse::ReadFileRecordResponse(uint8_t deviceAddress,
+                                               std::span<FileRecord> records) :
+    expectedDeviceAddress(deviceAddress), records(records)
+{
+    if (records.empty())
+    {
+        throw std::underflow_error("Response records are empty");
+    }
+    // addr(1), func(1), datalen(1), <a sub response per record>, crc(2)
+    len = 5;
+    for (const auto& record : records)
+    {
+        len += fileSubResponseHeader + (registerSize * record.data.size());
+    }
+    if (len > maxADUSize)
+    {
+        throw std::overflow_error("Records do not fit one response");
+    }
+}
+
 auto Response::decode() -> void
 {
     validate();
@@ -97,6 +159,33 @@ auto WriteMultipleRegistersResponse::decode() -> void
     verifyValue("Response Function Code", responseCode, expectedCommandCode);
     verifyValue("Register Offset", registerOffset, expectedRegisterOffset);
     verifyValue("Register Count", registerCount, expectedRegisterCount);
+}
+
+auto ReadFileRecordResponse::decode() -> void
+{
+    Response::decode();
+
+    // Records come off the end, so unwind them back to front.
+    size_t dataLengthExpected = 0;
+    for (auto record = records.rbegin(); record != records.rend(); record++)
+    {
+        uint8_t referenceType, fieldLength;
+        *this >> record->data >> referenceType >> fieldLength;
+        verifyValue("Reference Type", referenceType, FileRecordReferenceType);
+        verifyValue("Field Length", fieldLength,
+                    fileFieldLengthHeader +
+                        (registerSize * record->data.size()));
+        dataLengthExpected +=
+            fileSubResponseHeader + (registerSize * record->data.size());
+    }
+
+    uint8_t dataLength, responseCode, deviceAddress;
+    *this >> dataLength >> responseCode >> deviceAddress;
+    verifyValue("Device Address", deviceAddress, expectedDeviceAddress);
+    verifyValue("Response Function Code", responseCode, expectedCommandCode);
+    verifyValue("Data Length", dataLength, dataLengthExpected);
+    // Anything left is a field the response should not have carried.
+    verifyValue("Unread Length", len, 0);
 }
 
 } // namespace phosphor::modbus::rtu

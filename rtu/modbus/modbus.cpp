@@ -195,6 +195,52 @@ auto Modbus::readHoldingRegisters(
     co_return false;
 }
 
+auto Modbus::readFileRecord(uint8_t deviceAddress,
+                            std::span<FileRecord> records, uint8_t retries)
+    -> sdbusplus::async::task<bool>
+{
+    for (uint8_t attempt = 0; attempt <= retries; ++attempt)
+    {
+        try
+        {
+            ReadFileRecordRequest request(deviceAddress, records);
+            ReadFileRecordResponse response(deviceAddress, records);
+
+            request.encode();
+
+            debug(
+                "Sending read file record request for {COUNT} records for {DEVICE_ADDRESS}",
+                "COUNT", records.size(), "DEVICE_ADDRESS", lg2::hex,
+                deviceAddress);
+
+            if (!co_await writeRequest(deviceAddress, request))
+            {
+                continue;
+            }
+
+            if (!co_await readResponse(deviceAddress, response,
+                                       request.functionCode))
+            {
+                continue;
+            }
+
+            response.decode();
+            co_return true;
+        }
+        catch (std::exception& e)
+        {
+            if (attempt == retries)
+            {
+                error(
+                    "Failed to read file record for {DEVICE_ADDRESS} with {ERROR}",
+                    "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
+            }
+        }
+    }
+
+    co_return false;
+}
+
 auto Modbus::writeMultipleRegisters(
     uint8_t deviceAddress, uint16_t registerOffset,
     std::span<const uint16_t> registers, uint8_t retries)
