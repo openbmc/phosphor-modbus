@@ -13,7 +13,9 @@ namespace phosphor::modbus::rtu
 class Message
 {
   public:
+    // A frame is addr(1), the PDU, and crc(2).
     static constexpr auto maxADUSize = 256;
+    static constexpr size_t maxPDUSize = maxADUSize - 3;
     std::array<uint8_t, maxADUSize> raw{};
     size_t len = 0;
 

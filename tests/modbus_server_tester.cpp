@@ -11,6 +11,8 @@
 #include <sdbusplus/async.hpp>
 
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -24,6 +26,10 @@ using namespace std::literals;
 
 constexpr uint8_t readHoldingRegistersFunctionCode = 0x3;
 constexpr uint8_t readHoldingRegistersErrorFunctionCode = 0x83;
+constexpr uint8_t readFileRecordFunctionCode = 0x14;
+constexpr uint8_t readFileRecordErrorFunctionCode = 0x94;
+constexpr uint8_t fileRecordReferenceType = 0x6;
+constexpr size_t fileSubRequestLength = 7;
 constexpr uint8_t writeMultipleRegistersFunctionCode = 0x10;
 constexpr uint8_t writeMultipleRegistersErrorFunctionCode = 0x90;
 
@@ -153,6 +159,9 @@ void ServerTester::processMessage(MessageIntf& request, size_t requestSize,
             processReadHoldingRegisters(request, requestSize, response,
                                         segmentedResponse);
             break;
+        case readFileRecordFunctionCode:
+            processReadFileRecord(request, requestSize, response);
+            break;
         case writeMultipleRegistersFunctionCode:
             processWriteMultipleRegisters(request, requestSize, response);
             break;
@@ -219,6 +228,85 @@ void ServerTester::processReadHoldingRegisters(
         processSuccessfulRead(request, registerOffset, registerCount, response,
                               segmentedResponse);
     }
+}
+
+bool ServerTester::collectFileGroups(MessageIntf& request, size_t subRequests,
+                                     MessageIntf& response,
+                                     std::vector<FileGroup>& groups)
+{
+    for (size_t i = 0; i < subRequests; i++)
+    {
+        const uint8_t* sub = &request.raw[3 + (i * fileSubRequestLength)];
+        EXPECT_EQ(sub[0], fileRecordReferenceType) << "Invalid reference type";
+
+        uint16_t fileNumber = sub[1] << 8 | sub[2];
+        uint16_t recordNumber = sub[3] << 8 | sub[4];
+        uint16_t recordCount = sub[5] << 8 | sub[6];
+
+        if (fileNumber == testFailureFileNumber)
+        {
+            response << request.raw[0]
+                     << (uint8_t)readFileRecordErrorFunctionCode
+                     << uint8_t(
+                            RTUIntf::ModbusExceptionCode::illegalDataAddress);
+            response.appendCRC();
+            return false;
+        }
+
+        EXPECT_EQ(fileNumber, testFileNumber) << "Invalid file number";
+        if (recordNumber + recordCount > testFileRecord.size())
+        {
+            ADD_FAILURE() << "Read past the end of the file:" << recordNumber
+                          << "+" << recordCount;
+            return false;
+        }
+        groups.emplace_back(recordNumber, recordCount);
+    }
+
+    return true;
+}
+
+void ServerTester::processReadFileRecord(
+    MessageIntf& request, size_t requestSize, MessageIntf& response)
+{
+    // addr(1), func(1), bytecount(1), <7 * records>, crc(2)
+    constexpr size_t overhead = 5;
+
+    uint8_t byteCount = request.raw[2];
+    if (requestSize != overhead + byteCount ||
+        byteCount % fileSubRequestLength != 0)
+    {
+        FAIL() << "Invalid readFileRecord request size:" << requestSize
+               << " for byte count " << int(byteCount) << ", drop it";
+        return;
+    }
+
+    // Collect the sub requests first, so an error response is not appended to
+    // a partly built one.
+    std::vector<FileGroup> groups;
+    if (!collectFileGroups(request, byteCount / fileSubRequestLength, response,
+                           groups))
+    {
+        return;
+    }
+
+    uint8_t dataLength = 0;
+    for (const auto& [recordNumber, recordCount] : groups)
+    {
+        dataLength += 2 + (2 * recordCount);
+    }
+
+    response << request.raw[0] << request.raw[1] << dataLength;
+    for (const auto& [recordNumber, recordCount] : groups)
+    {
+        response << uint8_t(1 + (2 * recordCount))
+                 << uint8_t(fileRecordReferenceType);
+        for (size_t i = 0; i < recordCount; i++)
+        {
+            response << uint16_t(testFileRecord[recordNumber + i]);
+        }
+    }
+    response.appendCRC();
 }
 
 void ServerTester::processSuccessfulRead(
