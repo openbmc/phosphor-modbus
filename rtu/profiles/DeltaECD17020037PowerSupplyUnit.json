@@ -343,5 +343,10 @@
             "Size": 2,
             "Period": 3600
         }
-    ]
+    ],
+    "Blackbox": {
+        "Type": "FileRecord",
+        "Sections": [1, 2, 3, 4],
+        "Length": 250
+    }
 }

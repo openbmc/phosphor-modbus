@@ -181,6 +181,34 @@ struct ConfigRegister
     std::vector<uint16_t> defaultValue{};
 };
 
+enum class BlackboxType
+{
+    fileRecord,
+    mailbox,
+    unknown
+};
+
+/** @brief The blackbox records a device holds, and how to read them.
+ *
+ *  A blackbox is a set of sections, each of length registers.
+ *  - fileRecord: a section is read with function 0x14.
+ *  - mailbox: selectRegister is written with the section, statusRegister read
+ *    until it no longer holds busyValue, then dataRegister read.
+ *
+ *  The mailbox registers are unset for a fileRecord blackbox. */
+struct Blackbox
+{
+    BlackboxType type = BlackboxType::unknown;
+    // File numbers, or record indices, the blackbox is made of.
+    std::vector<uint16_t> sections{};
+    // Registers in a section.
+    uint16_t length = 0;
+    uint16_t selectRegister = 0;
+    uint16_t statusRegister = 0;
+    uint16_t busyValue = 0;
+    uint16_t dataRegister = 0;
+};
+
 enum class DeviceType
 {
     batteryBackupUnit,
@@ -236,6 +264,7 @@ struct DeviceProfile
     std::vector<MetricRegister> metricRegisters;
     std::vector<FirmwareRegister> firmwareRegisters;
     std::vector<ConfigRegister> configRegisters{};
+    std::optional<Blackbox> blackbox{};
 };
 
 /** @brief Returns the device profile for a given device type.

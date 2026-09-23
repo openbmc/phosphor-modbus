@@ -534,5 +534,14 @@
             "Offset": "0x121",
             "Default": [50]
         }
-    ]
+    ],
+    "Blackbox": {
+        "Type": "Mailbox",
+        "Sections": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "Length": 53,
+        "SelectRegister": "0x200",
+        "StatusRegister": "0x201",
+        "BusyValue": "0x5555",
+        "DataRegister": "0x210"
+    }
 }

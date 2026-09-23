@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -387,6 +388,35 @@ TEST_F(DeviceProfileTest, LoadsValveProfile)
     EXPECT_EQ(getDeviceType("Danfoss003Z8540Valve"), DeviceType::valve);
     EXPECT_EQ(getDeviceModel("Danfoss003Z8540Valve"),
               DeviceModel::Danfoss003Z8540);
+}
+
+// A PSU reads its blackbox with the file record function, so it needs no
+// registers to get at it.
+TEST_F(DeviceProfileTest, LoadsFileRecordBlackbox)
+{
+    // An absent blackbox reads as one of unknown type, which the first
+    // expectation catches.
+    auto blackbox = getDeviceProfile("DeltaECD17020037PowerSupplyUnit")
+                        .blackbox.value_or(Blackbox{});
+    EXPECT_EQ(blackbox.type, BlackboxType::fileRecord);
+    EXPECT_EQ(blackbox.sections, (std::vector<uint16_t>{1, 2, 3, 4}));
+    EXPECT_EQ(blackbox.length, 250U);
+}
+
+// A BBU loads a section into a window first, so it names the registers that
+// drive it.
+TEST_F(DeviceProfileTest, LoadsMailboxBlackbox)
+{
+    auto blackbox = getDeviceProfile("PanasonicBJA3C0002ABatteryBackupUnit")
+                        .blackbox.value_or(Blackbox{});
+    EXPECT_EQ(blackbox.type, BlackboxType::mailbox);
+    EXPECT_EQ(blackbox.sections,
+              (std::vector<uint16_t>{0, 1, 2, 3, 4, 5, 6, 7, 8}));
+    EXPECT_EQ(blackbox.length, 53U);
+    EXPECT_EQ(blackbox.selectRegister, 0x200U);
+    EXPECT_EQ(blackbox.statusRegister, 0x201U);
+    EXPECT_EQ(blackbox.busyValue, 0x5555U);
+    EXPECT_EQ(blackbox.dataRegister, 0x210U);
 }
 
 TEST_F(DeviceProfileTest, LoadsShelfProfile)
