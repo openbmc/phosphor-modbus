@@ -48,22 +48,9 @@ class InventoryServer : public InventoryServerType
                     ChassisIntf::properties_t chassisProps,
                     AssetIntf::properties_t assetProps,
                     AssocIntf::properties_t assocProps) :
-        InventoryServerType(ctx, path, chassisProps, assetProps, assocProps)
+        InventoryServerType(ctx, path, chassisProps, assetProps, assocProps,
+                            signal_action::emit_object_added)
     {}
-
-    void emit_added()
-    {
-        ChassisIntf::emit_added();
-        AssetIntf::emit_added();
-        AssocIntf::emit_added();
-    }
-
-    void emit_removed()
-    {
-        ChassisIntf::emit_removed();
-        AssetIntf::emit_removed();
-        AssocIntf::emit_removed();
-    }
 };
 
 class Device

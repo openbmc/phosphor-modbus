@@ -128,7 +128,6 @@ auto Device::startProbing() -> sdbusplus::async::task<void>
     // Clean up inventory D-Bus object if it exists
     if (inventoryServer)
     {
-        inventoryServer->emit_removed();
         inventoryServer.reset();
         if (probeCallback)
         {
@@ -168,7 +167,6 @@ auto Device::handleProbeFailed() -> sdbusplus::async::task<void>
     {
         warning("Device {NAME} removed at {ADDRESS} due to probe failure",
                 "NAME", config.name, "ADDRESS", lg2::hex, config.address);
-        inventoryServer->emit_removed();
         inventoryServer.reset();
         if (probeCallback)
         {
@@ -286,7 +284,6 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
     inventoryServer =
         std::make_unique<InventoryServer>(ctx, config.inventoryPath.str.c_str(),
                                           chassisProps, assetProps, assocProps);
-    inventoryServer->emit_added();
 
     info("Added inventory object at {PATH}", "PATH", config.inventoryPath);
 }
