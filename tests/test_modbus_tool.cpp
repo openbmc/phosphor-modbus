@@ -304,7 +304,8 @@ class DumpFlowTest : public BaseTest
         // has something to write Enabled on. It starts enabled, as the daemon
         // publishes it.
         connector = std::make_unique<ConnectorIntf>(
-            ctx, connectorPath, ConnectorIntf::properties_t{.enabled = true});
+            ctx, connectorPath, ConnectorIntf::properties_t{.enabled = true},
+            ConnectorIntf::signal_action::emit_object_added);
         BaseTest::SetUp();
     }
 

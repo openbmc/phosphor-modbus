@@ -59,7 +59,8 @@ class TestEventEntry : public EventEntryIntf
 {
   public:
     TestEventEntry(sdbusplus::async::context& ctx, const char* path) :
-        EventEntryIntf(ctx, path)
+        EventEntryIntf(ctx, path,
+                       EventEntryIntf::signal_action::emit_object_added)
     {}
 
     auto method_call(get_entry_t)
@@ -75,7 +76,9 @@ class TestEventServer : public EventServerIntf
 {
   public:
     TestEventServer(sdbusplus::async::context& ctx, const char* path) :
-        EventServerIntf(ctx, path), ctx(ctx)
+        EventServerIntf(ctx, path,
+                        EventServerIntf::signal_action::emit_object_added),
+        ctx(ctx)
     {}
 
     auto method_call(create_t, auto message, auto, auto)

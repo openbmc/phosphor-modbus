@@ -181,7 +181,8 @@ class PortTest : public BaseTest
             "/xyz/openbmc_project/inventory/system/board/Ventura_Modbus/DevTTYUSB0";
 
         auto configServer = std::make_unique<USBPortConfigServerIntf>(
-            ctx, objectPath, properties);
+            ctx, objectPath, properties,
+            USBPortConfigServerIntf::signal_action::emit_object_added);
 
         auto config = co_await PortFactoryIntf::getConfig(
             ctx, std::string(objectPath), USBPortConfigServerIntf::interface);
