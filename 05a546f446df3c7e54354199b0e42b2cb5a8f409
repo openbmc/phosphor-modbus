@@ -16,6 +16,24 @@
       "message": "Will this take care of emit_removed() as well ?",
       "revId": "05a546f446df3c7e54354199b0e42b2cb5a8f409",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17ee8cf9_d4c4c4a5",
+        "filename": "rtu/port/base_port.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2026-09-23T18:06:49Z",
+      "side": 1,
+      "message": "yes.",
+      "parentUuid": "e253efa4_61036647",
+      "revId": "05a546f446df3c7e54354199b0e42b2cb5a8f409",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
