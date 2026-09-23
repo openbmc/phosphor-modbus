@@ -14,6 +14,7 @@ namespace modbus_tool
 
 namespace ConfigIntf = phosphor::modbus::rtu::config;
 namespace PortIntf = phosphor::modbus::rtu::port;
+namespace ProfileIntf = phosphor::modbus::rtu::profile;
 
 /** @brief The entity-manager configurations found for one device name.
  *

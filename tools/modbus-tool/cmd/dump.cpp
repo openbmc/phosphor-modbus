@@ -58,13 +58,14 @@ auto failedPort(const std::vector<const DeviceVariants*>& devices,
  *  A second sourced device has a configuration per variant and only one is
  *  really present, so the others are dropped once one is identified. If none
  *  match, all of them are reported so the dump shows what was tried. */
-auto readDevice(RegisterReader& reader, const DeviceVariants& device)
+auto readDevice(RegisterReader& reader, const DeviceVariants& device,
+                bool withBlackbox)
     -> sdbusplus::async::task<std::vector<DeviceDump>>
 {
     std::vector<DeviceDump> attempts;
     for (const auto& config : device.configs)
     {
-        auto dump = co_await reader.read(config);
+        auto dump = co_await reader.read(config, withBlackbox);
         if (dump.result != Result::failure)
         {
             co_return std::vector<DeviceDump>{std::move(dump)};
@@ -80,7 +81,7 @@ auto readDevice(RegisterReader& reader, const DeviceVariants& device)
  *  reservation is taken once and released when the port is done with. */
 auto dumpPort(sdbusplus::async::context& ctx, const std::string& portName,
               const std::vector<const DeviceVariants*>& devices,
-              const PortLookup& lookupPortFn)
+              const PortLookup& lookupPortFn, bool withBlackbox)
     -> sdbusplus::async::task<std::map<std::string, std::vector<DeviceDump>>>
 {
     static constexpr auto unavailable = "Port unavailable";
@@ -107,7 +108,7 @@ auto dumpPort(sdbusplus::async::context& ctx, const std::string& portName,
     {
         for (const auto* device : devices)
         {
-            auto dumps = co_await readDevice(reader, *device);
+            auto dumps = co_await readDevice(reader, *device, withBlackbox);
             auto& into = results[device->name];
             into.insert(into.end(), std::make_move_iterator(dumps.begin()),
                         std::make_move_iterator(dumps.end()));
@@ -141,16 +142,17 @@ auto inOrder(const std::vector<DeviceVariants>& devices,
 } // namespace
 
 auto runDump(sdbusplus::async::context& ctx,
-             const std::vector<std::string>& names)
+             const std::vector<std::string>& names, bool withBlackbox)
     -> sdbusplus::async::task<Dump>
 {
     co_return co_await dumpDevices(ctx, co_await lookupDevices(ctx, names),
-                                   lookupPort);
+                                   lookupPort, withBlackbox);
 }
 
 auto dumpDevices(sdbusplus::async::context& ctx,
                  const std::vector<DeviceVariants>& devices,
-                 const PortLookup& lookupPortFn) -> sdbusplus::async::task<Dump>
+                 const PortLookup& lookupPortFn, bool withBlackbox)
+    -> sdbusplus::async::task<Dump>
 {
     std::map<std::string, std::vector<const DeviceVariants*>> byPort;
     std::map<std::string, std::vector<DeviceDump>> results;
@@ -169,7 +171,8 @@ auto dumpDevices(sdbusplus::async::context& ctx,
 
     for (const auto& [portName, onPort] : byPort)
     {
-        auto read = co_await dumpPort(ctx, portName, onPort, lookupPortFn);
+        auto read = co_await dumpPort(ctx, portName, onPort, lookupPortFn,
+                                      withBlackbox);
         for (auto& [name, dumps] : read)
         {
             auto& into = results[name];
