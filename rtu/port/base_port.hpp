@@ -149,10 +149,8 @@ using PortConnectorIntf = sdbusplus::async::server_t<
 class BasePort : public PortConnectorIntf
 {
   public:
-    explicit BasePort(sdbusplus::async::context& ctx,
-                      const config::Config& config,
-                      const std::string& devicePath);
-    ~BasePort();
+    BasePort(sdbusplus::async::context& ctx, const config::Config& config,
+             const std::string& devicePath);
 
     /** @brief Handle a client write of the Object.Enable Enabled property:
      *  reserve the port when disabled, release it when enabled.

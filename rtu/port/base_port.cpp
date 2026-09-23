@@ -37,7 +37,7 @@ constexpr PortConnectorIntf::Enable::properties_t initEnabled{.enabled = true};
 BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
                    const std::string& devicePath) :
     PortConnectorIntf(ctx, getConnectorPath(config.name), std::nullopt,
-                      initEnabled),
+                      initEnabled, signal_action::emit_object_added),
     name(config.name), mutex(config.name)
 {
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
@@ -58,16 +58,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
         throw std::runtime_error("Failed to create Modbus interface");
     }
 
-    Connector::emit_added();
-    Enable::emit_added();
-
     debug("Serial port {NAME} created successfully", "NAME", config.name);
-}
-
-BasePort::~BasePort()
-{
-    Connector::emit_removed();
-    Enable::emit_removed();
 }
 
 auto BasePort::set_property(enabled_t, bool enabled) -> bool
