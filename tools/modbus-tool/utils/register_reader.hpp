@@ -61,6 +61,24 @@ class RegisterReader
                          uint16_t length)
         -> sdbusplus::async::task<SectionDump>;
 
+    /** @brief Load one section into the device's window and read it. */
+    auto readMailboxSection(const ConfigIntf::Config& config,
+                            const ProfileIntf::Blackbox& blackbox,
+                            uint16_t section)
+        -> sdbusplus::async::task<SectionDump>;
+
+    /** @brief Wait for the status register to say the window is loaded.
+     *  @return False if it never was. */
+    auto waitForSection(const ConfigIntf::Config& config,
+                        const ProfileIntf::Blackbox& blackbox)
+        -> sdbusplus::async::task<bool>;
+
+    /** @brief Read a run of registers, in as many reads as its length needs.
+     *  @return The registers, or empty if any read failed. */
+    auto readBlock(const ConfigIntf::Config& config, uint16_t offset,
+                   uint16_t length)
+        -> sdbusplus::async::task<std::vector<uint16_t>>;
+
     /** @brief Read every group the profile declares, in turn. */
     auto readGroups(const ConfigIntf::Config& config, RegisterSet& registers)
         -> sdbusplus::async::task<void>;
@@ -70,6 +88,7 @@ class RegisterReader
                    const std::vector<RegisterDump>& entries)
         -> sdbusplus::async::task<std::vector<RegisterDump>>;
 
+    sdbusplus::async::context& ctx;
     const PortIntf::config::PortFactoryConfig& portConfig;
     int fd = -1;
     std::unique_ptr<phosphor::modbus::rtu::Modbus> modbus;

@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <concepts>
 #include <functional>
 #include <string>
@@ -135,6 +136,11 @@ auto applyBits(RegisterDump& dump) -> void
     }
 }
 
+// A section is not loaded the instant it is asked for, so give it a moment,
+// the way the reference implementation does.
+constexpr int sectionReadyRetries = 3;
+constexpr auto sectionReadyInterval = std::chrono::seconds(1);
+
 /** @brief Success only when everything the profile declares was read.
  *
  *  A blackbox that was not asked for is empty, and so reads as complete. */
@@ -165,7 +171,7 @@ auto resultFor(const RegisterSet& registers,
 RegisterReader::RegisterReader(
     sdbusplus::async::context& ctx,
     const PortIntf::config::PortFactoryConfig& portConfig,
-    const std::string& devicePath) : portConfig(portConfig)
+    const std::string& devicePath) : ctx(ctx), portConfig(portConfig)
 {
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
     if (fd < 0)
@@ -286,13 +292,99 @@ auto RegisterReader::readFileSection(const ConfigIntf::Config& config,
     co_return dump;
 }
 
+auto RegisterReader::readBlock(const ConfigIntf::Config& config,
+                               uint16_t offset, uint16_t length)
+    -> sdbusplus::async::task<std::vector<uint16_t>>
+{
+    std::vector<uint16_t> block;
+    block.reserve(length);
+
+    for (uint16_t read = 0; read < length;)
+    {
+        auto count = static_cast<uint16_t>(
+            std::min<size_t>(length - read, ModbusIntf::maxRegisterSpanLength));
+        std::vector<uint16_t> part(count);
+
+        if (!co_await modbus->readHoldingRegisters(
+                config.address, static_cast<uint16_t>(offset + read), part))
+        {
+            co_return std::vector<uint16_t>{};
+        }
+
+        block.insert(block.end(), part.begin(), part.end());
+        read = static_cast<uint16_t>(read + count);
+    }
+
+    co_return block;
+}
+
+auto RegisterReader::waitForSection(const ConfigIntf::Config& config,
+                                    const ProfileIntf::Blackbox& blackbox)
+    -> sdbusplus::async::task<bool>
+{
+    for (int attempt = 0; attempt < sectionReadyRetries; attempt++)
+    {
+        // Ask first, and only wait if the section is not loaded yet.
+        if (attempt != 0)
+        {
+            co_await sdbusplus::async::sleep_for(ctx, sectionReadyInterval);
+        }
+
+        // Ready once the status reads, and no longer holds the busy value.
+        std::array<uint16_t, 1> status{};
+        if (co_await modbus->readHoldingRegisters(
+                config.address, blackbox.statusRegister, status) &&
+            status[0] != blackbox.busyValue)
+        {
+            co_return true;
+        }
+    }
+
+    co_return false;
+}
+
+auto RegisterReader::readMailboxSection(const ConfigIntf::Config& config,
+                                        const ProfileIntf::Blackbox& blackbox,
+                                        uint16_t section)
+    -> sdbusplus::async::task<SectionDump>
+{
+    SectionDump dump{.section = section};
+
+    if (!co_await modbus->writeSingleRegister(config.address,
+                                              blackbox.selectRegister, section))
+    {
+        co_return dump;
+    }
+
+    if (!co_await waitForSection(config, blackbox))
+    {
+        co_return dump;
+    }
+
+    // Which section is loaded is device state, so confirm it is still the one
+    // asked for before reading the window.
+    std::array<uint16_t, 1> selected{};
+    if (!co_await modbus->readHoldingRegisters(
+            config.address, blackbox.selectRegister, selected) ||
+        selected[0] != section)
+    {
+        co_return dump;
+    }
+
+    dump.raw =
+        co_await readBlock(config, blackbox.dataRegister, blackbox.length);
+    dump.read = !dump.raw.empty();
+    co_return dump;
+}
+
 auto RegisterReader::readBlackbox(const ConfigIntf::Config& config,
                                   const ProfileIntf::Blackbox& blackbox)
     -> sdbusplus::async::task<std::vector<SectionDump>>
 {
     std::vector<SectionDump> sections;
 
-    if (blackbox.type != ProfileIntf::BlackboxType::fileRecord)
+    if (blackbox.type != ProfileIntf::BlackboxType::fileRecord &&
+        blackbox.type != ProfileIntf::BlackboxType::mailbox)
     {
         error("Unsupported blackbox type for {NAME}", "NAME", config.name);
         co_return sections;
@@ -300,8 +392,16 @@ auto RegisterReader::readBlackbox(const ConfigIntf::Config& config,
 
     for (auto section : blackbox.sections)
     {
-        sections.emplace_back(
-            co_await readFileSection(config, section, blackbox.length));
+        if (blackbox.type == ProfileIntf::BlackboxType::fileRecord)
+        {
+            sections.emplace_back(
+                co_await readFileSection(config, section, blackbox.length));
+        }
+        else
+        {
+            sections.emplace_back(
+                co_await readMailboxSection(config, blackbox, section));
+        }
     }
 
     co_return sections;

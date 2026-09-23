@@ -346,6 +346,22 @@ class DumpFlowTest : public BaseTest
         return profile;
     }
 
+    /** @brief A profile whose blackbox is loaded a section at a time. */
+    static auto mailboxProfile(uint16_t section) -> ProfileIntf::DeviceProfile
+    {
+        auto profile = testProfile(probeValue);
+        profile.blackbox = ProfileIntf::Blackbox{
+            .type = ProfileIntf::BlackboxType::mailbox,
+            .sections = {section},
+            .length = TestIntf::testMailboxLength,
+            .selectRegister = TestIntf::testMailboxSelectRegister,
+            .statusRegister = TestIntf::testMailboxStatusRegister,
+            .busyValue = TestIntf::testMailboxBusyValue,
+            .dataRegister = TestIntf::testMailboxDataRegister,
+        };
+        return profile;
+    }
+
     static auto testConfig(const ProfileIntf::DeviceProfile& profile)
         -> ConfigIntf::Config
     {
@@ -509,6 +525,46 @@ TEST_F(DumpFlowTest, TestUnreadableBlackboxSectionIsReported)
     ASSERT_EQ(dump.devices.size(), 1U);
     // A section that could not be read leaves the device partly read, the
     // same as a register would.
+    EXPECT_EQ(dump.devices.front().result, Result::partial);
+
+    const auto& blackbox = dump.devices.front().blackbox;
+    ASSERT_EQ(blackbox.size(), 1U);
+    EXPECT_FALSE(blackbox.front().read);
+    EXPECT_TRUE(blackbox.front().raw.empty());
+}
+
+// A mailbox blackbox is loaded a section at a time, then read from the
+// device's window.
+TEST_F(DumpFlowTest, TestMailboxBlackboxIsRead)
+{
+    auto profile = mailboxProfile(TestIntf::testMailboxSection);
+    std::vector<modbus_tool::DeviceVariants> devices;
+    devices.emplace_back(testDevice(profile));
+
+    auto dump = run(devices, portLookup(), true);
+
+    ASSERT_EQ(dump.devices.size(), 1U);
+    EXPECT_EQ(dump.devices.front().result, Result::success);
+
+    const auto& blackbox = dump.devices.front().blackbox;
+    ASSERT_EQ(blackbox.size(), 1U);
+    EXPECT_EQ(blackbox.front().section, TestIntf::testMailboxSection);
+    EXPECT_TRUE(blackbox.front().read);
+    EXPECT_EQ(blackbox.front().raw,
+              TestIntf::testMailboxData(TestIntf::testMailboxSection));
+}
+
+// A section the device never finishes loading is reported unread rather than
+// read from a window that does not hold it.
+TEST_F(DumpFlowTest, TestMailboxSectionThatNeverLoads)
+{
+    auto profile = mailboxProfile(TestIntf::testMailboxBusySection);
+    std::vector<modbus_tool::DeviceVariants> devices;
+    devices.emplace_back(testDevice(profile));
+
+    auto dump = run(devices, portLookup(), true);
+
+    ASSERT_EQ(dump.devices.size(), 1U);
     EXPECT_EQ(dump.devices.front().result, Result::partial);
 
     const auto& blackbox = dump.devices.front().blackbox;
