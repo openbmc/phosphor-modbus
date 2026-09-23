@@ -38,7 +38,7 @@ class RegisterReader
      *  The probe register is read first, so a device that is absent costs one
      *  read rather than a timeout on every span. Its result is reused for the
      *  inventory register at the same offset. */
-    auto read(const ConfigIntf::Config& config)
+    auto read(const ConfigIntf::Config& config, bool withBlackbox = false)
         -> sdbusplus::async::task<DeviceDump>;
 
   private:
@@ -46,6 +46,20 @@ class RegisterReader
      *  @return The words read, or empty if the device did not answer. */
     auto readProbe(const ConfigIntf::Config& config, bool& matched)
         -> sdbusplus::async::task<std::vector<uint16_t>>;
+
+    /** @brief Read every section of the device's blackbox.
+     *
+     *  A section that cannot be read is reported unread rather than
+     *  abandoning the rest, since a blackbox is worth having in part. */
+    auto readBlackbox(const ConfigIntf::Config& config,
+                      const ProfileIntf::Blackbox& blackbox)
+        -> sdbusplus::async::task<std::vector<SectionDump>>;
+
+    /** @brief Read one section with the file record function, in as many
+     *  reads as its length needs. */
+    auto readFileSection(const ConfigIntf::Config& config, uint16_t section,
+                         uint16_t length)
+        -> sdbusplus::async::task<SectionDump>;
 
     /** @brief Read every group the profile declares, in turn. */
     auto readGroups(const ConfigIntf::Config& config, RegisterSet& registers)

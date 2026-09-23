@@ -121,7 +121,7 @@ TEST(ModbusToolSchema, TestMetadata)
     auto json = toCheckedJson(Dump{});
 
     const auto& metadata = json.at("Metadata");
-    EXPECT_EQ(metadata.at("SchemaVersion"), "1.0.0");
+    EXPECT_EQ(metadata.at("SchemaVersion"), "1.1.0");
     EXPECT_EQ(metadata.at("Tool"), "modbus-tool");
     EXPECT_TRUE(metadata.contains("Timestamp"));
     EXPECT_TRUE(json.at("Devices").empty());
@@ -334,6 +334,18 @@ class DumpFlowTest : public BaseTest
         };
     }
 
+    /** @brief A profile with a blackbox of the one named section. */
+    static auto blackboxProfile(uint16_t section) -> ProfileIntf::DeviceProfile
+    {
+        auto profile = testProfile(probeValue);
+        profile.blackbox = ProfileIntf::Blackbox{
+            .type = ProfileIntf::BlackboxType::fileRecord,
+            .sections = {section},
+            .length = static_cast<uint16_t>(TestIntf::testFileRecord.size()),
+        };
+        return profile;
+    }
+
     static auto testConfig(const ProfileIntf::DeviceProfile& profile)
         -> ConfigIntf::Config
     {
@@ -398,10 +410,11 @@ class DumpFlowTest : public BaseTest
     }
 
     auto run(const std::vector<modbus_tool::DeviceVariants>& devices,
-             const modbus_tool::PortLookup& lookup) -> Dump
+             const modbus_tool::PortLookup& lookup, bool withBlackbox = false)
+        -> Dump
     {
         Dump dump;
-        ctx.spawn(modbus_tool::dumpDevices(ctx, devices, lookup) |
+        ctx.spawn(modbus_tool::dumpDevices(ctx, devices, lookup, withBlackbox) |
                   sdbusplus::async::execution::then([&](Dump dumped) {
                       dump = std::move(dumped);
                       ctx.request_stop();
@@ -449,6 +462,59 @@ TEST_F(DumpFlowTest, TestDeviceIsRead)
 
     // The port is handed back once the dump is done.
     EXPECT_TRUE(portEnabled());
+}
+
+// A blackbox is read only when asked for.
+TEST_F(DumpFlowTest, TestBlackboxIsNotReadByDefault)
+{
+    auto profile = blackboxProfile(TestIntf::testFileNumber);
+    std::vector<modbus_tool::DeviceVariants> devices;
+    devices.emplace_back(testDevice(profile));
+
+    auto dump = run(devices, portLookup());
+
+    ASSERT_EQ(dump.devices.size(), 1U);
+    EXPECT_EQ(dump.devices.front().result, Result::success);
+    EXPECT_TRUE(dump.devices.front().blackbox.empty());
+}
+
+// Asked for, every section the profile names is read.
+TEST_F(DumpFlowTest, TestBlackboxIsRead)
+{
+    auto profile = blackboxProfile(TestIntf::testFileNumber);
+    std::vector<modbus_tool::DeviceVariants> devices;
+    devices.emplace_back(testDevice(profile));
+
+    auto dump = run(devices, portLookup(), true);
+
+    ASSERT_EQ(dump.devices.size(), 1U);
+    EXPECT_EQ(dump.devices.front().result, Result::success);
+
+    const auto& blackbox = dump.devices.front().blackbox;
+    ASSERT_EQ(blackbox.size(), 1U);
+    EXPECT_EQ(blackbox.front().section, TestIntf::testFileNumber);
+    EXPECT_TRUE(blackbox.front().read);
+    EXPECT_EQ(blackbox.front().raw, TestIntf::testFileRecord);
+}
+
+// A section the device will not give up is reported unread.
+TEST_F(DumpFlowTest, TestUnreadableBlackboxSectionIsReported)
+{
+    auto profile = blackboxProfile(TestIntf::testFailureFileNumber);
+    std::vector<modbus_tool::DeviceVariants> devices;
+    devices.emplace_back(testDevice(profile));
+
+    auto dump = run(devices, portLookup(), true);
+
+    ASSERT_EQ(dump.devices.size(), 1U);
+    // A section that could not be read leaves the device partly read, the
+    // same as a register would.
+    EXPECT_EQ(dump.devices.front().result, Result::partial);
+
+    const auto& blackbox = dump.devices.front().blackbox;
+    ASSERT_EQ(blackbox.size(), 1U);
+    EXPECT_FALSE(blackbox.front().read);
+    EXPECT_TRUE(blackbox.front().raw.empty());
 }
 
 // A device that answers, but not with what the profile expects, is not the

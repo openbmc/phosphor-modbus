@@ -18,7 +18,7 @@ namespace modbus_tool
  *  read is reported as a failure rather than abandoning the run, so the result
  *  is empty only when nothing could be attempted at all. */
 auto runDump(sdbusplus::async::context& ctx,
-             const std::vector<std::string>& names)
+             const std::vector<std::string>& names, bool withBlackbox)
     -> sdbusplus::async::task<Dump>;
 
 /** @brief How a port name is turned into something readable. */
@@ -30,7 +30,7 @@ using PortLookup = std::function<sdbusplus::async::task<PortDetails>(
  *  own inputs. */
 auto dumpDevices(sdbusplus::async::context& ctx,
                  const std::vector<DeviceVariants>& devices,
-                 const PortLookup& lookupPortFn)
+                 const PortLookup& lookupPortFn, bool withBlackbox = false)
     -> sdbusplus::async::task<Dump>;
 
 } // namespace modbus_tool

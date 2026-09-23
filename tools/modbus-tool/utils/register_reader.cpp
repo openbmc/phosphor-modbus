@@ -11,6 +11,7 @@
 #include <phosphor-logging/lg2.hpp>
 
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <functional>
 #include <string>
@@ -134,8 +135,11 @@ auto applyBits(RegisterDump& dump) -> void
     }
 }
 
-/** @brief Success only when every register the profile declares was read. */
-auto resultFor(const RegisterSet& registers) -> Result
+/** @brief Success only when everything the profile declares was read.
+ *
+ *  A blackbox that was not asked for is empty, and so reads as complete. */
+auto resultFor(const RegisterSet& registers,
+               const std::vector<SectionDump>& blackbox) -> Result
 {
     const auto groups = {
         std::cref(registers.inventory), std::cref(registers.firmware),
@@ -147,8 +151,13 @@ auto resultFor(const RegisterSet& registers) -> Result
             return reg.read;
         });
     };
-    return std::ranges::all_of(groups, allRead) ? Result::success
-                                                : Result::partial;
+    auto sectionsRead = std::ranges::all_of(blackbox, [](const auto& section) {
+        return section.read;
+    });
+
+    return std::ranges::all_of(groups, allRead) && sectionsRead
+               ? Result::success
+               : Result::partial;
 }
 
 } // namespace
@@ -247,7 +256,58 @@ auto RegisterReader::readGroup(const ConfigIntf::Config& config,
     co_return group;
 }
 
-auto RegisterReader::read(const ConfigIntf::Config& config)
+auto RegisterReader::readFileSection(const ConfigIntf::Config& config,
+                                     uint16_t section, uint16_t length)
+    -> sdbusplus::async::task<SectionDump>
+{
+    SectionDump dump{.section = section};
+    dump.raw.reserve(length);
+
+    // A section is longer than one response holds, so walk it a response at
+    // a time.
+    for (uint16_t record = 0; record < length;)
+    {
+        auto count = static_cast<uint16_t>(
+            std::min<size_t>(length - record, ModbusIntf::maxFileRecordLength));
+        std::vector<uint16_t> data(count);
+        std::array<ModbusIntf::FileRecord, 1> records{
+            {{section, record, data}}};
+
+        if (!co_await modbus->readFileRecord(config.address, records))
+        {
+            co_return dump;
+        }
+
+        dump.raw.insert(dump.raw.end(), data.begin(), data.end());
+        record = static_cast<uint16_t>(record + count);
+    }
+
+    dump.read = true;
+    co_return dump;
+}
+
+auto RegisterReader::readBlackbox(const ConfigIntf::Config& config,
+                                  const ProfileIntf::Blackbox& blackbox)
+    -> sdbusplus::async::task<std::vector<SectionDump>>
+{
+    std::vector<SectionDump> sections;
+
+    if (blackbox.type != ProfileIntf::BlackboxType::fileRecord)
+    {
+        error("Unsupported blackbox type for {NAME}", "NAME", config.name);
+        co_return sections;
+    }
+
+    for (auto section : blackbox.sections)
+    {
+        sections.emplace_back(
+            co_await readFileSection(config, section, blackbox.length));
+    }
+
+    co_return sections;
+}
+
+auto RegisterReader::read(const ConfigIntf::Config& config, bool withBlackbox)
     -> sdbusplus::async::task<DeviceDump>
 {
     DeviceDump dump{
@@ -287,7 +347,13 @@ auto RegisterReader::read(const ConfigIntf::Config& config)
     }
 
     co_await readGroups(config, dump.registers);
-    dump.result = resultFor(dump.registers);
+
+    if (withBlackbox && config.profile.blackbox)
+    {
+        dump.blackbox = co_await readBlackbox(config, *config.profile.blackbox);
+    }
+
+    dump.result = resultFor(dump.registers, dump.blackbox);
     co_return dump;
 }
 
