@@ -294,6 +294,67 @@
                     "properties": { "Default": false }
                 }
             }
+        },
+        "Blackbox": {
+            "description": "The blackbox records a device holds, and how to read them.",
+            "type": "object",
+            "required": ["Type", "Sections", "Length"],
+            "additionalProperties": false,
+            "properties": {
+                "Type": {
+                    "description": "How a section is read.",
+                    "type": "string",
+                    "enum": ["FileRecord", "Mailbox"]
+                },
+                "Sections": {
+                    "description": "The file numbers, or record indices, the blackbox is made of.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "integer", "minimum": 0 }
+                },
+                "Length": {
+                    "description": "Registers in a section.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "SelectRegister": {
+                    "description": "Mailbox only. Written with the section to load.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-Fa-f]+$"
+                },
+                "StatusRegister": {
+                    "description": "Mailbox only. Reads BusyValue until the section is loaded.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-Fa-f]+$"
+                },
+                "BusyValue": {
+                    "description": "Mailbox only. What StatusRegister reads while a section is loading.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-Fa-f]+$"
+                },
+                "DataRegister": {
+                    "description": "Mailbox only. Where a loaded section is read from.",
+                    "type": "string",
+                    "pattern": "^0x[0-9A-Fa-f]+$"
+                }
+            },
+            "if": { "properties": { "Type": { "const": "Mailbox" } } },
+            "then": {
+                "required": [
+                    "SelectRegister",
+                    "StatusRegister",
+                    "BusyValue",
+                    "DataRegister"
+                ]
+            },
+            "else": {
+                "properties": {
+                    "SelectRegister": false,
+                    "StatusRegister": false,
+                    "BusyValue": false,
+                    "DataRegister": false
+                }
+            }
         }
     }
 }
