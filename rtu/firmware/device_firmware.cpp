@@ -53,10 +53,7 @@ DeviceFirmware::DeviceFirmware(sdbusplus::async::context& ctx,
         auto objectPath = getObjectPath(this->config, firmwareRegister);
         auto firmware = std::make_unique<FirmwareIntf>(
             ctx, objectPath.str.c_str(), initVersion, initActivation,
-            initAssociations);
-        firmware->Version::emit_added();
-        firmware->Activation::emit_added();
-        firmware->Definitions::emit_added();
+            initAssociations, FirmwareIntf::signal_action::emit_object_added);
 
         firmwareVersions.push_back(
             {firmwareRegister, std::move(objectPath), std::move(firmware)});
@@ -76,16 +73,6 @@ auto DeviceFirmware::getObjectPaths() const
         paths.push_back(fwVersion.objectPath);
     }
     return paths;
-}
-
-DeviceFirmware::~DeviceFirmware()
-{
-    for (const auto& fwVersion : firmwareVersions)
-    {
-        fwVersion.firmwareVersion->Version::emit_removed();
-        fwVersion.firmwareVersion->Activation::emit_removed();
-        fwVersion.firmwareVersion->Definitions::emit_removed();
-    }
 }
 
 static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,

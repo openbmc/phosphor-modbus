@@ -29,10 +29,8 @@ class DeviceFirmware
   public:
     DeviceFirmware() = delete;
 
-    explicit DeviceFirmware(sdbusplus::async::context& ctx,
-                            const ConfigIntf::Config& config,
-                            PortIntf& serialPort);
-    ~DeviceFirmware();
+    DeviceFirmware(sdbusplus::async::context& ctx,
+                   const ConfigIntf::Config& config, PortIntf& serialPort);
 
     auto readVersionRegisters() -> sdbusplus::async::task<void>;
 
