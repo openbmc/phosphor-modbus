@@ -47,6 +47,14 @@ struct RegisterSet
     std::vector<RegisterDump> config{};
 };
 
+/** @brief One section of a device's blackbox. */
+struct SectionDump
+{
+    uint16_t section = 0;
+    bool read = false;
+    std::vector<uint16_t> raw{};
+};
+
 struct DeviceDump
 {
     std::string name{};
@@ -57,6 +65,8 @@ struct DeviceDump
     // Only set when result is failure.
     std::string reason{};
     RegisterSet registers{};
+    // Only read when asked for.
+    std::vector<SectionDump> blackbox{};
 };
 
 struct Dump

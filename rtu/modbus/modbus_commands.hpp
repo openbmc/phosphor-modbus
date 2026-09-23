@@ -82,6 +82,10 @@ static constexpr size_t maxFileSubRequests =
 // A sub response is fieldlen(1), reftype(1), then the record's registers.
 static constexpr size_t fileSubResponseHeader = 2;
 
+// One sub response shares the PDU with the response's func(1) and datalen(1).
+static constexpr size_t maxFileRecordLength =
+    (Message::maxPDUSize - 2 - fileSubResponseHeader) / registerSize;
+
 // The field length covers the reftype and the registers, not itself.
 static constexpr size_t fileFieldLengthHeader = fileSubResponseHeader - 1;
 

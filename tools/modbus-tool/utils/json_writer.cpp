@@ -11,7 +11,7 @@ namespace modbus_tool
 namespace
 {
 
-constexpr auto schemaVersion = "1.0.0";
+constexpr auto schemaVersion = "1.1.0";
 constexpr auto toolName = "modbus-tool";
 
 auto resultName(Result result) -> std::string_view
@@ -77,6 +77,27 @@ auto toJson(const std::vector<RegisterDump>& registers)
     return out;
 }
 
+auto toJson(const std::vector<SectionDump>& sections) -> nlohmann::ordered_json
+{
+    auto out = nlohmann::ordered_json::array();
+    for (const auto& section : sections)
+    {
+        nlohmann::ordered_json entry;
+        entry["Section"] = section.section;
+        entry["ReadStatus"] = section.read ? "Success" : "Failure";
+
+        auto raw = nlohmann::ordered_json::array();
+        for (auto word : section.raw)
+        {
+            raw.emplace_back(std::format("0x{:04X}", word));
+        }
+        entry["Raw"] = std::move(raw);
+
+        out.emplace_back(std::move(entry));
+    }
+    return out;
+}
+
 auto toJson(const DeviceDump& device) -> nlohmann::ordered_json
 {
     nlohmann::ordered_json out;
@@ -98,6 +119,13 @@ auto toJson(const DeviceDump& device) -> nlohmann::ordered_json
         {"Metric", toJson(device.registers.metric)},
         {"Config", toJson(device.registers.config)},
     };
+
+    // A blackbox is only read when asked for, so say nothing about it
+    // otherwise rather than reporting an empty one.
+    if (!device.blackbox.empty())
+    {
+        out["Blackbox"] = toJson(device.blackbox);
+    }
 
     return out;
 }

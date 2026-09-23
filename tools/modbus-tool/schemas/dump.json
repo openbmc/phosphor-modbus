@@ -80,6 +80,30 @@
                 },
                 "Registers": {
                     "$ref": "#/definitions/registers"
+                },
+                "Blackbox": {
+                    "description": "The device's blackbox. Present only when it was asked for.",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/section" }
+                }
+            }
+        },
+        "section": {
+            "description": "One section of a blackbox, as the profile names it.",
+            "type": "object",
+            "required": ["Section", "ReadStatus", "Raw"],
+            "additionalProperties": false,
+            "properties": {
+                "Section": {
+                    "description": "The file number, or record index, read.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ReadStatus": { "enum": ["Success", "Failure"] },
+                "Raw": {
+                    "description": "The section's registers, most significant byte first. Empty, or short, when the read failed.",
+                    "type": "array",
+                    "items": { "type": "string", "pattern": "^0x[0-9A-F]{4}$" }
                 }
             }
         },

@@ -20,6 +20,7 @@ modbus-tool dump --all --output dump.json
 | ----------------------- | ---------------------------------------- |
 | `-d`, `--devices NAMES` | Comma separated list of devices to dump. |
 | `-a`, `--all`           | Every device in the allowlist.           |
+| `-b`, `--blackbox`      | Also read the blackbox.                  |
 | `-o`, `--output FILE`   | Write the JSON here instead of stdout.   |
 | `-y`, `--yes`           | Do not ask before pausing monitoring.    |
 
@@ -119,7 +120,7 @@ test rather than an interpretation.
 ```json
 {
   "Metadata": {
-    "SchemaVersion": "1.0.0",
+    "SchemaVersion": "1.1.0",
     "Tool": "modbus-tool",
     "Timestamp": "2026-08-31T17:42:11Z"
   },
@@ -273,6 +274,20 @@ profile defines, each with its `Name`, `Position`, `Type` and whether it is
 `Asserted`. Bit names carry the device the same way. Positions the profile does
 not model are absent, so compare against `Raw` to find bits the profile is
 missing.
+
+### Blackbox
+
+A device that records a blackbox reports it under `Blackbox`, one entry per
+section, but only when `--blackbox` asked for it.
+
+| Field        | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| `Section`    | The file number, or record index, read.               |
+| `ReadStatus` | `Success` or `Failure`.                               |
+| `Raw`        | The section's registers, most significant byte first. |
+
+A section that failed part way through keeps what it read, so `Raw` may be
+shorter than the profile's length even though `ReadStatus` is `Failure`.
 
 ### Versioning
 

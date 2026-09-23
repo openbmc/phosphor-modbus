@@ -87,6 +87,7 @@ struct Options
     std::vector<std::string> devices{};
     std::string output{};
     bool all = false;
+    bool blackbox = false;
     bool assumeYes = false;
 };
 
@@ -100,6 +101,7 @@ auto addDumpCommand(CLI::App& app, Options& options) -> void
     dump->add_flag("-a,--all", options.all,
                    "Dump every device the platform allows")
         ->excludes(named);
+    dump->add_flag("-b,--blackbox", options.blackbox, "Also read the blackbox");
     dump->add_option("-o,--output", options.output,
                      "Write the JSON here instead of stdout");
     dump->add_flag("-y,--yes", options.assumeYes,
@@ -108,7 +110,7 @@ auto addDumpCommand(CLI::App& app, Options& options) -> void
 
 /** @brief Produce the dump, resolving --all to a device list first.
  *  @return The dump, or why there was nothing to attempt. */
-auto takeDump(std::vector<std::string> devices, bool all)
+auto takeDump(std::vector<std::string> devices, bool all, bool withBlackbox)
     -> std::expected<Dump, std::string>
 {
     sdbusplus::async::context ctx;
@@ -124,7 +126,7 @@ auto takeDump(std::vector<std::string> devices, bool all)
     }
 
     Dump result;
-    ctx.spawn(modbus_tool::runDump(ctx, devices) |
+    ctx.spawn(modbus_tool::runDump(ctx, devices, withBlackbox) |
               sdbusplus::async::execution::then([&](Dump dumped) {
                   result = std::move(dumped);
                   ctx.request_stop();
@@ -166,7 +168,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto result = takeDump(std::move(options.devices), options.all);
+    auto result =
+        takeDump(std::move(options.devices), options.all, options.blackbox);
     if (!result)
     {
         std::cerr << result.error() << "\n";
