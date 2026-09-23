@@ -114,6 +114,25 @@ const std::vector<uint16_t> testReadHoldingRegisterFloat32 = {
 constexpr double testReadHoldingRegisterFloat32Value = 42.5;
 
 // Device Event Testing Constants
+// Mailbox Blackbox Testing Constants
+constexpr uint16_t testMailboxSelectRegister = 0x0600;
+constexpr uint16_t testMailboxStatusRegister = 0x0601;
+constexpr uint16_t testMailboxDataRegister = 0x0610;
+constexpr uint16_t testMailboxBusyValue = 0x5555;
+constexpr uint16_t testMailboxLength = 0x4;
+constexpr uint16_t testMailboxSection = 0x1;
+// A section the device never finishes loading.
+constexpr uint16_t testMailboxBusySection = 0x9;
+
+/** @brief What the window holds once a section is loaded. */
+inline auto testMailboxData(uint16_t section) -> std::vector<uint16_t>
+{
+    return {static_cast<uint16_t>(0xA000 + section),
+            static_cast<uint16_t>(0xB000 + section),
+            static_cast<uint16_t>(0xC000 + section),
+            static_cast<uint16_t>(0xD000 + section)};
+}
+
 // Device File Record Testing Constants
 constexpr uint16_t testFileNumber = 0x1;
 constexpr uint16_t testFailureFileNumber = 0x9;
@@ -210,6 +229,10 @@ class ServerTester
     auto processWriteSingleRegister(MessageIntf& request, size_t requestSize,
                                     MessageIntf& response) -> void;
 
+    /** @brief Answer the registers a mailbox blackbox is driven through. */
+    auto processMailboxRead(MessageIntf& request, uint16_t registerOffset,
+                            MessageIntf& response) -> void;
+
     auto processWriteMultipleRegisters(MessageIntf& request, size_t requestSize,
                                        MessageIntf& response) -> void;
 
@@ -225,6 +248,9 @@ class ServerTester
                                bool& segmentedResponse) -> void;
 
     int fd;
+    // The section a mailbox blackbox has been asked to load.
+    uint16_t mailboxSection = 0;
+
     // eventfd used to interrupt select() in processRequests() on teardown.
     int stopFd = -1;
     uint32_t flakyRegisterRequestCount = 0;
