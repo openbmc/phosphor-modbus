@@ -224,6 +224,12 @@ void ServerTester::processReadHoldingRegisters(
         buildErrorResponse(request, response,
                            RTUIntf::ModbusExceptionCode::illegalDataAddress);
     }
+    else if (registerOffset == testMailboxSelectRegister ||
+             registerOffset == testMailboxStatusRegister ||
+             registerOffset == testMailboxDataRegister)
+    {
+        processMailboxRead(request, registerOffset, response);
+    }
     else if (registerOffset == testFlakyReadHoldingRegisterOffset)
     {
         processFlakyRegister(request, registerCount, response);
@@ -367,13 +373,49 @@ void ServerTester::processWriteSingleRegister(
         return;
     }
 
-    EXPECT_EQ(registerOffset, testSuccessWriteSingleRegisterOffset)
-        << "Invalid register offset";
-    EXPECT_EQ(value, testWriteSingleRegisterValue) << "Invalid value";
+    if (registerOffset == testMailboxSelectRegister)
+    {
+        mailboxSection = value;
+    }
+    else
+    {
+        EXPECT_EQ(registerOffset, testSuccessWriteSingleRegisterOffset)
+            << "Invalid register offset";
+        EXPECT_EQ(value, testWriteSingleRegisterValue) << "Invalid value";
+    }
 
     // The device echoes the request back.
     response << request.raw[0] << request.raw[1] << request.raw[2]
              << request.raw[3] << request.raw[4] << request.raw[5];
+    response.appendCRC();
+}
+
+void ServerTester::processMailboxRead(
+    MessageIntf& request, uint16_t registerOffset, MessageIntf& response)
+{
+    std::vector<uint16_t> values;
+
+    if (registerOffset == testMailboxSelectRegister)
+    {
+        values = {mailboxSection};
+    }
+    else if (registerOffset == testMailboxStatusRegister)
+    {
+        // One section is left loading, so a read of it never comes ready.
+        values = {mailboxSection == testMailboxBusySection
+                      ? testMailboxBusyValue
+                      : uint16_t(0)};
+    }
+    else
+    {
+        values = testMailboxData(mailboxSection);
+    }
+
+    response << request.raw[0] << request.raw[1] << uint8_t(2 * values.size());
+    for (auto value : values)
+    {
+        response << value;
+    }
     response.appendCRC();
 }
 
