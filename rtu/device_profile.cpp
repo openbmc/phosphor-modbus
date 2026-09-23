@@ -107,6 +107,11 @@ static const std::unordered_map<std::string, ConfigType> configTypeMap = {
     {"Init", ConfigType::init},
 };
 
+static const std::unordered_map<std::string, BlackboxType> blackboxTypeMap = {
+    {"FileRecord", BlackboxType::fileRecord},
+    {"Mailbox", BlackboxType::mailbox},
+};
+
 static const std::unordered_map<std::string, DeviceType> deviceTypeMap = {
     {"BatteryBackupUnit", DeviceType::batteryBackupUnit},
     {"CapacitorBankUnit", DeviceType::capacitorBankUnit},
@@ -345,6 +350,24 @@ static void from_json(const json& j, ConfigRegister& r)
     }
 }
 
+static void from_json(const json& j, Blackbox& b)
+{
+    b.type =
+        lookupEnum(blackboxTypeMap, j.at("Type").get<std::string>(), "Type");
+    b.sections = j.at("Sections").get<std::vector<uint16_t>>();
+    b.length = j.at("Length").get<uint16_t>();
+
+    if (b.type != BlackboxType::mailbox)
+    {
+        return;
+    }
+
+    b.selectRegister = parseHexOffset(j, "SelectRegister");
+    b.statusRegister = parseHexOffset(j, "StatusRegister");
+    b.busyValue = parseHexOffset(j, "BusyValue");
+    b.dataRegister = parseHexOffset(j, "DataRegister");
+}
+
 struct DeviceProfileEntry
 {
     DeviceType deviceType;
@@ -388,6 +411,10 @@ static void parseRegisterSections(DeviceProfile& profile, const json& j)
     {
         profile.configRegisters =
             j["ConfigRegisters"].get<std::vector<ConfigRegister>>();
+    }
+    if (j.contains("Blackbox"))
+    {
+        profile.blackbox = j["Blackbox"].get<Blackbox>();
     }
 }
 
