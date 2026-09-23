@@ -115,6 +115,20 @@ class ModbusTest : public BaseTest
         co_return;
     }
 
+    auto TestWriteSingleRegister(uint16_t registerOffset, bool res)
+        -> sdbusplus::async::task<void>
+    {
+        std::cout << "TestWriteSingleRegister() start" << std::endl;
+
+        auto ret = co_await modbus->writeSingleRegister(
+            TestIntf::testDeviceAddress, registerOffset,
+            TestIntf::testWriteSingleRegisterValue);
+
+        EXPECT_EQ(ret, res) << "Failed to write single register";
+
+        co_return;
+    }
+
     auto TestWriteMultipleRegisters(uint16_t registerOffset, bool res)
         -> sdbusplus::async::task<void>
     {
@@ -210,6 +224,28 @@ TEST_F(ModbusTest, TestReadHoldingRegisterIllegalDataAddress)
 {
     ctx.spawn(
         TestHoldingRegisters(TestIntf::testIllegalDataAddressRegister, false));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ModbusTest, TestWriteSingleRegisterSuccess)
+{
+    ctx.spawn(TestWriteSingleRegister(
+        TestIntf::testSuccessWriteSingleRegisterOffset, true));
+
+    ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
+              sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
+
+    ctx.run();
+}
+
+TEST_F(ModbusTest, TestWriteSingleRegisterFailure)
+{
+    ctx.spawn(TestWriteSingleRegister(
+        TestIntf::testFailureWriteSingleRegisterOffset, false));
 
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
