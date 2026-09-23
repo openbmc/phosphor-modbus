@@ -37,6 +37,10 @@ constexpr uint16_t testFlakyReadHoldingRegisterCount = 0x1;
 constexpr uint16_t testSuccessWriteMultipleRegistersOffset = 0x0500;
 constexpr uint16_t testSuccessWriteMultipleRegistersCount = 0x2;
 const std::vector<uint16_t> testWriteMultipleRegistersData = {0x1122, 0x3344};
+constexpr uint16_t testSuccessWriteSingleRegisterOffset = 0x0510;
+constexpr uint16_t testFailureWriteSingleRegisterOffset = 0x0511;
+constexpr uint16_t testWriteSingleRegisterValue = 0x1234;
+
 constexpr uint16_t testFailureWriteMultipleRegistersOffset = 0x0501;
 constexpr uint16_t testFlakyWriteMultipleRegistersOffset = 0x0502;
 
@@ -202,6 +206,9 @@ class ServerTester
     auto collectFileGroups(MessageIntf& request, size_t subRequests,
                            MessageIntf& response,
                            std::vector<FileGroup>& groups) -> bool;
+
+    auto processWriteSingleRegister(MessageIntf& request, size_t requestSize,
+                                    MessageIntf& response) -> void;
 
     auto processWriteMultipleRegisters(MessageIntf& request, size_t requestSize,
                                        MessageIntf& response) -> void;

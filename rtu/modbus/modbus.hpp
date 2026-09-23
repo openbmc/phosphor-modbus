@@ -40,6 +40,11 @@ class Modbus
                         uint8_t retries = modbusRTURetries)
         -> sdbusplus::async::task<bool>;
 
+    /** @brief Write one register, which the device echoes back. */
+    auto writeSingleRegister(uint8_t deviceAddress, uint16_t registerOffset,
+                             uint16_t value, uint8_t retries = modbusRTURetries)
+        -> sdbusplus::async::task<bool>;
+
     auto writeMultipleRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                                 std::span<const uint16_t> registers,
                                 uint8_t retries = modbusRTURetries)
