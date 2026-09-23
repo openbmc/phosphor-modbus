@@ -7,7 +7,11 @@ project(
     meson_version: '>=1.1.1',
 )
 
-cli11_dep = dependency('CLI11', include_type: 'system')
+cli11_dep = dependency(
+    'CLI11',
+    include_type: 'system',
+    default_options: ['tests=disabled'],
+)
 nlohmann_json_dep = dependency('nlohmann_json', include_type: 'system')
 phosphor_dbus_interfaces_dep = dependency('phosphor-dbus-interfaces')
 phosphor_logging_dep = dependency('phosphor-logging')
