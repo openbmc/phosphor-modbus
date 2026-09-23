@@ -33,6 +33,27 @@ ReadHoldingRegistersResponse::ReadHoldingRegistersResponse(
     len = 5 + (registerSize * registers.size());
 }
 
+WriteSingleRegisterRequest::WriteSingleRegisterRequest(
+    uint8_t deviceAddress, uint16_t registerOffset, uint16_t value) :
+    deviceAddress(deviceAddress), registerOffset(registerOffset), value(value)
+{}
+
+auto WriteSingleRegisterRequest::encode() -> void
+{
+    // addr(1), func(1), offset(2), value(2), crc(2)
+    *this << deviceAddress << commandCode << registerOffset << value;
+    appendCRC();
+}
+
+WriteSingleRegisterResponse::WriteSingleRegisterResponse(
+    uint8_t deviceAddress, uint16_t registerOffset, uint16_t value) :
+    expectedDeviceAddress(deviceAddress),
+    expectedRegisterOffset(registerOffset), expectedValue(value)
+{
+    // The response echoes the request, so it is the same size.
+    len = 8;
+}
+
 WriteMultipleRegistersRequest::WriteMultipleRegistersRequest(
     uint8_t deviceAddress, uint16_t registerOffset,
     std::span<const uint16_t> registers) :
@@ -147,6 +168,18 @@ auto ReadHoldingRegistersResponse::decode() -> void
     verifyValue("Device Address", deviceAddress, expectedDeviceAddress);
     verifyValue("Response Function Code", responseCode, expectedCommandCode);
     verifyValue("Byte Count", byteCount, registerSize * registers.size());
+}
+
+auto WriteSingleRegisterResponse::decode() -> void
+{
+    Response::decode();
+    uint16_t value, registerOffset;
+    uint8_t responseCode, deviceAddress;
+    *this >> value >> registerOffset >> responseCode >> deviceAddress;
+    verifyValue("Device Address", deviceAddress, expectedDeviceAddress);
+    verifyValue("Response Function Code", responseCode, expectedCommandCode);
+    verifyValue("Register Offset", registerOffset, expectedRegisterOffset);
+    verifyValue("Value", value, expectedValue);
 }
 
 auto WriteMultipleRegistersResponse::decode() -> void

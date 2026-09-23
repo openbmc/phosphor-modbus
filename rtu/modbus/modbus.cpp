@@ -241,6 +241,54 @@ auto Modbus::readFileRecord(uint8_t deviceAddress,
     co_return false;
 }
 
+auto Modbus::writeSingleRegister(uint8_t deviceAddress, uint16_t registerOffset,
+                                 uint16_t value, uint8_t retries)
+    -> sdbusplus::async::task<bool>
+{
+    for (uint8_t attempt = 0; attempt <= retries; ++attempt)
+    {
+        try
+        {
+            WriteSingleRegisterRequest request(deviceAddress, registerOffset,
+                                               value);
+            WriteSingleRegisterResponse response(deviceAddress, registerOffset,
+                                                 value);
+
+            request.encode();
+
+            debug(
+                "Sending write single register request for {REGISTER_OFFSET} {DEVICE_ADDRESS}",
+                "REGISTER_OFFSET", lg2::hex, registerOffset, "DEVICE_ADDRESS",
+                lg2::hex, deviceAddress);
+
+            if (!co_await writeRequest(deviceAddress, request))
+            {
+                continue;
+            }
+
+            if (!co_await readResponse(deviceAddress, response,
+                                       request.functionCode))
+            {
+                continue;
+            }
+
+            response.decode();
+            co_return true;
+        }
+        catch (std::exception& e)
+        {
+            if (attempt == retries)
+            {
+                error(
+                    "Failed to write single register for {DEVICE_ADDRESS} with {ERROR}",
+                    "DEVICE_ADDRESS", lg2::hex, deviceAddress, "ERROR", e);
+            }
+        }
+    }
+
+    co_return false;
+}
+
 auto Modbus::writeMultipleRegisters(
     uint8_t deviceAddress, uint16_t registerOffset,
     std::span<const uint16_t> registers, uint8_t retries)

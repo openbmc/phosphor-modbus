@@ -37,6 +37,31 @@ class ReadHoldingRegistersRequest : public Message
     const uint16_t registerCount;
 };
 
+static constexpr uint8_t WriteSingleRegisterFunctionCode = 0x06;
+
+class WriteSingleRegisterRequest : public Message
+{
+  public:
+    WriteSingleRegisterRequest() = delete;
+    WriteSingleRegisterRequest(const WriteSingleRegisterRequest&) = delete;
+    WriteSingleRegisterRequest& operator=(const WriteSingleRegisterRequest&) =
+        delete;
+    WriteSingleRegisterRequest(WriteSingleRegisterRequest&&) = delete;
+    WriteSingleRegisterRequest& operator=(WriteSingleRegisterRequest&&) =
+        delete;
+
+    explicit WriteSingleRegisterRequest(
+        uint8_t deviceAddress, uint16_t registerOffset, uint16_t value);
+
+    auto encode() -> void;
+
+  private:
+    static constexpr uint8_t commandCode = WriteSingleRegisterFunctionCode;
+    const uint8_t deviceAddress;
+    const uint16_t registerOffset;
+    const uint16_t value;
+};
+
 static constexpr uint8_t WriteMultipleRegistersFunctionCode = 0x10;
 
 class WriteMultipleRegistersRequest : public Message
@@ -154,6 +179,31 @@ class ReadHoldingRegistersResponse : public Response
     const uint8_t expectedDeviceAddress;
     // The returned response is stored in the registers span
     std::span<uint16_t> registers;
+};
+
+/** @brief The device echoes the write, so the response confirms it took. */
+class WriteSingleRegisterResponse : public Response
+{
+  public:
+    WriteSingleRegisterResponse() = delete;
+    WriteSingleRegisterResponse(const WriteSingleRegisterResponse&) = delete;
+    WriteSingleRegisterResponse& operator=(const WriteSingleRegisterResponse&) =
+        delete;
+    WriteSingleRegisterResponse(WriteSingleRegisterResponse&&) = delete;
+    WriteSingleRegisterResponse& operator=(WriteSingleRegisterResponse&&) =
+        delete;
+
+    explicit WriteSingleRegisterResponse(
+        uint8_t deviceAddress, uint16_t registerOffset, uint16_t value);
+
+    auto decode() -> void;
+
+  private:
+    static constexpr uint8_t expectedCommandCode =
+        WriteSingleRegisterFunctionCode;
+    const uint8_t expectedDeviceAddress;
+    const uint16_t expectedRegisterOffset;
+    const uint16_t expectedValue;
 };
 
 class WriteMultipleRegistersResponse : public Response
