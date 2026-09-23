@@ -149,24 +149,6 @@ BaseDevice::BaseDevice(sdbusplus::async::context& ctx,
     info("Successfully created device {NAME}", "NAME", config.name);
 }
 
-BaseDevice::~BaseDevice()
-{
-    for (auto& [name, sensor] : sensors)
-    {
-        sensor->Value::emit_removed();
-        sensor->Availability::emit_removed();
-        sensor->OperationalStatus::emit_removed();
-        sensor->Warning::emit_removed();
-        sensor->Critical::emit_removed();
-        sensor->Definitions::emit_removed();
-    }
-    for (auto& [name, metric] : metrics)
-    {
-        metric->Value::emit_removed();
-        metric->Definitions::emit_removed();
-    }
-}
-
 static auto getObjectPath(std::string_view sensorType,
                           const std::string& sensorName)
     -> sdbusplus::object_path
@@ -217,14 +199,8 @@ auto BaseDevice::createSensors() -> void
 
         auto sensor = std::make_unique<SensorIntf>(
             ctx, sensorPath.str.c_str(), initValue, initAvailability,
-            initOperationalStatus, initWarning, initCritical, initAssociations);
-
-        sensor->Value::emit_added();
-        sensor->Availability::emit_added();
-        sensor->OperationalStatus::emit_added();
-        sensor->Warning::emit_added();
-        sensor->Critical::emit_added();
-        sensor->Definitions::emit_added();
+            initOperationalStatus, initWarning, initCritical, initAssociations,
+            SensorIntf::signal_action::emit_object_added);
 
         sensors.emplace(sensorRegister.name, std::move(sensor));
     }
@@ -269,11 +245,9 @@ auto BaseDevice::createMetrics() -> void
         auto metricPath = getMetricObjectPath(
             getMetricPathSuffix(metricRegister.type), metricName);
 
-        auto metric = std::make_unique<MetricIntf>(ctx, metricPath.str.c_str(),
-                                                   initValue, initAssociations);
-
-        metric->Value::emit_added();
-        metric->Definitions::emit_added();
+        auto metric = std::make_unique<MetricIntf>(
+            ctx, metricPath.str.c_str(), initValue, initAssociations,
+            MetricIntf::signal_action::emit_object_added);
 
         metrics.emplace(metricRegister.name, std::move(metric));
     }

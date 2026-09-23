@@ -73,11 +73,9 @@ class BaseDevice
     /** @brief Invoked when a whole poll cycle fails, to trigger a probe. */
     using ProbeRequestCallback = std::function<void()>;
 
-    explicit BaseDevice(sdbusplus::async::context& ctx,
-                        const config::Config& config, PortIntf& serialPort,
-                        EventIntf::Events& events,
-                        ProbeRequestCallback probeRequest = nullptr);
-    ~BaseDevice();
+    BaseDevice(sdbusplus::async::context& ctx, const config::Config& config,
+               PortIntf& serialPort, EventIntf::Events& events,
+               ProbeRequestCallback probeRequest = nullptr);
 
     /** @brief Poll sensor and status registers in a timed loop. */
     auto pollRegisters() -> sdbusplus::async::task<void>;
