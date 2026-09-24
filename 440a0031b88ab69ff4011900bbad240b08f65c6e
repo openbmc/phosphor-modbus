@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43e2376b_d4547a64",
+        "filename": "tools/modbus-tool/schemas/dump.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000212
+      },
+      "writtenOn": "2026-09-24T23:47:39Z",
+      "side": 1,
+      "message": "Wont it be easier on the consumer if this was just a array of integers or a hexstring of the entire dump and the tool does the pasting of the different sections?",
+      "revId": "440a0031b88ab69ff4011900bbad240b08f65c6e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
