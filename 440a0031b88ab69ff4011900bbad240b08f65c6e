@@ -16,6 +16,24 @@
       "message": "Wont it be easier on the consumer if this was just a array of integers or a hexstring of the entire dump and the tool does the pasting of the different sections?",
       "revId": "440a0031b88ab69ff4011900bbad240b08f65c6e",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "70bab603_2dbdea52",
+        "filename": "tools/modbus-tool/schemas/dump.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-09-26T21:59:31Z",
+      "side": 1,
+      "message": "Since each section is a different modbus read call/operation, its better to keep them as separate sections, so dump can carry the relevant information on which specific section failed (if any).\nAlso this maps to the blackbox register schema definition as well for symmetry.\n\nPlease let me know if you still have any questions, otherwise we can mark this resolved.",
+      "parentUuid": "43e2376b_d4547a64",
+      "revId": "440a0031b88ab69ff4011900bbad240b08f65c6e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
