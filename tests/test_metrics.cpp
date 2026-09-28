@@ -312,7 +312,7 @@ TEST_F(MetricsTest, TestMetricValueInteger)
 
 // While the port is reserved (e.g. for a firmware update) the read is not
 // attempted, so the metric is set to NaN rather than left stale.
-TEST_F(MetricsTest, TestPortBusyInvalidatesMetric)
+TEST_F(MetricsTest, TestPortBusyHoldsMetric)
 {
     const ProfileIntf::MetricRegister metricRegister = {
         .name = metricName,
@@ -343,11 +343,17 @@ TEST_F(MetricsTest, TestPortBusyInvalidatesMetric)
         auto lock = mockPort->acquireExclusive();
         EXPECT_TRUE(lock.has_value());
 
-        EXPECT_TRUE(co_await waitForMetric(objectPath, [](double v) {
-            return std::isnan(v);
-        })) << "metric should be NaN while the port is busy";
+        // Let a couple of poll cycles elapse while the port is reserved; the
+        // metric holds its last reading.
+        co_await sdbusplus::async::sleep_for(ctx, 2s);
+        auto busyProps = co_await MetricValueIntf(ctx)
+                             .service(serviceName)
+                             .path(objectPath)
+                             .properties();
+        EXPECT_EQ(busyProps.value, expectedValue)
+            << "metric should keep its last reading while the port is busy";
 
-        // Release the port; the metric recovers its value.
+        // Release the port; the metric resumes reading its value.
         lock.reset();
         EXPECT_TRUE(co_await waitForMetric(objectPath, [](double v) {
             return v == expectedValue;
