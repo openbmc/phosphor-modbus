@@ -3,6 +3,7 @@
 #include <phosphor-logging/lg2.hpp>
 
 #include <bit>
+#include <chrono>
 #include <stdexcept>
 
 namespace phosphor::modbus::rtu::device
@@ -203,6 +204,14 @@ auto convertRegisterValue(std::span<const uint16_t> reg,
             error("Unknown sensor register format");
             return 0.0;
     }
+}
+
+auto getCurrentTimeInMicroseconds() -> uint64_t
+{
+    return static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count());
 }
 
 } // namespace phosphor::modbus::rtu::device
