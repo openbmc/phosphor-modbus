@@ -34,6 +34,24 @@
       "parentUuid": "43e2376b_d4547a64",
       "revId": "440a0031b88ab69ff4011900bbad240b08f65c6e",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "359e8e0e_46de20a2",
+        "filename": "tools/modbus-tool/schemas/dump.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-09-28T21:12:30Z",
+      "side": 1,
+      "message": "Marking this as resolved.",
+      "parentUuid": "70bab603_2dbdea52",
+      "revId": "440a0031b88ab69ff4011900bbad240b08f65c6e",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
