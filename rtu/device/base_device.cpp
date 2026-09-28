@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cmath>
 #include <numeric>
 #include <span>
 
@@ -306,6 +307,12 @@ auto BaseDevice::processSensorEntry(const SensorEntry& entry,
         sensorRegister.precision, sensorRegister.scale, sensorRegister.shift);
 
     sensor.value(regVal);
+    // Refresh the timestamp only for a valid reading, so it always reflects
+    // the last known good value.
+    if (std::isfinite(regVal))
+    {
+        sensor.updated_time(getCurrentTimeInMicroseconds());
+    }
     sensor.functional(true);
     sensor.available(true);
 }

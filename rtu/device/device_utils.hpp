@@ -35,4 +35,10 @@ auto convertRegisterValue(std::span<const uint16_t> reg,
                           uint8_t precision, double scale, double shift)
     -> double;
 
+/** @brief Get the current system time in microseconds since the Epoch.
+ *
+ *  @return uint64_t equivalent of the system time in microseconds.
+ */
+auto getCurrentTimeInMicroseconds() -> uint64_t;
+
 } // namespace phosphor::modbus::rtu::device
