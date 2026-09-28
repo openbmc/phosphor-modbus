@@ -23,6 +23,10 @@ modbus-tool dump --all --output dump.json
 | `-b`, `--blackbox`      | Also read the blackbox.                  |
 | `-o`, `--output FILE`   | Write the JSON here instead of stdout.   |
 | `-y`, `--yes`           | Do not ask before pausing monitoring.    |
+| `-v`, `--verbose`       | Log everything the read does.            |
+
+Reads log to stderr on a terminal. Only warnings and worse are shown, unless
+`--verbose` or an `LG2_LOG_LEVEL` in the environment asks for more.
 
 A dump pauses `xyz.openbmc_project.ModbusRTU` on the ports involved, so the tool
 says so and waits for a yes first. `--yes` skips the prompt, and is required
