@@ -6,13 +6,16 @@
 #include <unistd.h>
 
 #include <CLI/CLI.hpp>
+#include <phosphor-logging/lg2/level.hpp>
 #include <sdbusplus/async.hpp>
 
 #include <cstddef>
+#include <cstdlib>
 #include <expected>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace
@@ -89,6 +92,7 @@ struct Options
     bool all = false;
     bool blackbox = false;
     bool assumeYes = false;
+    bool verbose = false;
 };
 
 /** @brief Define the dump subcommand and what it takes. */
@@ -106,6 +110,8 @@ auto addDumpCommand(CLI::App& app, Options& options) -> void
                      "Write the JSON here instead of stdout");
     dump->add_flag("-y,--yes", options.assumeYes,
                    "Do not ask before pausing monitoring");
+    dump->add_flag("-v,--verbose", options.verbose,
+                   "Log everything the read does");
 }
 
 /** @brief Produce the dump, resolving --all to a device list first.
@@ -147,6 +153,14 @@ int main(int argc, char** argv)
     addDumpCommand(app, options);
 
     CLI11_PARSE(app, argc, argv);
+
+    // lg2 mirrors every level to stderr on a terminal, which buries the
+    // dump. Leave a level the caller set alone.
+    if (!options.verbose)
+    {
+        auto quiet = std::to_string(std::to_underlying(lg2::level::warning));
+        setenv("LG2_LOG_LEVEL", quiet.c_str(), 0);
+    }
 
     // --all excludes --devices, so only neither being given is left to catch.
     if (options.devices.empty() && !options.all)
