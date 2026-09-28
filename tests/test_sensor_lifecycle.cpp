@@ -11,8 +11,10 @@ class SensorLifecycleTest : public SensorTestBase
                        "xyz.openbmc_project.TestModbusRTUSensorLifecycle")
     {}
 
-    // Sensor is unavailable with a blanked (NaN) reading, but not faulted.
-    auto verifyUnavailableWhileBusy(const std::string& path)
+    // Sensor is unavailable while busy, stays functional, and holds its last
+    // known good reading.
+    auto verifyUnavailableWhileBusy(const std::string& path,
+                                    double expectedValue)
         -> sdbusplus::async::task<void>
     {
         EXPECT_TRUE(co_await waitForAvailability(path, false));
@@ -25,8 +27,8 @@ class SensorLifecycleTest : public SensorTestBase
                        .service(serviceName)
                        .path(path)
                        .properties();
-        EXPECT_TRUE(std::isnan(val.value))
-            << "reading should be NaN while busy";
+        EXPECT_EQ(val.value, expectedValue)
+            << "last good reading should be kept while busy";
         co_return;
     }
 
@@ -48,7 +50,7 @@ class SensorLifecycleTest : public SensorTestBase
         auto lock = mockPort->acquireExclusive();
         EXPECT_TRUE(lock.has_value());
 
-        co_await verifyUnavailableWhileBusy(objectPath);
+        co_await verifyUnavailableWhileBusy(objectPath, expectedValue);
 
         // Release the port; sensor recovers availability and its value.
         lock.reset();
