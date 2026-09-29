@@ -16,7 +16,7 @@ namespace modbus_tool
 
 namespace
 {
-constexpr auto lockPath = "/run/lock/phosphor-modbus.lock";
+constexpr auto lockPath = "/run/lock/modbus.lock";
 } // namespace
 
 InstanceLock::~InstanceLock()

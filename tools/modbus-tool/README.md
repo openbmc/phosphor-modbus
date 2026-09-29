@@ -60,10 +60,10 @@ allowlist to expand, no device that could be read, the output file could not be
 written, or the lock could not be acquired.
 
 Only one instance runs at a time, held by an exclusive `flock` on
-`/run/lock/phosphor-modbus.lock`. The reservation alone cannot tell two
-invocations apart, because a port one of them holds already reads as disabled to
-the other, which would then release a reservation it does not own. The kernel
-drops the lock when the process ends, so it cannot go stale.
+`/run/lock/modbus.lock`. The reservation alone cannot tell two invocations
+apart, because a port one of them holds already reads as disabled to the other,
+which would then release a reservation it does not own. The kernel drops the
+lock when the process ends, so it cannot go stale.
 
 JSON goes to stdout, so it can be redirected or piped on its own. Everything
 else goes to stderr. Exit 1 says why there is no dump:
