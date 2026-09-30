@@ -1,6 +1,8 @@
 #include "utils/register_reader.hpp"
 
 #include "common/register_span.hpp"
+#include "device/device_utils.hpp"
+#include "firmware/firmware_utils.hpp"
 #include "inventory/inventory_utils.hpp"
 #include "modbus_rtu_config.hpp"
 #include "utils/common.hpp"
@@ -13,6 +15,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <concepts>
 #include <functional>
 #include <string>
@@ -24,6 +27,7 @@ namespace modbus_tool
 PHOSPHOR_LOG2_USING;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
+namespace DeviceIntf = phosphor::modbus::rtu::device;
 namespace InventoryIntf = phosphor::modbus::rtu::inventory;
 using phosphor::modbus::buildRegisterSpans;
 using phosphor::modbus::RegisterInfo;
@@ -133,6 +137,97 @@ auto applyBits(RegisterDump& dump) -> void
     for (auto& bit : dump.bits)
     {
         bit.asserted = ((dump.raw.front() >> bit.position) & 1U) != 0;
+    }
+}
+
+/** @brief The unit as the dump names it: DegreesC, rather than the D-Bus
+ *  name xyz.openbmc_project.Sensor.Value.Unit.DegreesC. */
+template <typename Unit>
+auto unitName(Unit unit) -> std::string
+{
+    auto name = convertForMessage(unit);
+    return name.substr(name.rfind('.') + 1);
+}
+
+/** @brief A number JSON can hold, or no value for one it cannot. */
+auto toValue(double number) -> RegisterValue
+{
+    return std::isfinite(number) ? RegisterValue{number} : RegisterValue{};
+}
+
+/** @brief Set the processed value of each register that read successfully.
+ *  A register that failed to read gets an empty value, written as null.
+ *
+ *  Entries are made from the profile's registers in order, so the two line
+ *  up. */
+template <typename Register, typename Decode>
+auto decodeValues(std::vector<RegisterDump>& dumps,
+                  const std::vector<Register>& registers, Decode decode) -> void
+{
+    for (size_t i = 0; i < dumps.size() && i < registers.size(); i++)
+    {
+        auto& dump = dumps[i];
+        dump.value = dump.read ? decode(registers[i], dump.raw)
+                               : RegisterValue{};
+    }
+}
+
+/** @brief A processed string register, without the nulls the device pads it
+ *  with, as the probe check drops them too. */
+auto toStringValue(std::string value) -> RegisterValue
+{
+    std::erase(value, '\0');
+    return value;
+}
+
+/** @brief Fill in the processed value of each register, and the unit of
+ *  each sensor and metric. */
+auto decodeRegisters(const ProfileIntf::DeviceProfile& profile,
+                     RegisterSet& registers) -> void
+{
+    decodeValues(registers.inventory, profile.inventoryRegisters,
+                 [](const auto& reg, const auto& raw) {
+                     return toStringValue(
+                         InventoryIntf::convertRegisterValue(raw, reg));
+                 });
+    decodeValues(registers.firmware, profile.firmwareRegisters,
+                 [](const auto& reg, const auto& raw) {
+                     return toStringValue(
+                         DeviceIntf::convertRegisterValue(raw, reg));
+                 });
+
+    auto toNumber = [](const auto& reg, const auto& raw) {
+        return toValue(DeviceIntf::convertRegisterValue(
+            raw, reg.format, reg.isSigned, reg.precision, reg.scale,
+            reg.shift));
+    };
+    decodeValues(registers.sensor, profile.sensorRegisters, toNumber);
+    decodeValues(registers.metric, profile.metricRegisters, toNumber);
+
+    decodeValues(registers.config, profile.configRegisters,
+                 [](const auto&, const auto& raw) -> RegisterValue {
+                     // Wider than 64 bits is not an integer JSON can hold.
+                     if (raw.size() > 4)
+                     {
+                         return {};
+                     }
+                     uint64_t value = 0;
+                     for (auto word : raw)
+                     {
+                         value = (value << 16) | word;
+                     }
+                     return value;
+                 });
+
+    for (size_t i = 0; i < registers.sensor.size(); i++)
+    {
+        registers.sensor[i].unit =
+            unitName(DeviceIntf::getUnit(profile.sensorRegisters[i].type));
+    }
+    for (size_t i = 0; i < registers.metric.size(); i++)
+    {
+        registers.metric[i].unit = unitName(
+            DeviceIntf::getMetricUnit(profile.metricRegisters[i].type));
     }
 }
 
@@ -441,12 +536,14 @@ auto RegisterReader::read(const ConfigIntf::Config& config, bool withBlackbox)
 
     if (!matched)
     {
+        decodeRegisters(config.profile, dump.registers);
         dump.result = Result::failure;
         dump.reason = "Probe value mismatch";
         co_return dump;
     }
 
     co_await readGroups(config, dump.registers);
+    decodeRegisters(config.profile, dump.registers);
 
     if (withBlackbox && config.profile.blackbox)
     {

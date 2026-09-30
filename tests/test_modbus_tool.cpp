@@ -35,7 +35,8 @@ namespace
 {
 
 /** @brief A device that read cleanly, with one register of each interesting
- *  shape: a multi word inventory register and a status register with bits. */
+ *  shape: a multi word inventory register, a sensor with a unit, a config
+ *  register and a status register with bits. */
 auto readDevice() -> DeviceDump
 {
     DeviceDump device{
@@ -52,6 +53,26 @@ auto readDevice() -> DeviceDump
         .size = 4,
         .read = true,
         .raw = {0x4543, 0x4431, 0x3730, 0x3230},
+        .value = RegisterValue{"ECD17020"},
+    });
+
+    device.registers.sensor.emplace_back(RegisterDump{
+        .name = "INLET_SENSOR0_TEMP",
+        .offset = 0x45,
+        .size = 1,
+        .read = true,
+        .raw = {0x0C80},
+        .value = RegisterValue{25.0},
+        .unit = "DegreesC",
+    });
+
+    device.registers.config.emplace_back(RegisterDump{
+        .name = "UnixTime",
+        .offset = 0x5A,
+        .size = 2,
+        .read = true,
+        .raw = {0x68B1, 0x2C40},
+        .value = RegisterValue{uint64_t{0x68B12C40}},
     });
 
     device.registers.status.emplace_back(RegisterDump{
@@ -121,7 +142,11 @@ TEST(ModbusToolSchema, TestMetadata)
     auto json = toCheckedJson(Dump{});
 
     const auto& metadata = json.at("Metadata");
-    EXPECT_EQ(metadata.at("SchemaVersion"), "1.1.0");
+    // The version comes from the schema, so a dump names the schema that
+    // describes it.
+    std::ifstream schema(DUMP_SCHEMA);
+    EXPECT_EQ(metadata.at("SchemaVersion"),
+              nlohmann::json::parse(schema).at("version"));
     EXPECT_EQ(metadata.at("Tool"), "modbus-tool");
     EXPECT_TRUE(metadata.contains("Timestamp"));
     EXPECT_TRUE(json.at("Devices").empty());
@@ -219,6 +244,34 @@ TEST(ModbusToolSchema, TestStatusBits)
     EXPECT_EQ(bits.at(1).at("Asserted"), true);
 }
 
+// Registers carry their processed value: a string for inventory, a number and
+// unit for sensors, and an integer for config. Status registers report bits
+// instead.
+TEST(ModbusToolSchema, TestRegisterValues)
+{
+    Dump dump;
+    dump.devices.emplace_back(readDevice());
+
+    auto dumped = toCheckedJson(dump);
+    const auto& registers = dumped.at("Devices").at(0).at("Registers");
+
+    const auto& model = registers.at("Inventory").at(0);
+    EXPECT_EQ(model.at("Value"), "ECD17020");
+    EXPECT_FALSE(model.contains("Unit"));
+
+    const auto& sensor = registers.at("Sensor").at(0);
+    EXPECT_EQ(sensor.at("Value"), 25.0);
+    EXPECT_EQ(sensor.at("Unit"), "DegreesC");
+
+    const auto& config = registers.at("Config").at(0);
+    EXPECT_EQ(config.at("Value"), 1756441664);
+    EXPECT_TRUE(config.at("Value").is_number_unsigned());
+
+    const auto& status = registers.at("Status").at(0);
+    EXPECT_FALSE(status.contains("Value"));
+    EXPECT_FALSE(status.contains("Unit"));
+}
+
 // A device that could not be read says why, and a register that failed still
 // gets an entry, so what a device reports does not depend on what it answered
 // for.
@@ -233,8 +286,12 @@ TEST(ModbusToolSchema, TestFailuresAreReported)
         .result = Result::failure,
         .reason = "No response",
     };
-    device.registers.sensor.emplace_back(
-        RegisterDump{.name = "INLET_SENSOR0_TEMP", .offset = 0x45, .size = 1});
+    device.registers.sensor.emplace_back(RegisterDump{
+        .name = "INLET_SENSOR0_TEMP",
+        .offset = 0x45,
+        .size = 1,
+        .value = RegisterValue{},
+        .unit = "DegreesC"});
     dump.devices.emplace_back(std::move(device));
 
     auto dumped = toCheckedJson(dump);
@@ -246,6 +303,10 @@ TEST(ModbusToolSchema, TestFailuresAreReported)
     const auto& reg = json.at("Registers").at("Sensor").at(0);
     EXPECT_EQ(reg.at("ReadStatus"), "Failure");
     EXPECT_TRUE(reg.at("Raw").empty());
+    // The keys stay the same: a failed read has no value, but its unit is
+    // still known from the profile.
+    EXPECT_TRUE(reg.at("Value").is_null());
+    EXPECT_EQ(reg.at("Unit"), "DegreesC");
 }
 
 // When none of a second sourced device's variants match, every one of them is
@@ -328,7 +389,8 @@ class DumpFlowTest : public BaseTest
                 {{.name = "INLET_TEMP",
                   .type = ProfileIntf::SensorType::temperature,
                   .offset = TestIntf::testReadHoldingRegisterTempUnsignedOffset,
-                  .size = TestIntf::testReadHoldingRegisterTempCount}},
+                  .size = TestIntf::testReadHoldingRegisterTempCount,
+                  .format = ProfileIntf::SensorFormat::fixedPoint}},
             .statusRegisters = {},
             .metricRegisters = {},
             .firmwareRegisters = {},
@@ -477,6 +539,13 @@ TEST_F(DumpFlowTest, TestDeviceIsRead)
     EXPECT_EQ(device.registers.sensor.front().raw,
               TestIntf::testReadHoldingRegisterTempUnsigned);
 
+    // Values are processed from the raw words, and the nulls the model is
+    // padded with are dropped, as the probe check drops them.
+    EXPECT_EQ(device.registers.inventory.front().value,
+              RegisterValue{"RDF040DSS5190"});
+    EXPECT_EQ(device.registers.sensor.front().value, RegisterValue{80.0});
+    EXPECT_EQ(device.registers.sensor.front().unit, "DegreesC");
+
     // The port is handed back once the dump is done.
     EXPECT_TRUE(portEnabled());
 }
@@ -593,6 +662,9 @@ TEST_F(DumpFlowTest, TestProbeMismatchIsReported)
     ASSERT_EQ(device.registers.inventory.size(), 1U);
     EXPECT_EQ(device.registers.inventory.front().raw,
               TestIntf::testReadHoldingRegisterModel);
+    // Decoded too, so the dump shows what the device says it is.
+    EXPECT_EQ(device.registers.inventory.front().value,
+              RegisterValue{"RDF040DSS5190"});
     // Nothing beyond the probe is read once the device is not identified.
     EXPECT_TRUE(device.registers.sensor.empty());
 }

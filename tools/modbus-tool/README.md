@@ -5,8 +5,8 @@ it looks up the entity-manager configuration, resolves the serial port, loads
 the device profile for its type, reserves the port, and reads every register the
 profile defines.
 
-The register contents are reported raw, so a dump shows exactly what the device
-returned.
+Each register is reported both raw, exactly as the device returned it, and
+processed into its value.
 
 ## Usage
 
@@ -114,17 +114,15 @@ busctl set-property xyz.openbmc_project.ModbusRTU \
 The format is described below, and as a JSON Schema in
 [schemas/dump.json](schemas/dump.json) for validating a dump.
 
-Register contents are reported raw. The tool does no scaling, sign handling or
-string assembly, so the output cannot disagree with the profile - decoding is
-left to the consumer, which needs the profile's `Format`, `Precision`,
-`IsSigned` and `Scale`. Status registers are the one exception: the profile's
-bit definitions are copied through with an `Asserted` flag, since that is a bit
-test rather than an interpretation.
+Register contents are reported raw, and alongside them the processed `Value`,
+with the `Unit` of each sensor and metric. `Raw` is kept so a consumer can still
+check the value against the profile. Status registers have no `Value`: the
+profile's bit definitions are copied through with an `Asserted` flag instead.
 
 ```json
 {
   "Metadata": {
-    "SchemaVersion": "1.1.0",
+    "SchemaVersion": "1.2.0",
     "Tool": "modbus-tool",
     "Timestamp": "2026-08-31T17:42:11Z"
   },
@@ -142,6 +140,7 @@ test rather than an interpretation.
             "Offset": "0x8",
             "Size": 8,
             "ReadStatus": "Success",
+            "Value": "ECD17020",
             "Raw": ["0x4543", "0x4431", "0x3730", "0x3230"]
           }
         ],
@@ -151,7 +150,8 @@ test rather than an interpretation.
             "Offset": "0x30",
             "Size": 4,
             "ReadStatus": "Success",
-            "Raw": ["0x0100", "0x0000", "0x0000", "0x0000"]
+            "Value": "V1.00",
+            "Raw": ["0x5631", "0x2E30", "0x3000", "0x0000"]
           }
         ],
         "Sensor": [
@@ -160,7 +160,9 @@ test rather than an interpretation.
             "Offset": "0x45",
             "Size": 1,
             "ReadStatus": "Success",
-            "Raw": ["0x01F4"]
+            "Value": 25.0,
+            "Unit": "DegreesC",
+            "Raw": ["0x0C80"]
           }
         ],
         "Status": [
@@ -193,6 +195,7 @@ test rather than an interpretation.
             "Offset": "0x5A",
             "Size": 2,
             "ReadStatus": "Success",
+            "Value": 1756441664,
             "Raw": ["0x68B1", "0x2C40"]
           }
         ]
@@ -258,10 +261,26 @@ be read side by side. Every entry carries:
 | `Offset`     | Register offset, hex. Unique within a device.        |
 | `Size`       | Length in 16-bit registers.                          |
 | `ReadStatus` | `Success` or `Failure`.                              |
+| `Value`      | The register decoded, as below. Absent for `Status`. |
+| `Unit`       | The unit `Value` is in. `Sensor` and `Metric` only.  |
 | `Raw`        | `Size` register values, hex, most significant first. |
 
-Registers that failed to read keep their entry with `ReadStatus` `Failure` and
-an empty `Raw`, so the set of keys does not depend on which reads succeeded.
+`Value` holds the processed data:
+
+| Group                   | `Value`                                                 |
+| ----------------------- | ------------------------------------------------------- |
+| `Inventory`, `Firmware` | String, with the nulls the device pads it with removed. |
+| `Sensor`, `Metric`      | Number, scaled as the profile describes.                |
+| `Config`                | Unsigned integer.                                       |
+
+`Unit` is the D-Bus unit without its interface prefix, such as `DegreesC`,
+`Volts` or `Seconds`.
+
+Registers that failed to read keep their entry with `ReadStatus` `Failure`, an
+empty `Raw` and a `Value` of `null`, so the set of keys does not depend on which
+reads succeeded. `Value` is also `null` for a sensor or metric that is not a
+finite number, and for a config register wider than 64 bits, since JSON cannot
+hold either.
 
 Keys are written in the order shown rather than sorted, so what a device is
 comes before what it read.
@@ -298,3 +317,6 @@ shorter than the profile's length even though `ReadStatus` is `Failure`.
 `SchemaVersion` is `major.minor.patch`. Adding a field is a minor bump; renaming
 or removing one, or changing what a field means, is a major bump. Consumers
 should pin the major version.
+
+[schemas/dump.json](schemas/dump.json) records the version it describes in its
+top-level `version`, and the tool takes `SchemaVersion` from it at build time.

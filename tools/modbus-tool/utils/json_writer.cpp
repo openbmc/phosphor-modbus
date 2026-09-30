@@ -4,6 +4,8 @@
 #include <format>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <variant>
 
 namespace modbus_tool
 {
@@ -11,7 +13,8 @@ namespace modbus_tool
 namespace
 {
 
-constexpr auto schemaVersion = "1.1.0";
+// Taken from the schema at build time.
+constexpr auto schemaVersion = DUMP_SCHEMA_VERSION;
 constexpr auto toolName = "modbus-tool";
 
 auto resultName(Result result) -> std::string_view
@@ -41,6 +44,27 @@ auto toJson(const RegisterDump& reg) -> nlohmann::ordered_json
     out["Offset"] = std::format("0x{:X}", reg.offset);
     out["Size"] = reg.size;
     out["ReadStatus"] = reg.read ? "Success" : "Failure";
+
+    if (reg.value)
+    {
+        out["Value"] = std::visit(
+            [](const auto& value) -> nlohmann::ordered_json {
+                if constexpr (std::is_same_v<std::decay_t<decltype(value)>,
+                                             std::monostate>)
+                {
+                    return nullptr;
+                }
+                else
+                {
+                    return value;
+                }
+            },
+            *reg.value);
+    }
+    if (!reg.unit.empty())
+    {
+        out["Unit"] = reg.unit;
+    }
 
     auto raw = nlohmann::ordered_json::array();
     for (auto word : reg.raw)

@@ -2,6 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ModbusToolDump",
     "description": "The registers modbus-tool read from a set of devices.",
+    "version": "1.2.0",
     "type": "object",
     "required": ["Metadata", "Devices"],
     "additionalProperties": false,
@@ -167,6 +168,31 @@
                 },
                 "ReadStatus": {
                     "enum": ["Success", "Failure"]
+                },
+                "Value": {
+                    "description": "The processed value of the register: a string for Inventory and Firmware, with null padding removed, a number for Sensor and Metric, and an unsigned integer for Config. Null when the read failed, or the value has no JSON form: a Sensor or Metric that is not finite, or a Config register wider than 64 bits. Absent for Status registers.",
+                    "type": ["string", "number", "null"]
+                },
+                "Unit": {
+                    "description": "Sensor and Metric registers only. The unit Value is in, named as the D-Bus unit is without its interface prefix.",
+                    "enum": [
+                        "AmpereHours",
+                        "Amperes",
+                        "CFM",
+                        "DegreesC",
+                        "Hertz",
+                        "Joules",
+                        "LPM",
+                        "Meters",
+                        "Pascals",
+                        "Percent",
+                        "PercentRH",
+                        "RPMS",
+                        "Radians",
+                        "Seconds",
+                        "Volts",
+                        "Watts"
+                    ]
                 },
                 "Raw": {
                     "description": "Size register values, most significant first. Empty when the read failed.",

@@ -241,9 +241,11 @@ test(
         modbus_tool_src,
         allowed_devices_src,
         base_config_src,
+        device_utils_src,
+        firmware_utils_src,
         inventory_utils_src,
         profile_src,
-        cpp_args: rtu_cpp_args + [
+        cpp_args: modbus_tool_cpp_args + [
             '-DDUMP_SCHEMA="' + meson.project_source_root() / 'tools' / 'modbus-tool' / 'schemas' / 'dump.json' + '"',
         ],
         link_with: [modbus_common_lib, test_base_lib],

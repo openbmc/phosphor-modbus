@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace modbus_tool
@@ -24,6 +26,11 @@ struct BitDump
     bool asserted = false;
 };
 
+/** @brief The processed value of a register. monostate when there is no
+ *  value to report: the read failed, or it has no JSON form. */
+using RegisterValue =
+    std::variant<std::monostate, std::string, double, uint64_t>;
+
 /** @brief One register, reported as the words the device returned. */
 struct RegisterDump
 {
@@ -34,6 +41,11 @@ struct RegisterDump
     std::vector<uint16_t> raw{};
     // Status registers only; empty for every other class.
     std::vector<BitDump> bits{};
+    // Every class but status: a string for inventory and firmware, a double
+    // for sensors and metrics, and an integer for config.
+    std::optional<RegisterValue> value{};
+    // Sensor and metric registers only; empty for every other class.
+    std::string unit{};
 };
 
 /** @brief A device's registers, grouped as the profile groups them. */
