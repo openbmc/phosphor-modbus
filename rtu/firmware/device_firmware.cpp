@@ -1,5 +1,7 @@
 #include "device_firmware.hpp"
 
+#include "firmware_utils.hpp"
+
 #include <phosphor-logging/lg2.hpp>
 
 namespace phosphor::modbus::rtu::device
@@ -75,32 +77,6 @@ auto DeviceFirmware::getObjectPaths() const
     return paths;
 }
 
-static auto formatVersion(const ProfileIntf::FirmwareRegister& reg,
-                          const std::vector<uint16_t>& registers) -> std::string
-{
-    std::string strValue;
-
-    if (reg.format == ProfileIntf::FirmwareFormat::integer)
-    {
-        uint64_t intValue = 0;
-        for (const auto& value : registers)
-        {
-            intValue = (intValue << 16) | value;
-        }
-        strValue = std::to_string(intValue);
-    }
-    else
-    {
-        for (const auto& value : registers)
-        {
-            strValue += static_cast<char>((value >> 8) & 0xFF);
-            strValue += static_cast<char>(value & 0xFF);
-        }
-    }
-
-    return strValue;
-}
-
 auto DeviceFirmware::readVersionRegisters() -> sdbusplus::async::task<void>
 {
     for (const auto& fwVersion : firmwareVersions)
@@ -130,7 +106,7 @@ auto DeviceFirmware::readVersionRegister(const FirmwareVersion& fwVersion)
         co_return;
     }
 
-    auto strValue = formatVersion(versionRegister, registers);
+    auto strValue = convertRegisterValue(registers, versionRegister);
 
     fwVersion.firmwareVersion->version(strValue);
     fwVersion.firmwareVersion->activation(

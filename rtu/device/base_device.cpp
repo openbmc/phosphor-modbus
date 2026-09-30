@@ -58,48 +58,6 @@ auto getPathSuffix(ProfileIntf::SensorType type) -> std::string_view
     throw std::invalid_argument("Unknown sensor type");
 }
 
-auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit
-{
-    switch (type)
-    {
-        case ProfileIntf::SensorType::fanTach:
-            return SensorValueIntf::Unit::RPMS;
-        case ProfileIntf::SensorType::liquidFlow:
-            return SensorValueIntf::Unit::LPM;
-        case ProfileIntf::SensorType::power:
-            return SensorValueIntf::Unit::Watts;
-        case ProfileIntf::SensorType::pressure:
-            return SensorValueIntf::Unit::Pascals;
-        case ProfileIntf::SensorType::temperature:
-            return SensorValueIntf::Unit::DegreesC;
-        case ProfileIntf::SensorType::voltage:
-            return SensorValueIntf::Unit::Volts;
-        case ProfileIntf::SensorType::current:
-            return SensorValueIntf::Unit::Amperes;
-        case ProfileIntf::SensorType::airflow:
-            return SensorValueIntf::Unit::CFM;
-        case ProfileIntf::SensorType::altitude:
-            return SensorValueIntf::Unit::Meters;
-        case ProfileIntf::SensorType::energy:
-            return SensorValueIntf::Unit::Joules;
-        case ProfileIntf::SensorType::frequency:
-            return SensorValueIntf::Unit::Hertz;
-        case ProfileIntf::SensorType::humidity:
-            return SensorValueIntf::Unit::PercentRH;
-        case ProfileIntf::SensorType::utilization:
-            return SensorValueIntf::Unit::Percent;
-        case ProfileIntf::SensorType::valve:
-            return SensorValueIntf::Unit::Percent;
-        case ProfileIntf::SensorType::charge:
-            return SensorValueIntf::Unit::AmpereHours;
-        case ProfileIntf::SensorType::rotationalPosition:
-            return SensorValueIntf::Unit::Radians;
-        case ProfileIntf::SensorType::unknown:
-            throw std::invalid_argument("Unknown sensor type");
-    }
-    throw std::invalid_argument("Unknown sensor type");
-}
-
 auto getMetricPathSuffix(ProfileIntf::MetricType type) -> std::string_view
 {
     switch (type)
@@ -108,19 +66,6 @@ auto getMetricPathSuffix(ProfileIntf::MetricType type) -> std::string_view
             return MetricIntf::namespace_path::valve_closed_duration;
         case ProfileIntf::MetricType::valveOpenDuration:
             return MetricIntf::namespace_path::valve_open_duration;
-        case ProfileIntf::MetricType::unknown:
-            throw std::invalid_argument("Unknown metric type");
-    }
-    throw std::invalid_argument("Unknown metric type");
-}
-
-auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit
-{
-    switch (type)
-    {
-        case ProfileIntf::MetricType::valveClosedDuration:
-        case ProfileIntf::MetricType::valveOpenDuration:
-            return MetricIntf::Unit::Seconds;
         case ProfileIntf::MetricType::unknown:
             throw std::invalid_argument("Unknown metric type");
     }
@@ -348,91 +293,6 @@ auto BaseDevice::buildBucketSpans(PollBucket& bucket) -> void
     }
 
     bucket.spans = buildRegisterSpans(regInfos, maxRegisterSpanLength);
-}
-
-static auto getRawIntegerFromRegister(std::span<const uint16_t> reg, bool sign)
-    -> int64_t
-{
-    if (reg.empty())
-    {
-        return 0;
-    }
-
-    uint64_t accumulator = 0;
-    for (auto val : reg)
-    {
-        accumulator = (accumulator << 16) | val;
-    }
-
-    int64_t result = 0;
-
-    if (sign)
-    {
-        if (reg.size() == 1)
-        {
-            result = static_cast<int16_t>(accumulator);
-        }
-        else if (reg.size() == 2)
-        {
-            result = static_cast<int32_t>(accumulator);
-        }
-        else
-        {
-            result = static_cast<int64_t>(accumulator);
-        }
-    }
-    else
-    {
-        if (reg.size() == 1)
-        {
-            result = static_cast<uint16_t>(accumulator);
-        }
-        else if (reg.size() == 2)
-        {
-            result = static_cast<uint32_t>(accumulator);
-        }
-        else
-        {
-            result = static_cast<int64_t>(accumulator);
-        }
-    }
-
-    return result;
-}
-
-static auto getFloat32FromRegister(std::span<const uint16_t> reg) -> double
-{
-    uint32_t rawBits = (static_cast<uint32_t>(reg[0]) << 16) |
-                       static_cast<uint32_t>(reg[1]);
-
-    return static_cast<double>(std::bit_cast<float>(rawBits));
-}
-
-static auto convertRegisterValue(
-    std::span<const uint16_t> reg, ProfileIntf::SensorFormat format,
-    bool isSigned, uint8_t precision, double scale, double shift) -> double
-{
-    switch (format)
-    {
-        case ProfileIntf::SensorFormat::fixedPoint:
-        {
-            auto raw =
-                static_cast<double>(getRawIntegerFromRegister(reg, isSigned));
-
-            return shift + (scale * (raw / (1ULL << precision)));
-        }
-        case ProfileIntf::SensorFormat::float32:
-        {
-            auto raw = getFloat32FromRegister(reg);
-            return shift + (scale * (raw / (1ULL << precision)));
-        }
-        case ProfileIntf::SensorFormat::integer:
-            return static_cast<double>(
-                getRawIntegerFromRegister(reg, isSigned));
-        default:
-            error("Unknown sensor register format");
-            return 0.0;
-    }
 }
 
 auto BaseDevice::processSensorEntry(const SensorEntry& entry,

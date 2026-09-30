@@ -38,4 +38,27 @@ auto matchesProbeValue(std::span<const uint16_t> readBuffer,
         probe.expectedValue);
 }
 
+auto convertRegisterValue(std::span<const uint16_t> registers,
+                          const ProfileIntf::InventoryRegister& reg)
+    -> std::string
+{
+    if (reg.format == ProfileIntf::InventoryFormat::integer)
+    {
+        uint32_t intValue = 0;
+        for (const auto& value : registers)
+        {
+            intValue = (intValue << 16) | value;
+        }
+        return std::to_string(intValue);
+    }
+
+    std::string strValue;
+    for (const auto& value : registers)
+    {
+        strValue += static_cast<char>((value >> 8) & 0xFF);
+        strValue += static_cast<char>(value & 0xFF);
+    }
+    return strValue;
+}
+
 } // namespace phosphor::modbus::rtu::inventory

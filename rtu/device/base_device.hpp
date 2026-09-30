@@ -4,6 +4,7 @@
 #include "common/events.hpp"
 #include "common/register_span.hpp"
 #include "device_config.hpp"
+#include "device_utils.hpp"
 #include "firmware/device_firmware.hpp"
 #include "port/base_port.hpp"
 
@@ -35,10 +36,6 @@ using SensorValueIntf =
  *  @throws std::invalid_argument if type is unknown. */
 auto getPathSuffix(ProfileIntf::SensorType type) -> std::string_view;
 
-/** @brief Returns the sensor unit corresponding to a sensor type.
- *  @throws std::invalid_argument if type is unknown. */
-auto getUnit(ProfileIntf::SensorType type) -> SensorValueIntf::Unit;
-
 class BaseDevice;
 
 using SensorIntf = sdbusplus::async::server_t<
@@ -57,10 +54,6 @@ using MetricIntf = sdbusplus::async::server_t<
 /** @brief Returns the D-Bus object path suffix for a metric type.
  *  @throws std::invalid_argument if type is unknown. */
 auto getMetricPathSuffix(ProfileIntf::MetricType type) -> std::string_view;
-
-/** @brief Returns the metric unit corresponding to a metric type.
- *  @throws std::invalid_argument if type is unknown. */
-auto getMetricUnit(ProfileIntf::MetricType type) -> MetricIntf::Unit;
 
 using PortIntf = phosphor::modbus::rtu::port::BasePort;
 namespace EventIntf = phosphor::modbus::events;

@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <span>
+#include <string>
 
 namespace phosphor::modbus::rtu::inventory
 {
@@ -14,5 +15,10 @@ namespace ProfileIntf = phosphor::modbus::rtu::profile;
  *         identifying the device as that type. */
 auto matchesProbeValue(std::span<const uint16_t> readBuffer,
                        const ProfileIntf::ProbeRegister& probe) -> bool;
+
+/** @brief The string an inventory register holds. */
+auto convertRegisterValue(std::span<const uint16_t> registers,
+                          const ProfileIntf::InventoryRegister& reg)
+    -> std::string;
 
 } // namespace phosphor::modbus::rtu::inventory
