@@ -56,12 +56,9 @@ auto SensorTestBase::checkInventoryAssociations(
 
     using Association = std::tuple<std::string, std::string, std::string>;
     std::vector<Association> expected = {
-        {"monitoring", "monitored_by", parentInventoryPath},
-        {"inventory", "sensors", parentInventoryPath},
-        {"inventory", "all_sensors", parentInventoryPath},
         {"monitoring", "monitored_by", inventoryPath},
         {"inventory", "sensors", inventoryPath},
-        {"inventory", "all_sensors", inventoryPath},
+        {"chassis", "all_sensors", inventoryPath},
     };
 
     EXPECT_EQ(associationProperties.associations.size(), expected.size());
@@ -71,6 +68,15 @@ auto SensorTestBase::checkInventoryAssociations(
                             associationProperties.associations.end(), assoc),
                   associationProperties.associations.end())
             << "Missing association: " << std::get<0>(assoc) << ", "
+            << std::get<1>(assoc) << ", " << std::get<2>(assoc);
+    }
+
+    // Nothing points at the grandparent, the board that configures the
+    // device, so the sensor is listed only under the device.
+    for (const auto& assoc : associationProperties.associations)
+    {
+        EXPECT_NE(std::get<2>(assoc), parentInventoryPath)
+            << "Unexpected association: " << std::get<0>(assoc) << ", "
             << std::get<1>(assoc) << ", " << std::get<2>(assoc);
     }
 }
