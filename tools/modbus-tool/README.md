@@ -1,14 +1,20 @@
 # modbus-tool
 
-Reads a device's registers directly and writes them to JSON. Given a device name
-it looks up the entity-manager configuration, resolves the serial port, loads
-the device profile for its type, reserves the port, and reads every register the
-profile defines.
+Talks Modbus to a device directly, rather than through the daemon.
 
-Each register is reported both raw, exactly as the device returned it, and
+`dump` reads every register the device profile defines and reports them as JSON.
+`write` puts values into a register.
+
+Given a device name, either one looks up the entity-manager configuration,
+resolves the serial port, loads the device profile for its type, and reserves
+the port before it uses the bus.
+
+A dump reports each register both raw, exactly as the device returned it, and
 processed into its value.
 
 ## Usage
+
+### dump
 
 ```sh
 modbus-tool dump --devices PSU_1_1
@@ -45,6 +51,37 @@ says to name the devices with `--devices` instead. A name the allowlist has but
 entity-manager does not is reported as `Not configured`, rather than dropped, so
 the two configurations disagreeing is visible.
 
+### write
+
+```sh
+modbus-tool write --device PSU_1_1 --offset 5A --value 68B1
+modbus-tool write --device PSU_1_1 --offset 0x5A --value 0x68B1,0x2C40 --yes
+```
+
+| Option                | Description                                   |
+| --------------------- | --------------------------------------------- |
+| `-d`, `--device NAME` | Device to write to.                           |
+| `--offset HEX`        | Register offset.                              |
+| `--value HEX`         | Register value, comma separated for multiple. |
+| `-y`, `--yes`         | Do not ask before pausing monitoring.         |
+| `-v`, `--verbose`     | Log everything the write does.                |
+
+Offsets and values are hex, with or without a `0x` prefix, as a dump reports
+them. A value wider than a 16-bit register is rejected rather than truncated.
+More than one value writes that many consecutive registers, so a register the
+profile gives a `size` greater than one is written in a single operation.
+
+The device is probed before anything is written, so a name that resolves to an
+absent device, or to a variant that is not the one present, is reported rather
+than written to.
+
+The write is recorded in the journal, so a change to a device is traceable
+afterwards without having kept the output:
+
+```sh
+journalctl -t modbus-tool
+```
+
 ### Exit codes
 
 | Code | Meaning                                             |
@@ -58,6 +95,19 @@ configured, is reported as that device's `Result` and `Reason`, so the rest of
 the dump survives. Exit 1 is for the cases that leave nothing to read: no
 allowlist to expand, no device that could be read, the output file could not be
 written, or the lock could not be acquired.
+
+For a write:
+
+| Code | Meaning                     |
+| ---- | --------------------------- |
+| 0    | The device acknowledged it. |
+| 1    | Anything else.              |
+
+The result is a single object on stdout:
+
+```json
+{ "Result": "Success" }
+```
 
 Only one instance runs at a time, held by an exclusive `flock` on
 `/run/lock/modbus.lock`. The reservation alone cannot tell two invocations
