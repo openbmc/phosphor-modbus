@@ -1,6 +1,7 @@
 # Everything but main, so the tests can link the same sources.
 modbus_tool_src = files(
     'cmd/dump.cpp',
+    'cmd/write.cpp',
     'utils/common.cpp',
     'utils/entity_manager_lookup.cpp',
     'utils/json_writer.cpp',
