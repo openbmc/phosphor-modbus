@@ -6,6 +6,7 @@ modbus_tool_src = files(
     'utils/json_writer.cpp',
     'utils/port_reservation.cpp',
     'utils/register_reader.cpp',
+    'utils/serial_session.cpp',
 )
 
 modbus_tool_include = include_directories('.')
