@@ -7,9 +7,6 @@
 #include "modbus_rtu_config.hpp"
 #include "utils/common.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-
 #include <phosphor-logging/lg2.hpp>
 
 #include <algorithm>
@@ -266,54 +263,11 @@ auto resultFor(const RegisterSet& registers,
 RegisterReader::RegisterReader(
     sdbusplus::async::context& ctx,
     const PortIntf::config::PortFactoryConfig& portConfig,
-    const std::string& devicePath) : ctx(ctx), portConfig(portConfig)
-{
-    fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
-    if (fd < 0)
-    {
-        error("Failed to open {PATH}", "PATH", devicePath);
-        return;
-    }
+    const std::string& devicePath) :
+    ctx(ctx), session(ctx, portConfig, devicePath)
+{}
 
-    try
-    {
-        modbus = std::make_unique<ModbusIntf::Modbus>(
-            ctx, fd, portConfig.baudRate, portConfig.rtsDelay,
-            portConfig.timeout);
-    }
-    catch (const std::exception& e)
-    {
-        error("Failed to open {PATH}: {ERROR}", "PATH", devicePath, "ERROR", e);
-        close(fd);
-        fd = -1;
-    }
-}
-
-RegisterReader::~RegisterReader()
-{
-    modbus.reset();
-    if (fd >= 0)
-    {
-        close(fd);
-    }
-}
-
-auto RegisterReader::readProbe(const ConfigIntf::Config& config, bool& matched)
-    -> sdbusplus::async::task<std::vector<uint16_t>>
-{
-    const auto& probe = config.profile.probeRegister;
-    std::vector<uint16_t> registers(probe.size);
-
-    if (!modbus->setProperties(portConfig.baudRate, config.profile.parity) ||
-        !co_await modbus->readHoldingRegisters(config.address, probe.offset,
-                                               registers))
-    {
-        co_return std::vector<uint16_t>{};
-    }
-
-    matched = InventoryIntf::matchesProbeValue(registers, probe);
-    co_return registers;
-}
+RegisterReader::~RegisterReader() = default;
 
 auto RegisterReader::readGroup(const ConfigIntf::Config& config,
                                const std::vector<RegisterDump>& entries)
@@ -337,7 +291,7 @@ auto RegisterReader::readGroup(const ConfigIntf::Config& config,
          buildRegisterSpans(infos, ModbusIntf::maxRegisterSpanLength))
     {
         std::vector<uint16_t> buffer(span.totalSize);
-        if (!co_await modbus->readHoldingRegisters(config.address,
+        if (!co_await session.readHoldingRegisters(config.address,
                                                    span.startOffset, buffer))
         {
             continue;
@@ -374,7 +328,7 @@ auto RegisterReader::readFileSection(const ConfigIntf::Config& config,
         std::array<ModbusIntf::FileRecord, 1> records{
             {{section, record, data}}};
 
-        if (!co_await modbus->readFileRecord(config.address, records))
+        if (!co_await session.readFileRecord(config.address, records))
         {
             co_return dump;
         }
@@ -400,7 +354,7 @@ auto RegisterReader::readBlock(const ConfigIntf::Config& config,
             std::min<size_t>(length - read, ModbusIntf::maxRegisterSpanLength));
         std::vector<uint16_t> part(count);
 
-        if (!co_await modbus->readHoldingRegisters(
+        if (!co_await session.readHoldingRegisters(
                 config.address, static_cast<uint16_t>(offset + read), part))
         {
             co_return std::vector<uint16_t>{};
@@ -427,7 +381,7 @@ auto RegisterReader::waitForSection(const ConfigIntf::Config& config,
 
         // Ready once the status reads, and no longer holds the busy value.
         std::array<uint16_t, 1> status{};
-        if (co_await modbus->readHoldingRegisters(
+        if (co_await session.readHoldingRegisters(
                 config.address, blackbox.statusRegister, status) &&
             status[0] != blackbox.busyValue)
         {
@@ -445,7 +399,7 @@ auto RegisterReader::readMailboxSection(const ConfigIntf::Config& config,
 {
     SectionDump dump{.section = section};
 
-    if (!co_await modbus->writeSingleRegister(config.address,
+    if (!co_await session.writeSingleRegister(config.address,
                                               blackbox.selectRegister, section))
     {
         co_return dump;
@@ -459,7 +413,7 @@ auto RegisterReader::readMailboxSection(const ConfigIntf::Config& config,
     // Which section is loaded is device state, so confirm it is still the one
     // asked for before reading the window.
     std::array<uint16_t, 1> selected{};
-    if (!co_await modbus->readHoldingRegisters(
+    if (!co_await session.readHoldingRegisters(
             config.address, blackbox.selectRegister, selected) ||
         selected[0] != section)
     {
@@ -513,7 +467,7 @@ auto RegisterReader::read(const ConfigIntf::Config& config, bool withBlackbox)
     };
 
     bool matched = false;
-    auto probe = co_await readProbe(config, matched);
+    auto probe = co_await session.probe(config, matched);
     if (probe.empty())
     {
         dump.result = Result::failure;

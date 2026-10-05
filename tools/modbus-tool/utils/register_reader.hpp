@@ -2,6 +2,7 @@
 
 #include "utils/dump_types.hpp"
 #include "utils/entity_manager_lookup.hpp"
+#include "utils/serial_session.hpp"
 
 #include <sdbusplus/async.hpp>
 
@@ -11,13 +12,11 @@
 namespace modbus_tool
 {
 
-/** @brief Reads devices on one serial port.
- *
- *  Opens the serial device itself and speaks Modbus over it. The port must
- *  already be reserved; nothing here gates against the daemon. */
+/** @brief Reads devices on one serial port, over a session it holds. */
 class RegisterReader
 {
   public:
+    /** @throws std::runtime_error if the port cannot be opened. */
     RegisterReader(sdbusplus::async::context& ctx,
                    const PortIntf::config::PortFactoryConfig& portConfig,
                    const std::string& devicePath);
@@ -26,12 +25,6 @@ class RegisterReader
     RegisterReader(RegisterReader&&) = delete;
     RegisterReader& operator=(RegisterReader&&) = delete;
     ~RegisterReader();
-
-    /** @brief Whether the port was opened. */
-    auto ready() const -> bool
-    {
-        return modbus != nullptr;
-    }
 
     /** @brief Read every register the profile defines.
      *
@@ -42,11 +35,6 @@ class RegisterReader
         -> sdbusplus::async::task<DeviceDump>;
 
   private:
-    /** @brief Read the probe register and compare it with the profile.
-     *  @return The words read, or empty if the device did not answer. */
-    auto readProbe(const ConfigIntf::Config& config, bool& matched)
-        -> sdbusplus::async::task<std::vector<uint16_t>>;
-
     /** @brief Read every section of the device's blackbox.
      *
      *  A section that cannot be read is reported unread rather than
@@ -89,9 +77,7 @@ class RegisterReader
         -> sdbusplus::async::task<std::vector<RegisterDump>>;
 
     sdbusplus::async::context& ctx;
-    const PortIntf::config::PortFactoryConfig& portConfig;
-    int fd = -1;
-    std::unique_ptr<phosphor::modbus::rtu::Modbus> modbus;
+    SerialSession session;
 };
 
 } // namespace modbus_tool

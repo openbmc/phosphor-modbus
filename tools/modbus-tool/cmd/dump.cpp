@@ -4,6 +4,8 @@
 #include "utils/port_reservation.hpp"
 #include "utils/register_reader.hpp"
 
+#include <phosphor-logging/lg2.hpp>
+
 #include <algorithm>
 #include <map>
 #include <string>
@@ -12,6 +14,8 @@
 
 namespace modbus_tool
 {
+
+PHOSPHOR_LOG2_USING;
 
 namespace
 {
@@ -99,13 +103,9 @@ auto dumpPort(sdbusplus::async::context& ctx, const std::string& portName,
     }
 
     std::map<std::string, std::vector<DeviceDump>> results;
-    RegisterReader reader(ctx, *port.config, port.devicePath);
-    if (!reader.ready())
+    try
     {
-        results = failedPort(devices, unavailable);
-    }
-    else
-    {
+        RegisterReader reader(ctx, *port.config, port.devicePath);
         for (const auto* device : devices)
         {
             auto dumps = co_await readDevice(reader, *device, withBlackbox);
@@ -113,6 +113,11 @@ auto dumpPort(sdbusplus::async::context& ctx, const std::string& portName,
             into.insert(into.end(), std::make_move_iterator(dumps.begin()),
                         std::make_move_iterator(dumps.end()));
         }
+    }
+    catch (const std::exception& e)
+    {
+        error("Cannot read {PORT}: {ERROR}", "PORT", portName, "ERROR", e);
+        results = failedPort(devices, unavailable);
     }
 
     co_await reservation.release(ctx);
