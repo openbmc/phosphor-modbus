@@ -5,6 +5,7 @@
 
 #include <sdbusplus/async.hpp>
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,6 +34,10 @@ struct PortDetails
     std::unique_ptr<PortIntf::config::PortFactoryConfig> config;
     std::string devicePath;
 };
+
+/** @brief How a port name is turned into something reachable. */
+using PortLookup = std::function<sdbusplus::async::task<PortDetails>(
+    sdbusplus::async::context&, const std::string&)>;
 
 /** @brief Look the named devices up, in the order given. */
 auto lookupDevices(sdbusplus::async::context& ctx,

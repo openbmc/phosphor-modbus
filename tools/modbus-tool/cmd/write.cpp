@@ -118,11 +118,24 @@ auto runWrite(sdbusplus::async::context& ctx, const std::string& name,
         co_return WriteStatus::notConfigured;
     }
 
-    const auto& device = devices.front();
+    co_return co_await writeDevice(ctx, devices.front(), offset, values,
+                                   lookupPort);
+}
+
+auto writeDevice(sdbusplus::async::context& ctx, const DeviceVariants& device,
+                 uint16_t offset, std::span<const uint16_t> values,
+                 const PortLookup& lookupPortFn)
+    -> sdbusplus::async::task<WriteStatus>
+{
+    if (device.configs.empty())
+    {
+        co_return WriteStatus::notConfigured;
+    }
+
     // Every variant of a device sits on the same port.
     const auto& portName = device.configs.front().serialPort;
 
-    auto port = co_await lookupPort(ctx, portName);
+    auto port = co_await lookupPortFn(ctx, portName);
     if (!port.config)
     {
         co_return WriteStatus::portUnavailable;
