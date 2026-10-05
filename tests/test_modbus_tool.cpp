@@ -1,9 +1,11 @@
 #include "cmd/dump.hpp"
+#include "cmd/write.hpp"
 #include "test_base.hpp"
 #include "utils/common.hpp"
 #include "utils/json_writer.hpp"
 #include "utils/port_reservation.hpp"
 
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <nlohmann/json.hpp>
@@ -15,8 +17,10 @@
 #include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <numeric>
 #include <string>
@@ -793,4 +797,238 @@ TEST_F(AllowedNamesTest, TestAllowlistIsSorted)
     ASSERT_TRUE(names.has_value());
     EXPECT_EQ(*names,
               (std::vector<std::string>{"BBU_SHELF_1", "PSU_1_1", "PSU_1_2"}));
+}
+
+// The write flow, end to end, against the mock Modbus server over a socat
+// pair. Entity Manager is not involved: writeDevice is given the device and a
+// way to reach its port, which is what runWrite would have looked up.
+class WriteFlowTest;
+
+using WriteConnectorIntf =
+    sdbusplus::aserver::xyz::openbmc_project::object::Enable<WriteFlowTest>;
+
+class WriteFlowTest : public BaseTest
+{
+  public:
+    static constexpr auto clientPathPrefix = "/tmp/ttyModbusToolWriteV0";
+    static constexpr auto serverPathPrefix = "/tmp/ttyModbusToolWriteV1";
+    static constexpr auto portName = "TestWritePort0";
+    static constexpr auto connectorPath =
+        "/xyz/openbmc_project/inventory/system/connector/TestWritePort0";
+    // Not the reported model: a probe compares the register with its nulls
+    // removed, which leaves the trailing '0'.
+    static constexpr auto probeValue = "RDF040DSS5190";
+
+    WriteFlowTest() :
+        BaseTest(clientPathPrefix, serverPathPrefix, modbus_tool::daemonService)
+    {}
+
+    void SetUp() override
+    {
+        connector = std::make_unique<WriteConnectorIntf>(
+            ctx, connectorPath,
+            WriteConnectorIntf::properties_t{.enabled = true},
+            WriteConnectorIntf::signal_action::emit_object_added);
+        BaseTest::SetUp();
+    }
+
+    /** @brief A profile whose probe register the mock server answers. */
+    static auto testProfile(std::string expectedValue)
+        -> ProfileIntf::DeviceProfile
+    {
+        return {
+            .parity = ModbusIntf::Parity::none,
+            .baudRate = baudRate,
+            .probeRegister =
+                {.offset = TestIntf::testReadHoldingRegisterModelOffset,
+                 .size = TestIntf::testReadHoldingRegisterModelCount,
+                 .expectedValue = std::move(expectedValue)},
+            .inventoryRegisters = {},
+            .sensorRegisters = {},
+            .statusRegisters = {},
+            .metricRegisters = {},
+            .firmwareRegisters = {},
+        };
+    }
+
+    /** @brief A profile whose probe register the mock server never answers,
+     *  as an absent device would not. */
+    static auto absentProfile() -> ProfileIntf::DeviceProfile
+    {
+        auto profile = testProfile(probeValue);
+        profile.probeRegister.offset = TestIntf::testFailureReadHoldingRegister;
+        profile.probeRegister.size = 1;
+        return profile;
+    }
+
+    static auto testDevice(const ProfileIntf::DeviceProfile& profile)
+        -> modbus_tool::DeviceVariants
+    {
+        ConfigIntf::Config config{
+            .name = "PSU_1_1",
+            .type = "TestDevice",
+            .address = TestIntf::testDeviceAddress,
+            .serialPort = portName,
+            .parentInventoryPath = {},
+            .inventoryPath = {},
+            .profile = profile,
+            .pollRate = 1s,
+        };
+        return {.name = "PSU_1_1", .configs = {std::move(config)}};
+    }
+
+    /** @brief Whether the port was left usable by the daemon. */
+    auto portEnabled() const -> bool
+    {
+        return connector->enabled();
+    }
+
+    /** @brief How many writes reached the device. */
+    auto writesSeen() const -> uint32_t
+    {
+        return serverTester->writeRequestCount;
+    }
+
+    /** @brief Stands in for the entity-manager lookup, handing back the socat
+     *  device instead of a real serial port. */
+    auto portLookup() -> modbus_tool::PortLookup
+    {
+        return [this](sdbusplus::async::context&, const std::string& name)
+                   -> sdbusplus::async::task<modbus_tool::PortDetails> {
+            EXPECT_EQ(name, portName);
+            modbus_tool::PortDetails port;
+            port.config =
+                std::make_unique<PortIntf::config::PortFactoryConfig>();
+            port.config->name = portName;
+            port.config->baudRate = baudRate;
+            port.devicePath = clientDevicePath;
+            co_return std::move(port);
+        };
+    }
+
+    /** @brief A lookup that finds nothing, as an unconfigured port would. */
+    static auto missingPortLookup() -> modbus_tool::PortLookup
+    {
+        return [](sdbusplus::async::context&, const std::string&)
+                   -> sdbusplus::async::task<modbus_tool::PortDetails> {
+            co_return modbus_tool::PortDetails{};
+        };
+    }
+
+    auto run(const modbus_tool::DeviceVariants& device, uint16_t offset,
+             const std::vector<uint16_t>& values,
+             const modbus_tool::PortLookup& lookup) -> modbus_tool::WriteStatus
+    {
+        auto status = modbus_tool::WriteStatus::portUnavailable;
+        ctx.spawn(
+            modbus_tool::writeDevice(ctx, device, offset, values, lookup) |
+            sdbusplus::async::execution::then(
+                [&](modbus_tool::WriteStatus written) {
+                    status = written;
+                    ctx.request_stop();
+                }));
+
+        ctx.run();
+        return status;
+    }
+
+  private:
+    sdbusplus::server::manager_t manager{ctx, InventoryIntf::namespace_path};
+    std::unique_ptr<WriteConnectorIntf> connector;
+};
+
+// A device that answers its probe is written to, and the port is handed back
+// to the daemon afterwards.
+TEST_F(WriteFlowTest, TestRegistersAreWritten)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto status = run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+                      TestIntf::testWriteMultipleRegistersData, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::success);
+    EXPECT_EQ(writesSeen(), 1U);
+    EXPECT_TRUE(portEnabled()) << "the port should be released";
+}
+
+// A single register is the one word case of the same write.
+TEST_F(WriteFlowTest, TestOneRegisterIsWritten)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto status =
+        run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+            {TestIntf::testWriteMultipleRegistersData.front()}, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::success);
+    EXPECT_EQ(writesSeen(), 1U);
+}
+
+// A device that rejects the write is reported, rather than being taken as
+// having stored the value.
+TEST_F(WriteFlowTest, TestRejectedWriteIsReported)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto status = run(device, TestIntf::testFailureWriteMultipleRegistersOffset,
+                      {0x1234}, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::rejected);
+    EXPECT_TRUE(portEnabled()) << "the port should be released";
+}
+
+// A device that does not answer its probe is not written to, so a name that
+// resolves to an absent device cannot put values on the bus.
+TEST_F(WriteFlowTest, TestAbsentDeviceIsNotWritten)
+{
+    auto profile = absentProfile();
+    auto device = testDevice(profile);
+
+    auto status = run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+                      {0x1234}, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::noResponse);
+    EXPECT_EQ(writesSeen(), 0U) << "nothing should reach an absent device";
+}
+
+// A device that answers as another variant is not written to either, since
+// the registers meant for one are not the registers of the other.
+TEST_F(WriteFlowTest, TestProbeMismatchIsNotWritten)
+{
+    auto profile = testProfile("NOTTHISDEVICE");
+    auto device = testDevice(profile);
+
+    auto status = run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+                      {0x1234}, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::probeMismatch);
+    EXPECT_EQ(writesSeen(), 0U);
+}
+
+// A port that cannot be resolved is reported before anything is reserved.
+TEST_F(WriteFlowTest, TestMissingPortIsReported)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto status = run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+                      {0x1234}, missingPortLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::portUnavailable);
+    EXPECT_EQ(writesSeen(), 0U);
+}
+
+// A device with no configuration of any variant has nothing to address.
+TEST_F(WriteFlowTest, TestUnconfiguredDeviceIsReported)
+{
+    modbus_tool::DeviceVariants device{.name = "PSU_1_1", .configs = {}};
+
+    auto status = run(device, TestIntf::testSuccessWriteMultipleRegistersOffset,
+                      {0x1234}, portLookup());
+
+    EXPECT_EQ(status, modbus_tool::WriteStatus::notConfigured);
+    EXPECT_EQ(writesSeen(), 0U);
 }
