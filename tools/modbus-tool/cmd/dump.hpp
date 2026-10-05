@@ -5,7 +5,6 @@
 
 #include <sdbusplus/async.hpp>
 
-#include <functional>
 #include <string>
 #include <vector>
 
@@ -20,10 +19,6 @@ namespace modbus_tool
 auto runDump(sdbusplus::async::context& ctx,
              const std::vector<std::string>& names, bool withBlackbox)
     -> sdbusplus::async::task<Dump>;
-
-/** @brief How a port name is turned into something readable. */
-using PortLookup = std::function<sdbusplus::async::task<PortDetails>(
-    sdbusplus::async::context&, const std::string&)>;
 
 /** @brief The dump itself, given the devices to read and a way to reach their
  *  ports. Kept apart from runDump so the flow does not have to discover its
