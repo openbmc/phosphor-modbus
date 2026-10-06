@@ -16,6 +16,24 @@
       "message": "Instead of having a ready(), since opening a port is an exception clause, throw an exception here if modbus \u003d\u003d nullptr and have the callers of bus() handle the error.",
       "revId": "d5433b59fac27696769c1e083dc4e810e93057a3",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9dd8574_59151bde",
+        "filename": "tools/modbus-tool/utils/serial_session.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-10-06T22:18:09Z",
+      "side": 1,
+      "message": "This API and flow doesn\u0027t exist in the next patch series as constructor has been changed to throw in case of failure. Please review it and let me know if you have any questions. Marking this as resolved.",
+      "parentUuid": "67682d3c_c18468a7",
+      "revId": "d5433b59fac27696769c1e083dc4e810e93057a3",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
