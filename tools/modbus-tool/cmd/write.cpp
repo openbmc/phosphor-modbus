@@ -16,50 +16,13 @@ PHOSPHOR_LOG2_USING;
 namespace
 {
 
-/** @brief The variant of a device that answered its probe.
- *
- *  A second sourced device carries a configuration per variant and only one
- *  is really present, so the write needs to know which answered before it
- *  can address one. */
-struct ProbeOutcome
-{
-    const ConfigIntf::Config* config = nullptr;
-    bool answered = false;
-};
-
-/** @brief Probe each variant and keep the one that is present. */
-auto probeVariants(SerialSession& session, const DeviceVariants& device)
-    -> sdbusplus::async::task<ProbeOutcome>
-{
-    ProbeOutcome outcome;
-
-    for (const auto& config : device.configs)
-    {
-        bool matched = false;
-        auto registers = co_await session.probe(config, matched);
-        if (registers.empty())
-        {
-            continue;
-        }
-
-        outcome.answered = true;
-        if (matched)
-        {
-            outcome.config = &config;
-            break;
-        }
-    }
-
-    co_return outcome;
-}
-
 /** @brief Write to the variant of a device that answered its probe. */
 auto writeProbed(SerialSession& session, const DeviceVariants& device,
                  uint16_t offset, std::span<const uint16_t> values,
                  const std::string& portName)
     -> sdbusplus::async::task<WriteStatus>
 {
-    auto probed = co_await probeVariants(session, device);
+    auto probed = co_await session.probeVariants(device);
     if (probed.config == nullptr)
     {
         co_return probed.answered ? WriteStatus::probeMismatch

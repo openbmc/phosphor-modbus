@@ -72,6 +72,31 @@ auto SerialSession::probe(const ConfigIntf::Config& config, bool& matched)
     co_return registers;
 }
 
+auto SerialSession::probeVariants(const DeviceVariants& device)
+    -> sdbusplus::async::task<ProbeOutcome>
+{
+    ProbeOutcome outcome;
+
+    for (const auto& config : device.configs)
+    {
+        bool matched = false;
+        auto registers = co_await probe(config, matched);
+        if (registers.empty())
+        {
+            continue;
+        }
+
+        outcome.answered = true;
+        if (matched)
+        {
+            outcome.config = &config;
+            break;
+        }
+    }
+
+    co_return outcome;
+}
+
 auto SerialSession::readHoldingRegisters(
     uint8_t deviceAddress, uint16_t registerOffset,
     std::span<uint16_t> registers) -> sdbusplus::async::task<bool>

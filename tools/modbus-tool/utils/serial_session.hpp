@@ -13,6 +13,17 @@
 namespace modbus_tool
 {
 
+/** @brief The variant of a device that answered its probe.
+ *
+ *  A second sourced device carries a configuration per variant and only one
+ *  is really present, so a command needs to know which answered before it
+ *  can address one. */
+struct ProbeOutcome
+{
+    const ConfigIntf::Config* config = nullptr;
+    bool answered = false;
+};
+
 /** @brief An open serial port and the Modbus conversation over it.
  *
  *  Opens the serial device itself, so the caller reserves the port first. A
@@ -40,6 +51,12 @@ class SerialSession
      *  @return The words read, or empty if the device did not answer. */
     auto probe(const ConfigIntf::Config& config, bool& matched)
         -> sdbusplus::async::task<std::vector<uint16_t>>;
+
+    /** @brief Probe each variant of a device and keep the one that is
+     *  present. The port is left with the settings of the last variant
+     *  probed, so apply the profile again before addressing the device. */
+    auto probeVariants(const DeviceVariants& device)
+        -> sdbusplus::async::task<ProbeOutcome>;
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               std::span<uint16_t> registers)
