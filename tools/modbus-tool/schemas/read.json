@@ -1,0 +1,58 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ModbusToolRead",
+    "description": "The registers modbus-tool read from one device at a given offset.",
+    "version": "1.0.0",
+    "type": "object",
+    "required": ["Result", "Offset", "Size", "Raw"],
+    "additionalProperties": false,
+    "if": {
+        "properties": {
+            "Result": {
+                "const": "Success"
+            }
+        }
+    },
+    "then": {
+        "not": {
+            "required": ["Reason"]
+        }
+    },
+    "else": {
+        "required": ["Reason"]
+    },
+    "properties": {
+        "Result": {
+            "description": "Success if the device answered the read, otherwise Failure.",
+            "enum": ["Success", "Failure"]
+        },
+        "Reason": {
+            "description": "Why the read failed. Present only on Failure.",
+            "enum": [
+                "Not configured",
+                "Port unavailable",
+                "No response",
+                "Probe value mismatch",
+                "Read failed"
+            ]
+        },
+        "Offset": {
+            "description": "Offset of the first register read, in hex.",
+            "type": "string",
+            "pattern": "^0x[0-9A-F]+$"
+        },
+        "Size": {
+            "description": "Number of 16-bit registers asked for, read in a single request.",
+            "type": "integer",
+            "minimum": 1
+        },
+        "Raw": {
+            "description": "The values read, one hex string per register, starting with the register at Offset. Holds Size entries on Success, and is empty on Failure.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^0x[0-9A-F]{4}$"
+            }
+        }
+    }
+}

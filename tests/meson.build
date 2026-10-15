@@ -247,6 +247,7 @@ test(
         profile_src,
         cpp_args: modbus_tool_cpp_args + [
             '-DDUMP_SCHEMA="' + meson.project_source_root() / 'tools' / 'modbus-tool' / 'schemas' / 'dump.json' + '"',
+            '-DREAD_SCHEMA="' + meson.project_source_root() / 'tools' / 'modbus-tool' / 'schemas' / 'read.json' + '"',
         ],
         link_with: [modbus_common_lib, test_base_lib],
         dependencies: [

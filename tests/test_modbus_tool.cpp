@@ -1,4 +1,5 @@
 #include "cmd/dump.hpp"
+#include "cmd/read.hpp"
 #include "cmd/write.hpp"
 #include "test_base.hpp"
 #include "utils/common.hpp"
@@ -98,24 +99,15 @@ auto readDevice() -> DeviceDump
     return device;
 }
 
-/** @brief Render a dump, checking it against the schema on the way out.
- *
- *  The schema is what a consumer parses against, so anything the tool writes
- *  has to satisfy it. Going through here means every test that looks at the
- *  output checks that too. */
-auto toCheckedJson(const Dump& dump) -> nlohmann::ordered_json
+/** @brief Check output against the schema a consumer parses it with. */
+auto expectMatchesSchema(const nlohmann::ordered_json& rendered,
+                         const nlohmann::json& schemaJson) -> void
 {
-    static const auto schemaJson = [] {
-        std::ifstream file(DUMP_SCHEMA);
-        return nlohmann::json::parse(file);
-    }();
-
     valijson::Schema schema;
     valijson::SchemaParser parser;
     valijson::adapters::NlohmannJsonAdapter schemaAdapter(schemaJson);
     parser.populateSchema(schemaAdapter, schema);
 
-    auto rendered = toJson(dump);
     // The adapter is written against nlohmann::json, where the tool writes the
     // ordered form, so hand the validator a converted copy.
     const nlohmann::json target = rendered;
@@ -133,7 +125,35 @@ auto toCheckedJson(const Dump& dump) -> nlohmann::ordered_json
                                              std::string{});
         }
     }
+}
 
+/** @brief Render a dump, checking it against the schema on the way out.
+ *
+ *  The schema is what a consumer parses against, so anything the tool writes
+ *  has to satisfy it. Going through here means every test that looks at the
+ *  output checks that too. */
+auto toCheckedJson(const Dump& dump) -> nlohmann::ordered_json
+{
+    static const auto schemaJson = [] {
+        std::ifstream file(DUMP_SCHEMA);
+        return nlohmann::json::parse(file);
+    }();
+
+    auto rendered = toJson(dump);
+    expectMatchesSchema(rendered, schemaJson);
+    return rendered;
+}
+
+/** @brief Render a read, checking it against its schema the same way. */
+auto toCheckedJson(const ReadResult& result) -> nlohmann::ordered_json
+{
+    static const auto schemaJson = [] {
+        std::ifstream file(READ_SCHEMA);
+        return nlohmann::json::parse(file);
+    }();
+
+    auto rendered = toJson(result);
+    expectMatchesSchema(rendered, schemaJson);
     return rendered;
 }
 
@@ -1031,4 +1051,163 @@ TEST_F(WriteFlowTest, TestUnconfiguredDeviceIsReported)
 
     EXPECT_EQ(status, modbus_tool::WriteStatus::notConfigured);
     EXPECT_EQ(writesSeen(), 0U);
+}
+
+// The read flow, against the same mock server and connector as the write
+// flow. Only how the flow is driven differs.
+class ReadFlowTest : public WriteFlowTest
+{
+  public:
+    /** @brief How many reads of a register reached the device. */
+    auto readsSeen(uint16_t offset) const -> uint32_t
+    {
+        return serverTester->readCount(offset);
+    }
+
+    auto read(const modbus_tool::DeviceVariants& device, uint16_t offset,
+              uint16_t size, const modbus_tool::PortLookup& lookup)
+        -> modbus_tool::ReadResult
+    {
+        modbus_tool::ReadResult result;
+        ctx.spawn(modbus_tool::readDevice(ctx, device, offset, size, lookup) |
+                  sdbusplus::async::execution::then(
+                      [&](modbus_tool::ReadResult read) {
+                          result = std::move(read);
+                          ctx.request_stop();
+                      }));
+
+        ctx.run();
+        return result;
+    }
+};
+
+// A device that answers its probe is read, the registers come back as the
+// device sent them, and the port is handed back to the daemon afterwards.
+TEST_F(ReadFlowTest, TestRegistersAreRead)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto result =
+        read(device, TestIntf::testSuccessReadHoldingRegisterOffset,
+             TestIntf::testSuccessReadHoldingRegisterCount, portLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::success);
+    EXPECT_EQ(result.registers,
+              TestIntf::testSuccessReadHoldingRegisterResponse);
+    EXPECT_TRUE(portEnabled()) << "the port should be released";
+
+    auto json = toCheckedJson(result);
+    EXPECT_EQ(json.at("Result"), "Success");
+    EXPECT_FALSE(json.contains("Reason"));
+    EXPECT_EQ(json.at("Offset"), "0x102");
+    EXPECT_EQ(json.at("Size"), 2);
+    EXPECT_EQ(json.at("Raw"), (nlohmann::json{"0x1234", "0x5678"}));
+}
+
+// A register the device refuses is reported as a failed read, with no
+// registers rather than whatever the buffer held.
+TEST_F(ReadFlowTest, TestFailedReadIsReported)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto result =
+        read(device, TestIntf::testFailureReadHoldingRegister, 1, portLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::failed);
+    EXPECT_TRUE(result.registers.empty());
+    EXPECT_TRUE(portEnabled()) << "the port should be released";
+
+    // The keys are the same whether or not the read succeeded.
+    auto json = toCheckedJson(result);
+    EXPECT_EQ(json.at("Result"), "Failure");
+    EXPECT_EQ(json.at("Reason"), "Read failed");
+    EXPECT_EQ(json.at("Size"), 1);
+    EXPECT_TRUE(json.at("Raw").empty());
+}
+
+// A device that does not answer its probe is not read, so an absent device
+// is reported as such rather than as a register that would not read.
+TEST_F(ReadFlowTest, TestAbsentDeviceIsNotRead)
+{
+    auto profile = absentProfile();
+    auto device = testDevice(profile);
+
+    auto result =
+        read(device, TestIntf::testSuccessReadHoldingRegisterOffset,
+             TestIntf::testSuccessReadHoldingRegisterCount, portLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::noResponse);
+    EXPECT_EQ(readsSeen(TestIntf::testSuccessReadHoldingRegisterOffset), 0U);
+    EXPECT_EQ(toCheckedJson(result).at("Reason"), "No response");
+}
+
+// A device that answers as another variant is not read either, since its
+// registers are not laid out as the offset assumes.
+TEST_F(ReadFlowTest, TestProbeMismatchIsNotRead)
+{
+    auto profile = testProfile("NOTTHISDEVICE");
+    auto device = testDevice(profile);
+
+    auto result =
+        read(device, TestIntf::testSuccessReadHoldingRegisterOffset,
+             TestIntf::testSuccessReadHoldingRegisterCount, portLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::probeMismatch);
+    EXPECT_EQ(readsSeen(TestIntf::testSuccessReadHoldingRegisterOffset), 0U);
+}
+
+// A port that cannot be resolved is reported before anything is reserved.
+TEST_F(ReadFlowTest, TestMissingPortIsReported)
+{
+    auto profile = testProfile(probeValue);
+    auto device = testDevice(profile);
+
+    auto result = read(device, TestIntf::testSuccessReadHoldingRegisterOffset,
+                       TestIntf::testSuccessReadHoldingRegisterCount,
+                       missingPortLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::portUnavailable);
+    EXPECT_EQ(readsSeen(TestIntf::testSuccessReadHoldingRegisterOffset), 0U);
+}
+
+// A device with no configuration of any variant has nothing to address.
+TEST_F(ReadFlowTest, TestUnconfiguredDeviceIsReported)
+{
+    modbus_tool::DeviceVariants device{.name = "PSU_1_1", .configs = {}};
+
+    auto result =
+        read(device, TestIntf::testSuccessReadHoldingRegisterOffset,
+             TestIntf::testSuccessReadHoldingRegisterCount, portLookup());
+
+    EXPECT_EQ(result.status, modbus_tool::ReadStatus::notConfigured);
+    EXPECT_EQ(result.offset, TestIntf::testSuccessReadHoldingRegisterOffset);
+    EXPECT_EQ(toCheckedJson(result).at("Reason"), "Not configured");
+}
+
+// Every way a read can end renders to the schema, with a Reason exactly when
+// it failed, so a script can tell why without parsing stderr.
+TEST(ModbusToolReadSchema, TestReasonOnlyOnFailure)
+{
+    for (auto status : {ReadStatus::success, ReadStatus::notConfigured,
+                        ReadStatus::portUnavailable, ReadStatus::noResponse,
+                        ReadStatus::probeMismatch, ReadStatus::failed})
+    {
+        ReadResult result{.status = status, .offset = 0x5A, .size = 2};
+        if (status == ReadStatus::success)
+        {
+            result.registers = {0x68B1, 0x2C40};
+        }
+
+        auto json = toCheckedJson(result);
+        if (status == ReadStatus::success)
+        {
+            EXPECT_FALSE(json.contains("Reason"));
+        }
+        else
+        {
+            EXPECT_EQ(json.at("Reason"), readStatusMessage(status));
+        }
+    }
 }

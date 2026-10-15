@@ -3,9 +3,10 @@
 Talks Modbus to a device directly, rather than through the daemon.
 
 `dump` reads every register the device profile defines and reports them as JSON.
-`write` puts values into a register.
+`read` reports a run of registers from a given offset. `write` puts values into
+a register.
 
-Given a device name, either one looks up the entity-manager configuration,
+Given a device name, each one looks up the entity-manager configuration,
 resolves the serial port, loads the device profile for its type, and reserves
 the port before it uses the bus.
 
@@ -34,9 +35,9 @@ modbus-tool dump --all --output dump.json
 Reads log to stderr on a terminal. Only warnings and worse are shown, unless
 `--verbose` or an `LG2_LOG_LEVEL` in the environment asks for more.
 
-A dump pauses `xyz.openbmc_project.ModbusRTU` on the ports involved, so the tool
-says so and waits for a yes first. `--yes` skips the prompt, and is required
-when stdin is not a terminal so a script never blocks on it.
+Every command pauses `xyz.openbmc_project.ModbusRTU` on the ports involved, so
+the tool says so and waits for a yes first. `--yes` skips the prompt, and is
+required when stdin is not a terminal so a script never blocks on it.
 
 `--devices` and `--all` are mutually exclusive, and one of them is required.
 
@@ -50,6 +51,32 @@ allowlist is configured, or it is empty, there is no set to read and the tool
 says to name the devices with `--devices` instead. A name the allowlist has but
 entity-manager does not is reported as `Not configured`, rather than dropped, so
 the two configurations disagreeing is visible.
+
+### read
+
+```sh
+modbus-tool read --device PSU_1_1 --offset 5A --count 2
+modbus-tool read --device PSU_1_1 --offset 0x3C --count 5 --yes
+```
+
+| Option                | Description                              |
+| --------------------- | ---------------------------------------- |
+| `-d`, `--device NAME` | Device to read from.                     |
+| `--offset HEX`        | Offset of the first register.            |
+| `-c`, `--count N`     | Number of registers, decimal. Default 1. |
+| `-y`, `--yes`         | Do not ask before pausing monitoring.    |
+| `-v`, `--verbose`     | Log everything the read does.            |
+
+The offset is hex, with or without a `0x` prefix, as a dump reports it. The
+count is a length, so it is decimal, as a dump's `Size` is. It is capped at what
+one request carries, the build's `max-register-span-length`, 120 by default, so
+a read is a single Modbus transaction and either returns every register or none.
+A longer range takes more than one read, or a dump. A run past the last register
+is rejected rather than wrapped round to offset 0.
+
+The device is probed before it is read, so a name that resolves to an absent
+device, or to a variant that is not the one present, is reported rather than
+read from.
 
 ### write
 
@@ -95,6 +122,51 @@ configured, is reported as that device's `Result` and `Reason`, so the rest of
 the dump survives. Exit 1 is for the cases that leave nothing to read: no
 allowlist to expand, no device that could be read, the output file could not be
 written, or the lock could not be acquired.
+
+For a read:
+
+| Code | Meaning              |
+| ---- | -------------------- |
+| 0    | The device answered. |
+| 1    | Anything else.       |
+
+The registers are a single object on stdout, described as a JSON Schema in
+[schemas/read.json](schemas/read.json):
+
+```json
+{
+  "Result": "Success",
+  "Offset": "0x5A",
+  "Size": 2,
+  "Raw": ["0x68B1", "0x2C40"]
+}
+```
+
+`Offset`, `Size` and `Raw` mean what they do on a register in a dump, so a read
+can be compared against the same register there. A read that failed keeps those
+keys, with `Result` `Failure` and an empty `Raw`, and adds a `Reason`:
+
+```json
+{
+  "Result": "Failure",
+  "Reason": "No response",
+  "Offset": "0x5A",
+  "Size": 2,
+  "Raw": []
+}
+```
+
+`Reason` is present only on `Failure`, and is the same line stderr shows:
+
+| Reason                 | Meaning                                       |
+| ---------------------- | --------------------------------------------- |
+| `Not configured`       | The name is not in entity-manager.            |
+| `Port unavailable`     | The port was held by another client.          |
+| `No response`          | The device did not answer the probe.          |
+| `Probe value mismatch` | It answered, but not as this variant.         |
+| `Read failed`          | It answered the probe, but rejected the read. |
+
+The first four mean what they do on a device in a dump.
 
 For a write:
 

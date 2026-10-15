@@ -1,5 +1,7 @@
 #include "cmd/dump.hpp"
+#include "cmd/read.hpp"
 #include "cmd/write.hpp"
+#include "modbus_rtu_config.hpp"
 #include "utils/common.hpp"
 #include "utils/json_writer.hpp"
 #include "utils/port_reservation.hpp"
@@ -103,6 +105,7 @@ struct Options
     std::string device{};
     std::string offset{};
     std::vector<std::string> values{};
+    uint16_t count = 1;
 };
 
 /** @brief Parse a 16-bit register word, written in hex with or without 0x.
@@ -145,6 +148,27 @@ auto addDumpCommand(CLI::App& app, Options& options) -> void
                    "Log everything the read does");
 }
 
+/** @brief Define the read subcommand and what it takes. */
+auto addReadCommand(CLI::App& app, Options& options) -> void
+{
+    auto* read = app.add_subcommand("read", "Read a device's registers");
+    read->add_option("-d,--device", options.device, "Device to read from")
+        ->required();
+    read->add_option("--offset", options.offset,
+                     "Register offset in hex, e.g. 5A or 0x5A")
+        ->required();
+    // Capped at what one request carries, so a read either returns every
+    // register or none.
+    read->add_option("-c,--count", options.count,
+                     "Number of registers to read, in decimal")
+        ->check(CLI::Range(uint16_t{1},
+                           phosphor::modbus::rtu::maxRegisterSpanLength));
+    read->add_flag("-y,--yes", options.assumeYes,
+                   "Do not ask before pausing monitoring");
+    read->add_flag("-v,--verbose", options.verbose,
+                   "Log everything the read does");
+}
+
 /** @brief Define the write subcommand and what it takes. */
 auto addWriteCommand(CLI::App& app, Options& options) -> void
 {
@@ -164,6 +188,24 @@ auto addWriteCommand(CLI::App& app, Options& options) -> void
                     "Do not ask before pausing monitoring");
     write->add_flag("-v,--verbose", options.verbose,
                     "Log everything the write does");
+}
+
+/** @brief Perform the read and report how it ended. */
+auto takeRead(const std::string& name, uint16_t offset, uint16_t count)
+    -> modbus_tool::ReadResult
+{
+    sdbusplus::async::context ctx;
+
+    modbus_tool::ReadResult result{.offset = offset, .size = count};
+    ctx.spawn(
+        modbus_tool::runRead(ctx, name, offset, count) |
+        sdbusplus::async::execution::then([&](modbus_tool::ReadResult read) {
+            result = std::move(read);
+            ctx.request_stop();
+        }));
+    ctx.run();
+
+    return result;
 }
 
 /** @brief Perform the write and report how it ended. */
@@ -253,6 +295,47 @@ auto runDumpCommand(Options& options) -> int
     return failures == result->devices.size() ? 1 : 0;
 }
 
+/** @brief Run the read subcommand. */
+auto runReadCommand(const Options& options) -> int
+{
+    auto offset = parseHexWord(options.offset);
+    if (!offset)
+    {
+        std::cerr << "Not a register offset: " << options.offset << "\n";
+        return 1;
+    }
+
+    // A run past the last register would wrap round to offset 0.
+    if (*offset + options.count - 1 > 0xFFFF)
+    {
+        std::cerr << "Reading " << options.count << " registers from "
+                  << std::format("{:#06x}", *offset)
+                  << " runs past the last register\n";
+        return 1;
+    }
+
+    if (!options.assumeYes && !confirm())
+    {
+        return 1;
+    }
+
+    // Only one instance may run at a time.
+    modbus_tool::InstanceLock lock;
+    if (!lock.acquire())
+    {
+        std::cerr << "Another modbus-tool is already running\n";
+        return 1;
+    }
+
+    auto result = takeRead(options.device, *offset, options.count);
+
+    std::cerr << options.device << ": "
+              << modbus_tool::readStatusMessage(result.status) << "\n";
+    std::cout << modbus_tool::toJson(result).dump(2) << "\n";
+
+    return result.status == modbus_tool::ReadStatus::success ? 0 : 1;
+}
+
 /** @brief Run the write subcommand. */
 auto runWriteCommand(const Options& options) -> int
 {
@@ -318,6 +401,7 @@ int main(int argc, char** argv)
 
     Options options;
     addDumpCommand(app, options);
+    addReadCommand(app, options);
     addWriteCommand(app, options);
 
     CLI11_PARSE(app, argc, argv);
@@ -328,6 +412,11 @@ int main(int argc, char** argv)
     {
         auto quiet = std::to_string(std::to_underlying(lg2::level::warning));
         setenv("LG2_LOG_LEVEL", quiet.c_str(), 0);
+    }
+
+    if (app.got_subcommand("read"))
+    {
+        return runReadCommand(options);
     }
 
     if (app.got_subcommand("write"))
