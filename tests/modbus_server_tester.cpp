@@ -75,6 +75,12 @@ auto ServerTester::processRequestsInternal() -> void
     bool segmentedResponse = false;
     processMessage(request, ret, response, segmentedResponse);
 
+    if (responsesToDrop.load() > 0)
+    {
+        responsesToDrop.fetch_sub(1);
+        return;
+    }
+
     if (!segmentedResponse)
     {
         ret = write(fd, response.raw.data(), response.len);

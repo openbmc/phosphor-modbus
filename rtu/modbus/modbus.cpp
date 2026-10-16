@@ -24,7 +24,7 @@ const std::unordered_map<int, speed_t> baudRateMap = {
 
 Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
                uint16_t rtsDelay, std::chrono::microseconds timeout) :
-    ctx(ctx), fd(fd), rtsDelay(rtsDelay), fdioInstance(ctx, fd, timeout)
+    ctx(ctx), fd(fd), rtsDelay(rtsDelay), timeout(timeout)
 {
     if (!setProperties(baudRate, Parity::even))
     {
@@ -34,6 +34,11 @@ Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
     setRS485Config();
 
     info("Modbus created successfully");
+}
+
+auto Modbus::setTimeout(std::chrono::microseconds inTimeout) -> void
+{
+    timeout = inTimeout;
 }
 
 static auto applyParitySettings(Parity parity, termios& tty) -> bool
@@ -367,6 +372,7 @@ auto Modbus::readResponse(uint8_t deviceAddress, Message& response,
     -> sdbusplus::async::task<bool>
 {
     int expectedLen = response.len;
+    sdbusplus::async::fdio fdioInstance(ctx, fd, timeout);
 
     do
     {
