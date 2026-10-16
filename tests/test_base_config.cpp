@@ -4,6 +4,7 @@
 
 #include <array>
 #include <chrono>
+#include <limits>
 #include <optional>
 #include <string>
 #include <utility>
@@ -13,6 +14,7 @@
 using namespace std::literals;
 
 namespace ConfigIntf = phosphor::modbus::rtu::config;
+namespace RTUIntf = phosphor::modbus::rtu;
 namespace EMIntf = entity_manager;
 
 // Mirrors the Entity Manager layout for a second-sourced PSU, where both
@@ -80,6 +82,15 @@ class BaseConfigTest : public ::testing::Test
             interfaces);
     }
 
+    static auto expectIdentityFields(const ConfigIntf::Config& config) -> void
+    {
+        EXPECT_EQ(config.name, "PSU_1_1");
+        EXPECT_EQ(config.type, deltaType);
+        EXPECT_EQ(config.address, 0x90);
+        EXPECT_EQ(config.serialPort, "ttyRS485-1");
+        EXPECT_EQ(config.parentInventoryPath.str, parentPath);
+    }
+
     auto testBaseFields(EMIntf::ConfigData interfaces)
         -> sdbusplus::async::task<void>
     {
@@ -89,11 +100,8 @@ class BaseConfigTest : public ::testing::Test
             ADD_FAILURE() << "Failed to parse config";
             co_return;
         }
-        EXPECT_EQ(config->name, "PSU_1_1");
-        EXPECT_EQ(config->type, deltaType);
-        EXPECT_EQ(config->address, 0x90);
-        EXPECT_EQ(config->serialPort, "ttyRS485-1");
-        EXPECT_EQ(config->parentInventoryPath.str, parentPath);
+        expectIdentityFields(*config);
+        EXPECT_EQ(config->rtuTimeout, RTUIntf::modbusRTUTimeout);
         EXPECT_TRUE(config->registerPollRates.empty());
         co_return;
     }
@@ -108,6 +116,68 @@ class BaseConfigTest : public ::testing::Test
             co_return;
         }
         EXPECT_EQ(config->pollRate, 3s);
+        co_return;
+    }
+
+    auto testRTUTimeoutOverride(EMIntf::ConfigData interfaces)
+        -> sdbusplus::async::task<void>
+    {
+        auto config = co_await getConfig(interfaces, deltaType);
+        if (!config)
+        {
+            ADD_FAILURE() << "Failed to parse config";
+            co_return;
+        }
+        EXPECT_EQ(config->rtuTimeout, 300000us);
+        co_return;
+    }
+
+    auto testIncorrectRTUTimeoutType(EMIntf::ConfigData interfaces)
+        -> sdbusplus::async::task<void>
+    {
+        auto config = co_await getConfig(interfaces, deltaType);
+        EXPECT_FALSE(config);
+        co_return;
+    }
+
+    auto testRTUTimeoutFallback(EMIntf::ConfigData interfaces)
+        -> sdbusplus::async::task<void>
+    {
+        auto config = co_await getConfig(interfaces, deltaType);
+        if (!config)
+        {
+            ADD_FAILURE() << "Failed to parse config";
+            co_return;
+        }
+        EXPECT_EQ(config->rtuTimeout, RTUIntf::modbusRTUTimeout);
+        co_return;
+    }
+
+    auto testMaxRTUTimeout(EMIntf::ConfigData interfaces)
+        -> sdbusplus::async::task<void>
+    {
+        auto config = co_await getConfig(interfaces, deltaType);
+        if (!config)
+        {
+            ADD_FAILURE() << "Failed to parse config";
+            co_return;
+        }
+        EXPECT_EQ(config->rtuTimeout, std::chrono::microseconds::max());
+        co_return;
+    }
+
+    auto testSecondSourceTimeouts(EMIntf::ConfigData interfaces)
+        -> sdbusplus::async::task<void>
+    {
+        auto delta = co_await getConfig(interfaces, deltaType);
+        auto artesyn = co_await getConfig(interfaces, artesynType);
+        if (!delta || !artesyn)
+        {
+            ADD_FAILURE() << "Failed to parse config";
+            co_return;
+        }
+        EXPECT_EQ(delta->rtuTimeout, 300000us);
+        EXPECT_EQ(artesyn->rtuTimeout, RTUIntf::modbusRTUTimeout);
         co_return;
     }
 
@@ -180,6 +250,50 @@ TEST_F(BaseConfigTest, TestDevicePollRate)
     run(testDevicePollRate(interfaces));
 }
 
+TEST_F(BaseConfigTest, TestRTUTimeoutOverride)
+{
+    auto deviceMap = deviceInterface(deltaType);
+    deviceMap.insert({"RTUTimeout", uint64_t{300000}});
+    EMIntf::ConfigData interfaces = {{interfaceFor(deltaType), deviceMap}};
+    run(testRTUTimeoutOverride(interfaces));
+}
+
+TEST_F(BaseConfigTest, TestIncorrectRTUTimeoutTypeRejectsConfig)
+{
+    auto deviceMap = deviceInterface(deltaType);
+    deviceMap.insert({"RTUTimeout", std::string("300000")});
+    EMIntf::ConfigData interfaces = {{interfaceFor(deltaType), deviceMap}};
+    run(testIncorrectRTUTimeoutType(interfaces));
+}
+
+TEST_F(BaseConfigTest, TestZeroRTUTimeoutUsesDefault)
+{
+    auto deviceMap = deviceInterface(deltaType);
+    deviceMap.insert({"RTUTimeout", uint64_t{0}});
+    EMIntf::ConfigData interfaces = {{interfaceFor(deltaType), deviceMap}};
+    run(testRTUTimeoutFallback(interfaces));
+}
+
+TEST_F(BaseConfigTest, TestRTUTimeoutAboveRepMaxUsesDefault)
+{
+    constexpr auto maxTimeout = std::chrono::microseconds::rep(
+        std::numeric_limits<std::chrono::microseconds::rep>::max());
+    auto deviceMap = deviceInterface(deltaType);
+    deviceMap.insert({"RTUTimeout", static_cast<uint64_t>(maxTimeout) + 1});
+    EMIntf::ConfigData interfaces = {{interfaceFor(deltaType), deviceMap}};
+    run(testRTUTimeoutFallback(interfaces));
+}
+
+TEST_F(BaseConfigTest, TestMaxRTUTimeoutIsAccepted)
+{
+    constexpr auto maxTimeout =
+        std::numeric_limits<std::chrono::microseconds::rep>::max();
+    auto deviceMap = deviceInterface(deltaType);
+    deviceMap.insert({"RTUTimeout", static_cast<uint64_t>(maxTimeout)});
+    EMIntf::ConfigData interfaces = {{interfaceFor(deltaType), deviceMap}};
+    run(testMaxRTUTimeout(interfaces));
+}
+
 // Every .RegisterPollRates<N> sub-interface is collected, keyed by register
 // name.
 TEST_F(BaseConfigTest, TestRegisterPollRates)
@@ -200,4 +314,14 @@ TEST_F(BaseConfigTest, TestSecondSourceInterfacesAreIsolated)
     withStatusPollRates(interfaces, deltaType, 45);
     withStatusPollRates(interfaces, artesynType, 30);
     run(testSecondSource(interfaces));
+}
+
+TEST_F(BaseConfigTest, TestSecondSourceRTUTimeoutIsIsolated)
+{
+    auto deltaMap = deviceInterface(deltaType);
+    deltaMap.insert({"RTUTimeout", uint64_t{300000}});
+    EMIntf::ConfigData interfaces = {
+        {interfaceFor(deltaType), deltaMap},
+        {interfaceFor(artesynType), deviceInterface(artesynType)}};
+    run(testSecondSourceTimeouts(interfaces));
 }

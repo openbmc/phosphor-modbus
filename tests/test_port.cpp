@@ -96,6 +96,37 @@ class PortTest : public BaseTest
             RTUIntf::Parity::none, registers);
     }
 
+    auto TestOperationTimeout(PortConfigIntf::Config& config, MockPort& port)
+        -> sdbusplus::async::task<void>
+    {
+        std::vector<uint16_t> registers(
+            TestIntf::testSuccessReadHoldingRegisterCount);
+        const auto start = std::chrono::steady_clock::now();
+        auto timedOut = co_await port.readHoldingRegisters(
+            TestIntf::testDeviceAddress,
+            TestIntf::testSuccessReadHoldingRegisterOffset, config.baudRate,
+            RTUIntf::Parity::none, registers,
+            {.retries = 0, .timeout = std::chrono::milliseconds(10)});
+        const auto elapsed = std::chrono::steady_clock::now() - start;
+        EXPECT_EQ(timedOut, PortIntf::OperationStatus::failure);
+        EXPECT_LT(elapsed, std::chrono::milliseconds(500));
+
+        // A per-operation timeout must not change the configured default on
+        // the shared port for a subsequent operation without an override.
+        serverTester->dropNextResponse();
+        const auto defaultStart = std::chrono::steady_clock::now();
+        auto defaultStatus = co_await port.readHoldingRegisters(
+            TestIntf::testDeviceAddress,
+            TestIntf::testSuccessReadHoldingRegisterOffset, config.baudRate,
+            RTUIntf::Parity::none, registers, {.retries = 0});
+        const auto defaultElapsed =
+            std::chrono::steady_clock::now() - defaultStart;
+        EXPECT_EQ(defaultStatus, PortIntf::OperationStatus::failure);
+        EXPECT_GE(defaultElapsed, std::chrono::milliseconds(500));
+        ctx.request_stop();
+        co_return;
+    }
+
     auto TestExclusiveLock(PortConfigIntf::Config& config, MockPort& port)
         -> sdbusplus::async::task<void>
     {
@@ -301,6 +332,19 @@ TEST_F(PortTest, TestReadHoldingRegisterFailure)
     ctx.spawn(sdbusplus::async::sleep_for(ctx, 1s) |
               sdbusplus::async::execution::then([&]() { ctx.request_stop(); }));
 
+    ctx.run();
+}
+
+TEST_F(PortTest, TestOperationTimeoutDoesNotBleed)
+{
+    PortConfigIntf::Config config = {};
+    auto res = PortConfigIntf::updateBaseConfig(config, properties);
+    EXPECT_TRUE(res) << "Failed to update config";
+    config.timeout = std::chrono::seconds(1);
+
+    MockPort port(ctx, config, clientDevicePath);
+    serverTester->dropNextResponse();
+    ctx.spawn(TestOperationTimeout(config, port));
     ctx.run();
 }
 

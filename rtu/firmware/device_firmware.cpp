@@ -93,7 +93,7 @@ auto DeviceFirmware::readVersionRegister(const FirmwareVersion& fwVersion)
     auto registers = std::vector<uint16_t>(versionRegister.size);
     auto ret = co_await serialPort.readHoldingRegisters(
         config.address, versionRegister.offset, config.profile.baudRate,
-        config.profile.parity, registers);
+        config.profile.parity, registers, {.timeout = config.rtuTimeout});
     if (ret == port::OperationStatus::busy)
     {
         co_return;

@@ -7,6 +7,8 @@
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
 #include <flat_map>
+#include <limits>
+#include <stdexcept>
 #include <unordered_map>
 
 namespace phosphor::modbus::rtu::config
@@ -69,6 +71,33 @@ static auto parseRegisterPollRates(const ConfigData& interfaces,
     return registerPollRates;
 }
 
+static auto parseRTUTimeout(const BaseConfigMap& configMap,
+                            const std::string& name)
+    -> std::chrono::microseconds
+{
+    auto rtuTimeout = modbusRTUTimeout;
+    auto rtuTimeoutIter = configMap.find("RTUTimeout");
+    if (rtuTimeoutIter != configMap.end())
+    {
+        const auto rtuTimeoutValue =
+            getValue<uint64_t>(configMap, "RTUTimeout", name);
+        using RTUTimeoutRep = std::chrono::microseconds::rep;
+        constexpr auto maxTimeout =
+            static_cast<uint64_t>(std::numeric_limits<RTUTimeoutRep>::max());
+        if (rtuTimeoutValue == 0 || rtuTimeoutValue > maxTimeout)
+        {
+            warning("Invalid RTUTimeout for {NAME}; using default", "NAME",
+                    name);
+        }
+        else
+        {
+            rtuTimeout = std::chrono::microseconds(
+                static_cast<RTUTimeoutRep>(rtuTimeoutValue));
+        }
+    }
+    return rtuTimeout;
+}
+
 static auto parseConfig(const ConfigData& interfaces,
                         const sdbusplus::object_path& objectPath,
                         const std::string& interfaceName, std::string type,
@@ -100,6 +129,8 @@ static auto parseConfig(const ConfigData& interfaces,
                 std::chrono::seconds(std::get<uint64_t>(pollRateIter->second));
         }
 
+        auto rtuTimeout = parseRTUTimeout(configMap, name);
+
         return Config{
             .name = std::move(name),
             .type = std::move(type),
@@ -109,6 +140,7 @@ static auto parseConfig(const ConfigData& interfaces,
             .inventoryPath = {},
             .profile = profile,
             .pollRate = pollRate,
+            .rtuTimeout = rtuTimeout,
             .registerPollRates =
                 parseRegisterPollRates(interfaces, interfaceName),
         };
