@@ -38,7 +38,7 @@ BasePort::BasePort(sdbusplus::async::context& ctx, const config::Config& config,
                    const std::string& devicePath) :
     PortConnectorIntf(ctx, getConnectorPath(config.name), std::nullopt,
                       initEnabled, signal_action::emit_object_added),
-    name(config.name), mutex(config.name)
+    name(config.name), timeout(config.timeout), mutex(config.name)
 {
     fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
     if (fd == -1)
@@ -156,6 +156,8 @@ auto BasePort::readHoldingRegisters(
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
 
+    modbus->setTimeout(options.timeout.value_or(timeout));
+
     if (!modbus->setProperties(baudRate, parity))
     {
         error("Failed to set serial port properties");
@@ -194,6 +196,8 @@ auto BasePort::writeMultipleRegisters(
 
     sdbusplus::async::lock_guard lg{mutex};
     co_await lg.lock();
+
+    modbus->setTimeout(options.timeout.value_or(timeout));
 
     if (!modbus->setProperties(baudRate, parity))
     {

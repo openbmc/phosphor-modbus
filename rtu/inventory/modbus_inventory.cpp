@@ -176,7 +176,8 @@ auto Device::probeDevice() -> sdbusplus::async::task<void>
 
     auto ret = co_await port.readHoldingRegisters(
         config.address, probe.offset, config.profile.baudRate,
-        config.profile.parity, registers, {.retries = inventoryProbeRetries});
+        config.profile.parity, registers,
+        {.retries = inventoryProbeRetries, .timeout = config.rtuTimeout});
     if (ret == ModbusIntf::port::OperationStatus::busy)
     {
         co_return;
@@ -224,7 +225,7 @@ auto Device::addInventoryServer() -> sdbusplus::async::task<void>
         std::fill(spanBuffer.begin(), spanBuffer.end(), 0);
         auto ret = co_await port.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
-            config.profile.parity, spanBuffer);
+            config.profile.parity, spanBuffer, {.timeout = config.rtuTimeout});
         if (ret == ModbusIntf::port::OperationStatus::busy)
         {
             continue;

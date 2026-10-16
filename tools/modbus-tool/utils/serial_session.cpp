@@ -52,6 +52,7 @@ SerialSession::~SerialSession()
 
 auto SerialSession::applyProfile(const ConfigIntf::Config& config) -> bool
 {
+    modbus->setTimeout(config.rtuTimeout);
     return modbus->setProperties(portConfig.baudRate, config.profile.parity);
 }
 

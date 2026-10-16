@@ -2,6 +2,7 @@
 
 #include "common/entity_manager_interface.hpp"
 #include "device_profile.hpp"
+#include "modbus_rtu_config.hpp"
 
 #include <sdbusplus/async.hpp>
 
@@ -28,6 +29,7 @@ struct Config
     sdbusplus::object_path inventoryPath;
     const ProfileIntf::DeviceProfile& profile;
     std::chrono::seconds pollRate;
+    std::chrono::microseconds rtuTimeout = modbusRTUTimeout;
     // Per-register poll interval overrides, keyed by register name.
     std::unordered_map<std::string, std::chrono::seconds> registerPollRates{};
 };
