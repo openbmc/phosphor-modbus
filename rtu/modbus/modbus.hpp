@@ -5,6 +5,7 @@
 
 #include <sdbusplus/async.hpp>
 
+#include <chrono>
 #include <cstdint>
 #include <span>
 
@@ -26,6 +27,7 @@ class Modbus
                     uint16_t rtsDelay, std::chrono::microseconds timeout);
 
     auto setProperties(uint32_t inBaudRate, Parity inParity) -> bool;
+    auto setTimeout(std::chrono::microseconds timeout) -> void;
 
     auto readHoldingRegisters(uint8_t deviceAddress, uint16_t registerOffset,
                               std::span<uint16_t> registers,

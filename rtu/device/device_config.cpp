@@ -52,7 +52,7 @@ auto DeviceConfig::writeRegister(const ProfileIntf::ConfigRegister& reg)
     }
     co_return co_await serialPort.writeMultipleRegisters(
         config.address, reg.offset, config.profile.baudRate,
-        config.profile.parity, values);
+        config.profile.parity, values, {.timeout = config.rtuTimeout});
 }
 
 auto DeviceConfig::writeInitial() -> sdbusplus::async::task<void>
