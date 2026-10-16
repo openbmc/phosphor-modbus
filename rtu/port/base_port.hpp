@@ -9,6 +9,7 @@
 #include <xyz/openbmc_project/Inventory/Item/Connector/aserver.hpp>
 #include <xyz/openbmc_project/Object/Enable/aserver.hpp>
 
+#include <chrono>
 #include <concepts>
 #include <cstdint>
 #include <optional>
@@ -137,6 +138,8 @@ struct OperationOptions
     /** @brief Exclusive-lock handle; set to bypass the busy gate while the
      *  port is reserved (e.g. during a firmware update). */
     ExclusiveLock* lock = nullptr;
+    /** @brief Override the configured timeout for this operation only. */
+    std::optional<std::chrono::microseconds> timeout = std::nullopt;
 };
 
 class BasePort;
@@ -187,6 +190,7 @@ class BasePort : public PortConnectorIntf
     auto waitForIdle(uint64_t forReservation) -> sdbusplus::async::task<void>;
 
     std::string name;
+    std::chrono::microseconds timeout;
     int fd = -1;
     std::unique_ptr<ModbusIntf> modbus;
     sdbusplus::async::mutex mutex;

@@ -36,6 +36,11 @@ Modbus::Modbus(sdbusplus::async::context& ctx, int fd, uint32_t baudRate,
     info("Modbus created successfully");
 }
 
+auto Modbus::setTimeout(std::chrono::microseconds inTimeout) -> void
+{
+    fdioInstance.setTimeout(inTimeout);
+}
+
 static auto applyParitySettings(Parity parity, termios& tty) -> bool
 {
     switch (parity)

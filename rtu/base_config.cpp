@@ -6,7 +6,10 @@
 #include <phosphor-logging/lg2.hpp>
 #include <xyz/openbmc_project/Inventory/Item/client.hpp>
 
+#include <cmath>
 #include <flat_map>
+#include <limits>
+#include <stdexcept>
 #include <unordered_map>
 
 namespace phosphor::modbus::rtu::config
@@ -69,6 +72,51 @@ static auto parseRegisterPollRates(const ConfigData& interfaces,
     return registerPollRates;
 }
 
+static auto parseRTUTimeout(const BaseConfigMap& configMap,
+                            const std::string& name)
+    -> std::chrono::microseconds
+{
+    auto rtuTimeout = modbusRTUTimeout;
+    auto rtuTimeoutIter = configMap.find("RTUTimeout");
+    if (rtuTimeoutIter != configMap.end())
+    {
+        if (const auto* seconds = std::get_if<double>(&rtuTimeoutIter->second))
+        {
+            using Rep = std::chrono::microseconds::rep;
+            // Round to the nearest microsecond rather than truncating the
+            // binary representation of decimal seconds (for example, 0.3).
+            const auto micros = std::round(*seconds * 1000000.0L);
+            // The exclusive power-of-two bound remains exact even when the
+            // floating-point type cannot represent Rep's maximum exactly.
+            if (std::isfinite(*seconds) && *seconds >= 0.000001 &&
+                micros < std::ldexp(1.0L, std::numeric_limits<Rep>::digits))
+            {
+                return std::chrono::microseconds(static_cast<Rep>(micros));
+            }
+            warning("Invalid RTUTimeout for {NAME}; using default", "NAME",
+                    name);
+            return rtuTimeout;
+        }
+        const auto rtuTimeoutValue =
+            getValue<uint64_t>(configMap, "RTUTimeout", name);
+        constexpr auto maxSeconds = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::microseconds::max())
+                .count());
+        if (rtuTimeoutValue == 0 || rtuTimeoutValue > maxSeconds)
+        {
+            warning("Invalid RTUTimeout for {NAME}; using default", "NAME",
+                    name);
+        }
+        else
+        {
+            rtuTimeout = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::seconds(rtuTimeoutValue));
+        }
+    }
+    return rtuTimeout;
+}
+
 static auto parseConfig(const ConfigData& interfaces,
                         const sdbusplus::object_path& objectPath,
                         const std::string& interfaceName, std::string type,
@@ -100,6 +148,8 @@ static auto parseConfig(const ConfigData& interfaces,
                 std::chrono::seconds(std::get<uint64_t>(pollRateIter->second));
         }
 
+        auto rtuTimeout = parseRTUTimeout(configMap, name);
+
         return Config{
             .name = std::move(name),
             .type = std::move(type),
@@ -109,6 +159,7 @@ static auto parseConfig(const ConfigData& interfaces,
             .inventoryPath = {},
             .profile = profile,
             .pollRate = pollRate,
+            .rtuTimeout = rtuTimeout,
             .registerPollRates =
                 parseRegisterPollRates(interfaces, interfaceName),
         };
