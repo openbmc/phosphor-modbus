@@ -192,6 +192,12 @@ class ServerTester
 
     auto processRequests() -> void;
 
+    /** @brief Drop exactly the next response after processing its request. */
+    auto dropNextResponse() -> void
+    {
+        responsesToDrop.fetch_add(1);
+    }
+
     /** @brief Wake a blocked processRequests() so the server thread can exit
      *  promptly on teardown, instead of waiting out the select() timeout. */
     auto stop() -> void;
@@ -253,6 +259,7 @@ class ServerTester
 
     // eventfd used to interrupt select() in processRequests() on teardown.
     int stopFd = -1;
+    std::atomic<unsigned> responsesToDrop{0};
     uint32_t flakyRegisterRequestCount = 0;
     uint32_t flakyWriteRequestCount = 0;
     std::map<uint16_t, uint32_t> readCountByOffset;

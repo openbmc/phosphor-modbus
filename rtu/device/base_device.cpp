@@ -390,7 +390,7 @@ auto BaseDevice::pollBucket(PollBucket& bucket) -> sdbusplus::async::task<void>
         std::fill(spanBuffer.begin(), spanBuffer.end(), 0);
         auto ret = co_await serialPort.readHoldingRegisters(
             config.address, span.startOffset, config.profile.baudRate,
-            config.profile.parity, spanBuffer);
+            config.profile.parity, spanBuffer, {.timeout = config.rtuTimeout});
         if (ret == port::OperationStatus::busy)
         {
             handleSpanBusy(bucket, span);
