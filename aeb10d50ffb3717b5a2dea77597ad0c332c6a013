@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4e56a28_1c1583eb",
+        "filename": "rtu/modbus/modbus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-10-19T17:01:50Z",
+      "side": 1,
+      "message": "I don\u0027t think creating an fdio on every request is optimal. Please add a setTimeout API to fdio in sdbusplus and use that instead so just like other port properties (such as baudrate) this can also be change as needed.",
+      "revId": "aeb10d50ffb3717b5a2dea77597ad0c332c6a013",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
