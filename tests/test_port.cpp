@@ -216,7 +216,7 @@ TEST_F(PortTest, TestUpdateConfig)
     EXPECT_EQ(config.rtsDelay, properties.rts_delay);
 }
 
-TEST_F(PortTest, TestGetUSBPortConfigSucess)
+TEST_F(PortTest, TestGetUSBPortConfigSuccess)
 {
     using InventoryIntf =
         sdbusplus::client::xyz::openbmc_project::inventory::Item<>;

@@ -82,7 +82,7 @@ class ModbusCommandTest : public ::testing::Test
     }
 };
 
-TEST_F(ModbusCommandTest, TestReadHoldingRegistersRequestSucess)
+TEST_F(ModbusCommandTest, TestReadHoldingRegistersRequestSuccess)
 {
     constexpr size_t expectedLength = 8;
     constexpr uint8_t expectedAddress = 0x1;
@@ -106,7 +106,7 @@ TEST_F(ModbusCommandTest, TestReadHoldingRegistersRequestSucess)
     EXPECT_EQ(request.address, expectedAddress);
 }
 
-TEST_F(ModbusCommandTest, TestReadHoldingRegistersResponseSucess)
+TEST_F(ModbusCommandTest, TestReadHoldingRegistersResponseSuccess)
 {
     constexpr size_t expectedLength = 11;
     constexpr uint8_t expectedAddress = 0xa;
@@ -210,7 +210,7 @@ TEST_F(ModbusCommandTest, TestReadHoldingRegistersResponseBadByteCount)
         expectedMessage);
 }
 
-TEST_F(ModbusCommandTest, TestWriteMultipleRegistersRequestSucess)
+TEST_F(ModbusCommandTest, TestWriteMultipleRegistersRequestSuccess)
 {
     constexpr size_t expectedLength = 13;
     constexpr uint8_t expectedAddress = 0x1;
@@ -250,7 +250,7 @@ TEST_F(ModbusCommandTest, TestWriteMultipleRegistersRequestEmpty)
         std::underflow_error);
 }
 
-TEST_F(ModbusCommandTest, TestWriteMultipleRegistersResponseSucess)
+TEST_F(ModbusCommandTest, TestWriteMultipleRegistersResponseSuccess)
 {
     constexpr size_t expectedLength = 8;
     constexpr uint8_t expectedAddress = 0xa;
