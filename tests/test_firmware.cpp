@@ -3,6 +3,7 @@
 #include "port/base_port.hpp"
 #include "test_base.hpp"
 
+#include <xyz/openbmc_project/Association/Definitions/client.hpp>
 #include <xyz/openbmc_project/Software/Version/client.hpp>
 
 #include <gtest/gtest.h>
@@ -11,6 +12,8 @@ using namespace std::literals;
 using namespace testing;
 using SoftwareIntf =
     sdbusplus::client::xyz::openbmc_project::software::Version<>;
+using AssociationIntf =
+    sdbusplus::client::xyz::openbmc_project::association::Definitions<>;
 
 namespace ModbusIntf = phosphor::modbus::rtu;
 namespace ProfileIntf = phosphor::modbus::rtu::profile;
@@ -126,7 +129,24 @@ class FirmwareTest : public BaseTest
         EXPECT_EQ(properties.version, expectedVersion)
             << "Firmware version mismatch";
 
+        co_await testAssociation(softwarePath, baseConfig.inventoryPath);
+
         co_return;
+    }
+
+    auto testAssociation(std::string softwarePath, std::string inventoryPath)
+        -> sdbusplus::async::task<void>
+    {
+        auto properties = co_await AssociationIntf(ctx)
+                              .service(serviceName)
+                              .path(softwarePath)
+                              .properties();
+
+        using Association = std::tuple<std::string, std::string, std::string>;
+        std::vector<Association> expected = {
+            {"ran_on", "running", inventoryPath}};
+        EXPECT_EQ(properties.associations, expected)
+            << "Firmware association mismatch";
     }
 
     auto testMultipleFirmwareVersions(

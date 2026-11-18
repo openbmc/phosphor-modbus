@@ -113,7 +113,7 @@ auto DeviceFirmware::readVersionRegister(const FirmwareVersion& fwVersion)
         FirmwareIntf::Activation::Activations::Active);
     auto associationList =
         std::vector<std::tuple<std::string, std::string, std::string>>{
-            {"running", "ran_on", config.inventoryPath}};
+            {"ran_on", "running", config.inventoryPath}};
     fwVersion.firmwareVersion->associations(associationList);
 
     debug("Firmware version {VERSION} for {NAME} at {DEVICE_ADDRESS}",
