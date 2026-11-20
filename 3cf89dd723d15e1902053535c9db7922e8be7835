@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c9885cc_756e3eed",
+        "filename": "rtu/profiles/Artesyn7000552480000PowerSupplyUnit.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1001758
+      },
+      "writtenOn": "2026-11-20T01:28:35Z",
+      "side": 1,
+      "message": "@eldin.lee@quantatw.com Whats the right model for this which the PSU sends? This has been passing in all the HPRv2 setups until now and making this change will break all of them.",
+      "revId": "3cf89dd723d15e1902053535c9db7922e8be7835",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    }
+  ]
+}
