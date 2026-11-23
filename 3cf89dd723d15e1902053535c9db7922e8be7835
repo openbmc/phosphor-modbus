@@ -34,6 +34,24 @@
       "parentUuid": "0c9885cc_756e3eed",
       "revId": "3cf89dd723d15e1902053535c9db7922e8be7835",
       "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c1679da6_c53027b7",
+        "filename": "rtu/profiles/Artesyn7000552480000PowerSupplyUnit.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002520
+      },
+      "writtenOn": "2026-11-23T08:22:28Z",
+      "side": 1,
+      "message": "I double-checked with our power team, and they confirmed that the newer model name is correct.",
+      "parentUuid": "cbf17b1f_7b183ea7",
+      "revId": "3cf89dd723d15e1902053535c9db7922e8be7835",
+      "serverId": "adbd0a64-1f21-4d83-b585-671fe73cb6e4"
     }
   ]
 }
